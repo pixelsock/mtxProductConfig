@@ -1,0 +1,52 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    /* Node types */
+    "types": ["node", "vite/client"]
+  },
+  "include": [
+    "src/App.tsx",
+    "src/main.tsx",
+    "src/components/figma/**/*",
+    "src/services/**/*",
+    "src/styles/**/*",
+    "src/components/ui/button.tsx",
+    "src/components/ui/card.tsx",
+    "src/components/ui/input.tsx",
+    "src/components/ui/label.tsx",
+    "src/components/ui/separator.tsx",
+    "src/components/ui/badge.tsx",
+    "src/components/ui/skeleton.tsx",
+    "src/components/ui/alert.tsx",
+    "src/components/ui/switch.tsx",
+    "src/components/ui/utils.ts",
+    "trigger.config.ts"
+  ],
+  "exclude": ["node_modules", "dist", "vite.config.ts"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
