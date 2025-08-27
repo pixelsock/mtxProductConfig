@@ -601,7 +601,13 @@ const App: React.FC = () => {
           options: ProductOption[]
         ) => {
           const idList = ids[fieldKey];
-          if (!Array.isArray(idList) || idList.length === 0) return; // nothing to constrain
+          if (!Array.isArray(idList)) return;
+          // If there are zero valid IDs for this field, clear the selection to avoid stale/invalid values
+          if (idList.length === 0) {
+            const currentVal = (config as any)[configKey] as string | undefined;
+            if (currentVal) (updated as any)[configKey] = '';
+            return;
+          }
           const currentVal = (config as any)[configKey] as string | undefined;
           const currentNum = currentVal ? parseInt(currentVal, 10) : NaN;
           if (!currentVal || !idList.includes(currentNum)) {
