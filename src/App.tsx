@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "./components/ui/button";
 import { Card } from "./components/ui/card";
 import { Input } from "./components/ui/input";
@@ -23,6 +24,8 @@ import {
   ShoppingCart,
   Download,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   RotateCw,
   RotateCcw,
 } from "lucide-react";
@@ -48,7 +51,7 @@ import {
 import { processRules, evaluateRuleConditions, buildRuleConstraints, applyConstraintsToIds } from "./services/rules-engine";
 import { generateProductSKU } from "./services/sku-generator";
 import { findBestMatchingProduct } from "./services/product-matcher";
-import { selectProductImage } from "./services/image-selector";
+import { selectProductImage, constructDirectusAssetUrl } from "./services/image-selector";
 
 // Import API validation and test suite
 // Dev-only validators are noisy; omit in production build
@@ -147,6 +150,12 @@ const App: React.FC = () => {
 
   // Floating configuration bar state
   const [showFloatingBar, setShowFloatingBar] = useState(false);
+  // Lightbox / gallery state
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const thumbnailsRef = React.useRef<HTMLDivElement | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   // Initialize app on component mount
   useEffect(() => {
@@ -242,6 +251,74 @@ const App: React.FC = () => {
     
     updateProduct();
   }, [currentConfig, currentProductLine, productOptions]);
+
+  // Keyboard controls for lightbox
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsLightboxOpen(false);
+      if (e.key === 'ArrowRight') setLightboxIndex(prev => prev + 1);
+      if (e.key === 'ArrowLeft') setLightboxIndex(prev => Math.max(prev - 1, 0));
+    };
+    window.addEventListener('keydown', handler);
+    // Disable body scroll while lightbox is open
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handler);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isLightboxOpen]);
+
+  // Build thumbnail URLs from product images + additional_images
+  const getProductThumbnails = (product: DecoProduct | null): string[] => {
+    if (!product) return [];
+    const urls: string[] = [];
+    const pushUnique = (url?: string | null) => {
+      if (!url) return;
+      if (!urls.includes(url)) urls.push(url);
+    };
+    // Additional images only (exclude vertical/horizontal primary images)
+    if (Array.isArray(product.additional_images)) {
+      for (const item of product.additional_images) {
+        const file = (item as any)?.directus_files_id;
+        const id = typeof file === 'string' ? file : file?.id;
+        if (id) pushUnique(constructDirectusAssetUrl(id));
+      }
+    }
+    return urls;
+  };
+
+  // Update scroll button visibility
+  const updateThumbScrollState = () => {
+    const el = thumbnailsRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+  };
+  useEffect(() => {
+    const el = thumbnailsRef.current;
+    if (!el) return;
+    updateThumbScrollState();
+    const onScroll = () => updateThumbScrollState();
+    el.addEventListener('scroll', onScroll);
+    const onResize = () => updateThumbScrollState();
+    window.addEventListener('resize', onResize);
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [currentProduct]);
+
+  const scrollThumbs = (direction: 'left' | 'right') => {
+    const el = thumbnailsRef.current;
+    if (!el) return;
+    const amount = Math.max(200, Math.floor(el.clientWidth * 0.6));
+    el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
+    // Delay update slightly to account for smooth scrolling
+    setTimeout(updateThumbScrollState, 250);
+  };
 
   // Floating bar scroll detection
   useEffect(() => {
@@ -936,8 +1013,8 @@ const App: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-11 gap-16 mt-[0px] mr-[0px] mb-[80px] ml-[0px]">
           {/* Product Visualization - Sticky on Desktop */}
-          <div className="space-y-8 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto lg:col-span-5">
-            <div className="w-full aspect-square bg-gray-50 rounded-lg overflow-hidden">
+          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto lg:col-span-5">
+            <div className="relative w-full aspect-square bg-white rounded-xl border shadow-sm overflow-hidden">
               {(() => {
                 // Get mounting option for image selection
                 const mountingOption = productOptions?.mountingOptions?.find(
@@ -958,11 +1035,14 @@ const App: React.FC = () => {
                 
                 if (imageUrl) {
                   return (
-                    <img
-                      src={imageUrl}
-                      alt={generateProductName()}
-                      className="w-full h-full object-contain"
-                    />
+                    <>
+                      <img
+                        src={imageUrl}
+                        alt={generateProductName()}
+                        className="w-full h-full object-contain"
+                      />
+                      <div className="absolute inset-x-0 bottom-0 pointer-events-none bg-gradient-to-t from-white/60 to-transparent h-10"></div>
+                    </>
                   );
                 } else if (currentConfig) {
                   return (
@@ -980,6 +1060,115 @@ const App: React.FC = () => {
                 }
               })()}
             </div>
+
+            {/* Thumbnails */}
+            {currentProduct && (
+              <div className="w-full">
+                {(() => {
+                  const thumbs = getProductThumbnails(currentProduct);
+                  if (thumbs.length === 0) return null;
+                  return (
+                    <div className="relative flex items-center gap-3 w-full max-w-full min-w-0">
+                      {/* Left button */}
+                      <button
+                        type="button"
+                        aria-label="Scroll thumbnails left"
+                        onClick={() => scrollThumbs('left')}
+                        disabled={!canScrollLeft}
+                        className={`h-9 w-9 rounded-full border bg-white shadow flex items-center justify-center ${canScrollLeft ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+
+                      {/* Scroller with fades */}
+                      <div className="relative flex-1 min-w-0 max-w-full">
+                        <div ref={thumbnailsRef} className="overflow-x-auto no-scrollbar w-full">
+                          <div className="flex gap-2 items-center min-w-0 px-2 py-1">
+                            {thumbs.map((url, i) => {
+                              return (
+                                <button
+                                  key={url}
+                                  type="button"
+                                  onClick={() => { setIsLightboxOpen(true); setLightboxIndex(i); }}
+                                  className="shrink-0 w-20 h-20 rounded-lg bg-white border border-gray-200 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 overflow-hidden"
+                                  title="View image"
+                                >
+                                  <img src={url} alt="Thumbnail" className="w-full h-full object-cover" />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        {/* Edge fades to complement main image card */}
+                        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent"></div>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent"></div>
+                      </div>
+
+                      {/* Right button */}
+                      <button
+                        type="button"
+                        aria-label="Scroll thumbnails right"
+                        onClick={() => scrollThumbs('right')}
+                        disabled={!canScrollRight}
+                        className={`h-9 w-9 rounded-full border bg-white shadow flex items-center justify-center ${canScrollRight ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Lightbox / Carousel Modal */}
+            {isLightboxOpen && currentProduct && createPortal(
+              (() => {
+                const imgs = getProductThumbnails(currentProduct);
+                const count = imgs.length;
+                const safeIndex = ((lightboxIndex % count) + count) % count;
+                const currentUrl = imgs[safeIndex];
+                const goPrev = () => setLightboxIndex(i => i - 1);
+                const goNext = () => setLightboxIndex(i => i + 1);
+                return (
+                  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-3" role="dialog" aria-modal="true" onClick={() => setIsLightboxOpen(false)}>
+                    <button
+                      aria-label="Close gallery"
+                      className="absolute top-4 right-4 text-white/90 hover:text-white"
+                      onClick={(e) => { e.stopPropagation(); setIsLightboxOpen(false); }}
+                    >
+                      ✕
+                    </button>
+                    {count > 1 && (
+                      <button
+                        aria-label="Previous image"
+                        onClick={(e) => { e.stopPropagation(); goPrev(); }}
+                        className="absolute left-6 md:left-10 text-white/90 hover:text-white"
+                      >
+                        <ChevronLeft className="w-8 h-8" />
+                      </button>
+                    )}
+                    <div className="relative max-w-5xl w-[92vw] md:w-[90vw] max-h-[84vh] bg-black/20 rounded-xl overflow-hidden flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                      {/* Lightbox edge fades */}
+                      <div className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-black/40 to-transparent"></div>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-black/40 to-transparent"></div>
+                      {currentUrl && (
+                        <img src={currentUrl} alt="Gallery image" className="w-full h-full object-contain" />
+                      )}
+                    </div>
+                    {count > 1 && (
+                      <button
+                        aria-label="Next image"
+                        onClick={(e) => { e.stopPropagation(); goNext(); }}
+                        className="absolute right-6 md:right-10 text-white/90 hover:text-white"
+                      >
+                        <ChevronRight className="w-8 h-8" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })(),
+              document.body
+            )}
 
             {/* Current Product Info */}
             {currentProduct && (

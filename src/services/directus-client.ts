@@ -149,6 +149,16 @@ export interface DecoProduct {
   applicationImage?: string;
   vertical_image?: string;
   horizontal_image?: string;
+  // New: additional images (Directus files relation)
+  // Shape as returned by Directus 'files' interface on a M2M field
+  additional_images?: Array<{
+    directus_files_id?: {
+      id: string;
+      title?: string | null;
+      filename_disk?: string | null;
+      type?: string | null;
+    } | string;
+  }>;
   active?: boolean;
   product_line?: number;
   mirror_style?: number;

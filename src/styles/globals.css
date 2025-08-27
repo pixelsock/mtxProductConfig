@@ -168,3 +168,7 @@ html {
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide native scrollbars utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

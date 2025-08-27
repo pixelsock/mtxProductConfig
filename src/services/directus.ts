@@ -592,7 +592,18 @@ export async function getAllProducts(): Promise<DecoProduct[]> {
       while (true) {
         const page = await directusClient.request<any[]>(
           readItems('products' as any, {
-            fields: ['id','name','product_line','mirror_style','light_direction','vertical_image','horizontal_image','active'],
+            fields: [
+              'id',
+              'name',
+              'product_line',
+              'mirror_style',
+              'light_direction',
+              'vertical_image',
+              'horizontal_image',
+              // New: fetch additional images (only file IDs to keep payload lean)
+              'additional_images.directus_files_id.id',
+              'active'
+            ],
             limit,
             offset,
             sort: ['id']
