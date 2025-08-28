@@ -40,9 +40,15 @@ function evaluateDirectusFilter(filter: any, data: any): boolean {
     if (field.startsWith('_')) continue; // Skip operators we've already handled
     
     const fieldFilter = filter[field];
+    // Field aliasing to match app config keys
+    const aliasMap: Record<string, string> = {
+      mounting_option: 'mounting',
+      accessory: 'accessories'
+    };
+    const effectiveField = aliasMap[field] || field;
     
     // Handle nested field access with flattened fallback (e.g., product_line.sku_code → product_line_sku_code)
-    const fieldPath = field.split('.');
+    const fieldPath = effectiveField.split('.');
     let value = data;
     for (const pathPart of fieldPath) {
       value = value?.[pathPart];
@@ -67,21 +73,46 @@ function evaluateDirectusFilter(filter: any, data: any): boolean {
     if (typeof fieldFilter === 'object' && fieldFilter !== null) {
       // Handle comparison operators
       if (fieldFilter._eq !== undefined) {
-        const matches = compareValue == fieldFilter._eq; // Use == for type coercion
+        let matches = compareValue == fieldFilter._eq; // default
+        // Special: accessories array membership
+        if (effectiveField === 'accessories' && Array.isArray(value)) {
+          const target = parseInt(fieldFilter._eq as any, 10);
+          const arrNums = value.map((v: any) => typeof v === 'string' ? parseInt(v, 10) : v).filter((n: any) => Number.isFinite(n));
+          matches = arrNums.includes(target);
+        }
         console.log(`      _eq comparison: ${compareValue} == ${fieldFilter._eq} = ${matches}`);
         if (!matches) return false;
       }
       if (fieldFilter._neq !== undefined) {
-        const matches = compareValue != fieldFilter._neq;
+        let matches = compareValue != fieldFilter._neq;
+        if (effectiveField === 'accessories' && Array.isArray(value)) {
+          const target = parseInt(fieldFilter._neq as any, 10);
+          const arrNums = value.map((v: any) => typeof v === 'string' ? parseInt(v, 10) : v).filter((n: any) => Number.isFinite(n));
+          matches = !arrNums.includes(target);
+        }
         if (!matches) return false;
       }
       if (fieldFilter._in && Array.isArray(fieldFilter._in)) {
         const arr = fieldFilter._in;
-        if (!arr.some((v: any) => v == compareValue)) return false;
+        if (effectiveField === 'accessories' && Array.isArray(value)) {
+          const targets = arr.map((x: any) => parseInt(x, 10)).filter((n: any) => Number.isFinite(n));
+          const arrNums = value.map((v: any) => typeof v === 'string' ? parseInt(v, 10) : v).filter((n: any) => Number.isFinite(n));
+          const intersects = targets.some((t: number) => arrNums.includes(t));
+          if (!intersects) return false;
+        } else {
+          if (!arr.some((v: any) => v == compareValue)) return false;
+        }
       }
       if (fieldFilter._nin && Array.isArray(fieldFilter._nin)) {
         const arr = fieldFilter._nin;
-        if (arr.some((v: any) => v == compareValue)) return false;
+        if (effectiveField === 'accessories' && Array.isArray(value)) {
+          const targets = arr.map((x: any) => parseInt(x, 10)).filter((n: any) => Number.isFinite(n));
+          const arrNums = value.map((v: any) => typeof v === 'string' ? parseInt(v, 10) : v).filter((n: any) => Number.isFinite(n));
+          const intersects = targets.some((t: number) => arrNums.includes(t));
+          if (intersects) return false;
+        } else {
+          if (arr.some((v: any) => v == compareValue)) return false;
+        }
       }
       if (fieldFilter._gt !== undefined) {
         if (!(compareValue > fieldFilter._gt)) return false;

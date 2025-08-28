@@ -1,0 +1,122 @@
+{
+  "product_line": {
+    "type": "integer",
+    "label": "Product Line",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "product_lines",
+    "filter": { "active": { "_eq": true } },
+    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
+  },
+  "mirror_style": {
+    "type": "integer",
+    "label": "Mirror Style",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "mirror_styles",
+    "filter": { "active": { "_eq": true } },
+    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
+  },
+  "light_direction": {
+    "type": "integer",
+    "label": "Light Direction",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "light_directions",
+    "filter": { "active": { "_eq": true } },
+    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
+  },
+  "mounting_option": {
+    "type": "integer",
+    "label": "Orientation (Mounting Option)",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "mounting_options",
+    "filter": { "active": { "_eq": true } },
+    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
+  },
+  "frame_thickness": {
+    "type": "integer",
+    "label": "Frame Thickness",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "frame_thicknesses",
+    "filter": { "active": { "_eq": true } },
+    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
+  },
+  "frame_color": {
+    "type": "integer",
+    "label": "Frame Color",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "frame_colors",
+    "filter": { "active": { "_eq": true } },
+    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
+  },
+  "light_output": {
+    "type": "integer",
+    "label": "Light Output",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "light_outputs",
+    "filter": { "active": { "_eq": true } },
+    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
+  },
+  "color_temperature": {
+    "type": "integer",
+    "label": "Color Temperature",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "color_temperatures",
+    "filter": { "active": { "_eq": true } },
+    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
+  },
+  "driver": {
+    "type": "integer",
+    "label": "Driver",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "drivers",
+    "filter": { "active": { "_eq": true } },
+    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
+  },
+  "mirror_control": {
+    "type": "integer",
+    "label": "Mirror Control",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "mirror_controls",
+    "filter": { "active": { "_eq": true } },
+    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
+  },
+  "accessory": {
+    "type": "integer",
+    "label": "Accessory",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "accessories",
+    "filter": { "active": { "_eq": true } },
+    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
+  },
+  "size": {
+    "type": "integer",
+    "label": "Size",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "sizes",
+    "filter": { "active": { "_eq": true } },
+    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
+  }
+}

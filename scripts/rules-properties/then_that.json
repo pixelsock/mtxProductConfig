@@ -1,0 +1,148 @@
+{
+  "Product Line": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "product_lines",
+      "filter": { "active": { "_eq": true } }
+    },
+    "SKU Code": { "type": "string", "field": "sku_code" }
+  },
+  "Size": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "sizes",
+      "filter": { "active": { "_eq": true } }
+    },
+    "Width": { "type": "string", "field": "width" },
+    "Height": { "type": "string", "field": "height" },
+    "SKU Code": { "type": "string", "field": "sku_code" }
+  },
+  "Driver": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "drivers",
+      "filter": { "active": { "_eq": true } }
+    },
+    "SKU Code": { "type": "string", "field": "sku_code" }
+  },
+  "Frame Color": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "frame_colors",
+      "filter": { "active": { "_eq": true } }
+    },
+    "Hex Code": { "type": "string", "field": "hex_code" },
+    "SKU Code": { "type": "string", "field": "sku_code" }
+  },
+  "Frame Thickness": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "frame_thicknesses",
+      "filter": { "active": { "_eq": true } }
+    },
+    "SKU Code": { "type": "string", "field": "sku_code" }
+  },
+  "Mirror Style": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "mirror_styles",
+      "filter": { "active": { "_eq": true } }
+    },
+    "SKU Code": { "type": "string", "field": "sku_code" }
+  },
+  "Mirror Control": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "mirror_controls",
+      "filter": { "active": { "_eq": true } }
+    },
+    "SKU Code": { "type": "string", "field": "sku_code" }
+  },
+  "Light Output": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "light_outputs",
+      "filter": { "active": { "_eq": true } }
+    },
+    "SKU Code": { "type": "string", "field": "sku_code" }
+  },
+  "Light Direction": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "light_directions",
+      "filter": { "active": { "_eq": true } }
+    },
+    "SKU Code": { "type": "string", "field": "sku_code" }
+  },
+  "Color Temperature": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "color_temperatures",
+      "filter": { "active": { "_eq": true } }
+    },
+    "SKU Code": { "type": "string", "field": "sku_code" }
+  },
+  "Mounting Option": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "mounting_options",
+      "filter": { "active": { "_eq": true } }
+    },
+    "SKU Code": { "type": "string", "field": "sku_code" }
+  },
+  "Hanging Technique": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "hanging_techiques"
+    },
+    "SKU Code": { "type": "string", "field": "sku_code" }
+  },
+  "Accessory": {
+    "id": {
+      "type": "integer",
+      "field": "id",
+      "template": "{{name}}",
+      "interface": "select-dropdown-m2o",
+      "collection": "accessories",
+      "filter": { "active": { "_eq": true } }
+    },
+    "SKU Code": { "type": "string", "field": "sku_code" },
+    "Price": { "type": "decimal", "field": "price" }
+  }
+}
