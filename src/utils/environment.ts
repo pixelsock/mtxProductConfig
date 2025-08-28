@@ -68,16 +68,9 @@ export function getEnvironmentConfig(): EnvironmentConfig {
   const supabaseUrl = getSupabaseUrl();
   const supabaseAnonKey = getSupabaseAnonKey();
   const errors: string[] = [];
-
-  // Validate required environment variables
-  if (!supabaseUrl) {
-    errors.push('VITE_SUPABASE_URL is not configured');
-  } else if (!isValidUrl(supabaseUrl)) {
+  // Supabase is optional in this app; don't treat missing values as errors.
+  if (supabaseUrl && !isValidUrl(supabaseUrl)) {
     errors.push('VITE_SUPABASE_URL is not a valid URL');
-  }
-
-  if (!supabaseAnonKey) {
-    errors.push('VITE_SUPABASE_ANON_KEY is not configured');
   }
 
   // Determine environment

@@ -1,8 +1,6 @@
 // Image Selection System for Product Configuration
 import { 
   DecoProduct,
-  ConfigurationImage,
-  getAllConfigurationImages,
   MountingOption
 } from './directus';
 
@@ -125,79 +123,7 @@ export function constructDirectusAssetUrl(assetId: string): string {
  * @param configImages All configuration images
  * @returns Sorted array of applicable images
  */
-export async function processConfigurationImages(
-  config: any,
-  configImages?: ConfigurationImage[]
-): Promise<ConfigurationImage[]> {
-  try {
-    // Get all configuration images if not provided
-    const images = configImages || await getAllConfigurationImages();
-    
-    // Filter images based on rules
-    const applicableImages = images.filter(image => {
-      if (!image.image_rules) return true; // No rules means always show
-      return evaluateImageRules(image.image_rules, config);
-    });
-    
-    // Sort by z_index
-    return applicableImages.sort((a, b) => {
-      const zIndexA = typeof a.z_index === 'number' ? a.z_index : parseInt(a.z_index as string) || 0;
-      const zIndexB = typeof b.z_index === 'number' ? b.z_index : parseInt(b.z_index as string) || 0;
-      return zIndexA - zIndexB;
-    });
-  } catch (error) {
-    console.error('Failed to process configuration images:', error);
-    return [];
-  }
-}
-
-/**
- * Evaluates image rules against configuration
- * @param rules The image rules to evaluate
- * @param config The current configuration
- * @returns true if rules match
- */
-function evaluateImageRules(rules: any, config: any): boolean {
-  if (!rules || typeof rules !== 'object') return true;
-  
-  // Handle _and operator
-  if (rules._and && Array.isArray(rules._and)) {
-    return rules._and.every((rule: any) => evaluateImageRules(rule, config));
-  }
-  
-  // Handle _or operator
-  if (rules._or && Array.isArray(rules._or)) {
-    return rules._or.some((rule: any) => evaluateImageRules(rule, config));
-  }
-  
-  // Handle field comparisons
-  for (const field in rules) {
-    if (field.startsWith('_')) continue;
-    
-    const ruleValue = rules[field];
-    const configValue = config[field];
-    
-    // Handle nested comparisons
-    if (typeof ruleValue === 'object' && ruleValue !== null) {
-      if (ruleValue._eq !== undefined) {
-        if (configValue != ruleValue._eq) return false;
-      }
-      if (ruleValue._in && Array.isArray(ruleValue._in)) {
-        if (!ruleValue._in.includes(configValue)) return false;
-      }
-      if (ruleValue._contains !== undefined) {
-        if (typeof configValue !== 'string' || !configValue.includes(ruleValue._contains)) {
-          return false;
-        }
-      }
-    } else {
-      // Direct equality check
-      if (configValue != ruleValue) return false;
-    }
-  }
-  
-  return true;
-}
+// configuration_images support removed; images are sourced from product assets
 
 /**
  * Generates a composite product image name

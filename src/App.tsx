@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "./components/ui/button";
 import { Card } from "./components/ui/card";
 import { Input } from "./components/ui/input";
@@ -23,6 +24,8 @@ import {
   ShoppingCart,
   Download,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   RotateCw,
   RotateCcw,
 } from "lucide-react";
@@ -48,7 +51,7 @@ import {
 import { processRules, evaluateRuleConditions, buildRuleConstraints, applyConstraintsToIds } from "./services/rules-engine";
 import { generateProductSKU } from "./services/sku-generator";
 import { findBestMatchingProduct } from "./services/product-matcher";
-import { selectProductImage } from "./services/image-selector";
+import { selectProductImage, constructDirectusAssetUrl } from "./services/image-selector";
 
 // Import API validation and test suite
 // Dev-only validators are noisy; omit in production build
@@ -57,6 +60,10 @@ import { selectProductImage } from "./services/image-selector";
 import { ProductLineSelector } from "./components/ui/product-line-selector";
 import { CurrentConfiguration } from "./components/ui/current-configuration";
 import { EnvironmentIndicator } from "./components/ui/environment-indicator";
+import { SkuDisplay } from "./components/ui/sku-display";
+import { encodeSkuToQuery, queryToString, decodeQueryToSelection, buildSearchParam, parseSearchParam } from "./utils/sku-url";
+import { buildFullSku } from "./utils/sku-builder";
+import { SkuSearchHeader } from "./components/ui/sku-search-header";
 
 interface ProductConfig {
   id: string;
@@ -141,12 +148,20 @@ const App: React.FC = () => {
   });
 
   const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const [productsForLine, setProductsForLine] = useState<DecoProduct[]>([]);
+  const [allProducts, setAllProducts] = useState<DecoProduct[]>([]);
 
   // Custom size toggle state
   const [useCustomSize, setUseCustomSize] = useState(false);
 
   // Floating configuration bar state
   const [showFloatingBar, setShowFloatingBar] = useState(false);
+  // Lightbox / gallery state
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const thumbnailsRef = React.useRef<HTMLDivElement | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   // Initialize app on component mount
   useEffect(() => {
@@ -186,7 +201,10 @@ const App: React.FC = () => {
           mirror_control: parseInt(currentConfig.mirrorControls),
           frame_color: parseInt(currentConfig.frameColor),
           mounting: parseInt(currentConfig.mounting),
-          driver: currentConfig.driver ? parseInt(currentConfig.driver) : undefined
+          driver: currentConfig.driver ? parseInt(currentConfig.driver) : undefined,
+          accessories: Array.isArray(currentConfig.accessories)
+            ? currentConfig.accessories.map((a) => parseInt(a, 10)).filter(n => Number.isFinite(n))
+            : []
         };
         
         // Process rules to get any overrides
@@ -243,6 +261,88 @@ const App: React.FC = () => {
     updateProduct();
   }, [currentConfig, currentProductLine, productOptions]);
 
+  // Keyboard controls for lightbox
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsLightboxOpen(false);
+      if (e.key === 'ArrowRight') setLightboxIndex(prev => prev + 1);
+      if (e.key === 'ArrowLeft') setLightboxIndex(prev => Math.max(prev - 1, 0));
+    };
+    window.addEventListener('keydown', handler);
+    // Disable body scroll while lightbox is open
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handler);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isLightboxOpen]);
+
+  // Build thumbnail URLs from product images + additional_images
+  const getProductThumbnails = (product: DecoProduct | null): string[] => {
+    if (!product) return [];
+    const urls: string[] = [];
+    const pushUnique = (url?: string | null) => {
+      if (!url) return;
+      if (!urls.includes(url)) urls.push(url);
+    };
+    // Additional images only (exclude vertical/horizontal primary images)
+    if (Array.isArray(product.additional_images)) {
+      for (const item of product.additional_images) {
+        const file = (item as any)?.directus_files_id;
+        const id = typeof file === 'string' ? file : file?.id;
+        if (id) pushUnique(constructDirectusAssetUrl(id));
+      }
+    }
+    return urls;
+  };
+
+  // Update scroll button visibility
+  const updateThumbScrollState = () => {
+    const el = thumbnailsRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+  };
+  useEffect(() => {
+    const el = thumbnailsRef.current;
+    if (!el) return;
+    updateThumbScrollState();
+    const onScroll = () => updateThumbScrollState();
+    el.addEventListener('scroll', onScroll);
+    const onResize = () => updateThumbScrollState();
+    window.addEventListener('resize', onResize);
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [currentProduct]);
+
+  // Reload options when product changes if it has options_overrides
+  useEffect(() => {
+    const reloadOptionsForProduct = async () => {
+      if (currentProduct?.options_overrides?.length && currentProductLine) {
+        if (import.meta.env.DEV) {
+          console.log(`🔄 Product ${currentProduct.name} has overrides, reloading filtered options...`);
+        }
+        await loadProductLineOptions(currentProductLine, currentProduct);
+      }
+    };
+
+    reloadOptionsForProduct();
+  }, [currentProduct?.id]); // Only trigger when product ID changes
+
+  const scrollThumbs = (direction: 'left' | 'right') => {
+    const el = thumbnailsRef.current;
+    if (!el) return;
+    const amount = Math.max(200, Math.floor(el.clientWidth * 0.6));
+    el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
+    // Delay update slightly to account for smooth scrolling
+    setTimeout(updateThumbScrollState, 250);
+  };
+
   // Floating bar scroll detection
   useEffect(() => {
     const handleScroll = () => {
@@ -271,20 +371,44 @@ const App: React.FC = () => {
       // Initialize Directus service first
       await initializeDirectusService();
 
+      // Preload all products for cross-line search
+      let productsCache: DecoProduct[] = [];
+      try {
+        const products = await getAllProducts();
+        productsCache = products;
+        setAllProducts(products);
+      } catch (e) {
+        if (import.meta.env.DEV) console.warn('Failed to preload all products:', e);
+        setAllProducts([]);
+      }
+
       // Load all product lines
       const productLines = await getActiveProductLines();
       setAvailableProductLines(productLines);
 
-      // Get first product line as default, or look for one named "Deco" if available
-      let defaultProductLine = productLines[0];
-      
-      // Try to find a product line named "Deco" (case-insensitive)
-      const decoProductLine = productLines.find(pl => 
-        pl.name.toLowerCase().includes('deco')
-      );
-      
-      if (decoProductLine) {
-        defaultProductLine = decoProductLine;
+      // Choose default product line...
+      const usp0 = new URLSearchParams(window.location.search);
+      const searchSku0 = usp0.get('search');
+      let defaultProductLine: ProductLine | null = null;
+      if (searchSku0) {
+        const parsed = parseSearchParam(searchSku0, (productsCache as any), productLines, {} as any);
+        if (parsed && parsed.productLine) defaultProductLine = parsed.productLine;
+      }
+      if (!defaultProductLine) {
+        // 1) If URL has ?pl= code, prefer that
+        const urlPl = usp0.get('pl');
+        defaultProductLine = (urlPl
+          ? productLines.find(pl => (pl.sku_code || '').toUpperCase() === urlPl.toUpperCase())
+          : undefined) || null;
+      }
+      if (!defaultProductLine) {
+        // 2) Else prefer one named "Deco" (case-insensitive)
+        const decoProductLine = productLines.find(pl => pl.name.toLowerCase().includes('deco'));
+        if (decoProductLine) defaultProductLine = decoProductLine;
+      }
+      if (!defaultProductLine) {
+        // 3) Fallback to first
+        defaultProductLine = productLines[0];
       }
       
       if (!defaultProductLine) {
@@ -300,7 +424,10 @@ const App: React.FC = () => {
       setCurrentProductLine(productLineWithOptions);
 
       // Load filtered options for the default product line
-      await loadProductLineOptions(productLineWithOptions);
+      await loadProductLineOptions(productLineWithOptions, undefined);
+
+      // Ensure rules are fetched and cached BEFORE first render to avoid SKU flicker
+      await getRules();
 
     } catch (err) {
       console.error("Failed to load product data:", err);
@@ -310,13 +437,18 @@ const App: React.FC = () => {
     }
   };
 
-  // Load options for a specific product line
-  const loadProductLineOptions = async (productLine: ProductLine) => {
+  // Load options for a specific product line with optional product overrides
+  const loadProductLineOptions = async (productLine: ProductLine, product?: DecoProduct) => {
     try {
-      if (import.meta.env.DEV) console.log(`🔄 Loading options for ${productLine.name}...`);
+      if (import.meta.env.DEV) {
+        console.log(`🔄 Loading options for ${productLine.name}...`);
+        if (product?.options_overrides?.length) {
+          console.log(`🎯 Using product-specific overrides for ${product.name}`);
+        }
+      }
 
-      // Get filtered options for this product line
-      const filteredOptions = await getFilteredOptionsForProductLine(productLine);
+      // Get filtered options for this product line with hybrid product overrides
+      const filteredOptions = await getFilteredOptionsForProductLine(productLine, product || currentProduct || undefined);
 
       const options: ProductOptions = {
         mirrorControls: filteredOptions.mirrorControls.map(item => ({
@@ -404,37 +536,70 @@ const App: React.FC = () => {
 
       setProductOptions(options);
 
-      // Initialize current configuration with first available options and default size
-      const defaultSize = options.sizes[0]; // First size preset
-
-      // Only set configuration if we have at least some options available
-      if (options.mirrorControls.length > 0 || options.frameColors.length > 0 || options.sizes.length > 0) {
-        const initialConfig: ProductConfig = {
-          id: `config-${Date.now()}`,
-          productLineId: productLine.id,
-          productLineName: productLine.name,
-          mirrorControls: options.mirrorControls[0]?.id.toString() || "",
-          frameColor: options.frameColors[0]?.id.toString() || "",
-          frameThickness: options.frameThickness[0]?.id.toString() || "",
-          mirrorStyle: options.mirrorStyles[0]?.id.toString() || "",
-          width: defaultSize?.width?.toString() || "24",
-          height: defaultSize?.height?.toString() || "36",
-          mounting: options.mountingOptions[0]?.id.toString() || "",
-          lighting: options.lightingOptions[0]?.id.toString() || "",
-          colorTemperature: options.colorTemperatures[0]?.id.toString() || "",
-          lightOutput: options.lightOutputs[0]?.id.toString() || "",
-          driver: options.drivers[0]?.id.toString() || "",
-          accessories: [],
-          quantity: 1,
-        };
-        setCurrentConfig(initialConfig);
-
-        // Compute initial availability based on defaults using freshly loaded options
-        await computeAvailableOptions(productLine.id, initialConfig, options);
-      } else {
-        console.log(`⚠️ No options available for ${productLine.name}, configuration not initialized`);
-        setCurrentConfig(null);
+      // Preload products for this product line to power product-driven search
+      try {
+        const allProducts = await getAllProducts();
+        const forLine = allProducts.filter(p => p.product_line === productLine.id && p.active !== false);
+        setProductsForLine(forLine);
+      } catch (e) {
+        if (import.meta.env.DEV) console.warn('Failed to preload products for search:', e);
+        setProductsForLine([]);
       }
+
+      // Initialize current configuration (prefer ?search=SKU, fallback to legacy qs)
+      const uspInit = new URLSearchParams(window.location.search);
+      const searchSkuInit = uspInit.get('search');
+      const defaultSize = options.sizes[0];
+      const fromUrl = decodeQueryToSelection(window.location.search, options);
+      let initialConfig: ProductConfig = {
+        id: `config-${Date.now()}`,
+        productLineId: productLine.id,
+        productLineName: productLine.name,
+        mirrorControls: options.mirrorControls[0]?.id.toString() || "",
+        frameColor: fromUrl.frameColor || options.frameColors[0]?.id.toString() || "",
+        frameThickness: options.frameThickness[0]?.id.toString() || "",
+        mirrorStyle: fromUrl.mirrorStyle || options.mirrorStyles[0]?.id.toString() || "",
+        width: defaultSize?.width?.toString() || "24",
+        height: defaultSize?.height?.toString() || "36",
+        mounting: fromUrl.mounting || options.mountingOptions[0]?.id.toString() || "",
+        lighting: fromUrl.lighting || options.lightingOptions[0]?.id.toString() || "",
+        colorTemperature: fromUrl.colorTemperature || options.colorTemperatures[0]?.id.toString() || "",
+        lightOutput: fromUrl.lightOutput || options.lightOutputs[0]?.id.toString() || "",
+        driver: fromUrl.driver || options.drivers[0]?.id.toString() || "",
+        accessories: fromUrl.accessories || [],
+        quantity: 1,
+      } as ProductConfig;
+
+      if (searchSkuInit) {
+        // Parse using current product line code and freshly loaded options
+        const { parsePartialSkuToQuery, queryToString, decodeQueryToSelection } = await import('./utils/sku-url');
+        const q = parsePartialSkuToQuery(searchSkuInit, productLine.sku_code, options as any);
+        if (q) {
+          const sel = decodeQueryToSelection(queryToString(q), options as any);
+          initialConfig = {
+            ...initialConfig,
+            mirrorStyle: sel.mirrorStyle || initialConfig.mirrorStyle,
+            lighting: sel.lighting || initialConfig.lighting,
+            driver: sel.driver || initialConfig.driver,
+            frameColor: sel.frameColor || initialConfig.frameColor,
+            mounting: sel.mounting || initialConfig.mounting,
+            lightOutput: sel.lightOutput || initialConfig.lightOutput,
+            colorTemperature: sel.colorTemperature || initialConfig.colorTemperature,
+            accessories: sel.accessories || initialConfig.accessories,
+            width: (sel as any).width || initialConfig.width,
+            height: (sel as any).height || initialConfig.height,
+          };
+        }
+      }
+      setCurrentConfig(initialConfig);
+      await computeAvailableOptions(productLine.id, initialConfig, options);
+
+      // Normalize URL to simplified search param on initial load
+      try {
+        const overrides = await computeRuleOverrides(initialConfig as any);
+        const fullSkuInit = buildFullSku(initialConfig as any, options as any, productLine, overrides).sku;
+        window.history.replaceState({}, '', `${window.location.pathname}?search=${encodeURIComponent(fullSkuInit)}`);
+      } catch {}
 
       if (import.meta.env.DEV) {
         console.log("✓ Real product data loaded successfully");
@@ -479,7 +644,7 @@ const App: React.FC = () => {
       // Update current product line first to align IDs for downstream effects
       setCurrentProductLine(productLineWithOptions);
       // Then load filtered options for the new product line
-      await loadProductLineOptions(productLineWithOptions);
+      await loadProductLineOptions(productLineWithOptions, currentProduct || undefined);
 
       console.log(`✅ Successfully switched to ${newProductLine.name}`);
     } catch (error) {
@@ -506,6 +671,54 @@ const App: React.FC = () => {
     if (currentProductLine) {
       await computeAvailableOptions(currentProductLine.id, newConfig);
     }
+
+    // Update URL query with simplified search SKU (rule-aware)
+    try {
+      if (productOptions && currentProductLine) {
+        const overrides = await computeRuleOverrides(newConfig as any);
+        const fullSku = buildFullSku(newConfig as any, productOptions as any, currentProductLine, overrides).sku;
+        const qs = `?search=${encodeURIComponent(fullSku)}`;
+        window.history.replaceState({}, '', `${window.location.pathname}${qs}`);
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  // Helper: compute per-segment code overrides from rules
+  const computeRuleOverrides = async (cfg: any) => {
+    try {
+      const processed = await processRules({
+        product_line: cfg.productLineId,
+        mirror_style: parseInt(cfg.mirrorStyle || '0', 10) || undefined,
+        light_direction: parseInt(cfg.lighting || '0', 10) || undefined,
+        frame_thickness: parseInt(cfg.frameThickness || '0', 10) || undefined,
+        mirror_control: parseInt(cfg.mirrorControls || '0', 10) || undefined,
+        frame_color: parseInt(cfg.frameColor || '0', 10) || undefined,
+        mounting: parseInt(cfg.mounting || '0', 10) || undefined,
+        driver: parseInt(cfg.driver || '0', 10) || undefined,
+        light_output: parseInt(cfg.lightOutput || '0', 10) || undefined,
+        color_temperature: parseInt(cfg.colorTemperature || '0', 10) || undefined,
+        accessories: Array.isArray(cfg.accessories) ? cfg.accessories.map((a: string) => parseInt(a, 10)).filter((n: number) => Number.isFinite(n)) : [],
+      });
+      return {
+        productLineSkuOverride: (processed as any).product_line_sku_code || undefined,
+        accessoriesOverride: (processed as any).accessories_sku_code || (processed as any).accessory_sku_code || undefined,
+        accessoryFallback: (processed as any).accessory_sku_code || (processed as any).accessories_sku_code || undefined,
+        // core
+        mirrorStyleSkuOverride: (processed as any).mirror_style_sku_code || undefined,
+        lightDirectionSkuOverride: (processed as any).light_direction_sku_code || undefined,
+        // segments
+        sizeSkuOverride: (processed as any).size_sku_code || undefined,
+        lightOutputSkuOverride: (processed as any).light_output_sku_code || undefined,
+        colorTemperatureSkuOverride: (processed as any).color_temperature_sku_code || undefined,
+        driverSkuOverride: (processed as any).driver_sku_code || undefined,
+        mountingSkuOverride: (processed as any).mounting_option_sku_code || (processed as any).mounting_sku_code || undefined,
+        frameColorSkuOverride: (processed as any).frame_color_sku_code || undefined,
+      } as const;
+    } catch {
+      return undefined;
+    }
   };
 
   // Compute generic available options (IDs per product field) from Products
@@ -529,6 +742,9 @@ const App: React.FC = () => {
         driver: parseInt(config.driver || '0', 10) || undefined,
         light_output: parseInt(config.lightOutput || '0', 10) || undefined,
         color_temperature: parseInt(config.colorTemperature || '0', 10) || undefined,
+        accessories: Array.isArray(config.accessories)
+          ? config.accessories.map((a) => parseInt(a, 10)).filter(n => Number.isFinite(n))
+          : [],
         // flattened keys for nested rule comparisons like product_line.sku_code, mirror_style.sku_code
         product_line_sku_code: currentProductLine?.sku_code,
         mirror_style_sku_code: selectedMirrorStyle?.sku_code,
@@ -568,6 +784,8 @@ const App: React.FC = () => {
               return (opts?.mirrorStyles || []).map(o => o.id);
             case 'light_direction':
               return (opts?.lightingOptions || []).map(o => o.id);
+            case 'size':
+              return (opts?.sizes || []).map(o => o.id);
             case 'frame_thickness':
               return (opts?.frameThickness || []).map(o => o.id);
             case 'frame_color':
@@ -601,7 +819,13 @@ const App: React.FC = () => {
           options: ProductOption[]
         ) => {
           const idList = ids[fieldKey];
-          if (!Array.isArray(idList) || idList.length === 0) return; // nothing to constrain
+          if (!Array.isArray(idList)) return;
+          // If there are zero valid IDs for this field, clear the selection to avoid stale/invalid values
+          if (idList.length === 0) {
+            const currentVal = (config as any)[configKey] as string | undefined;
+            if (currentVal) (updated as any)[configKey] = '';
+            return;
+          }
           const currentVal = (config as any)[configKey] as string | undefined;
           const currentNum = currentVal ? parseInt(currentVal, 10) : NaN;
           if (!currentVal || !idList.includes(currentNum)) {
@@ -898,7 +1122,93 @@ const App: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4 w-full max-w-xl">
+              {currentConfig && productOptions && currentProductLine && (
+                <SkuSearchHeader
+                  className="flex-1"
+                  productLine={currentProductLine}
+                  options={productOptions as any}
+                  config={currentConfig as any}
+                  computeOverrides={computeRuleOverrides as any}
+                  products={(allProducts.length ? allProducts : productsForLine).map(p => ({ id: p.id, name: p.name }))}
+                  availableIds={availableOptionIds}
+                  initialValue={new URLSearchParams(window.location.search).get('search') || ''}
+                  onApply={async (sku) => {
+                    const raw = sku.trim().toUpperCase();
+                    const core = raw.split('-')[0] || raw;
+                    // Prefer exact/unique product core match across ALL products
+                    const pool = allProducts.length ? allProducts : productsForLine;
+                    let matched = pool.filter(p => (p.name || '').toUpperCase().startsWith(core));
+                    let picked = matched.find(p => (p.name || '').toUpperCase() === core) || (matched.length === 1 ? matched[0] : undefined);
+
+                    // Parse dashed segments into selection codes
+                    const { parsePartialSkuToQuery, queryToString, decodeQueryToSelection } = await import('./utils/sku-url');
+                    const q = parsePartialSkuToQuery(raw, (currentProductLine!.sku_code), productOptions as any);
+                    let partial = q ? decodeQueryToSelection(queryToString(q), productOptions as any) : ({} as any);
+
+                    if (picked) {
+                      const targetPL = availableProductLines.find(pl => pl.id === picked.product_line);
+                      if (targetPL && targetPL.id !== currentProductLine!.id) {
+                        await handleProductLineChange(targetPL);
+                        // Parse using the target product line code and the (now) current options
+                        const { parsePartialSkuToQuery, queryToString, decodeQueryToSelection } = await import('./utils/sku-url');
+                        const latestOpts = productOptions as any;
+                        const q2 = parsePartialSkuToQuery(raw, targetPL.sku_code, latestOpts);
+                        let partial2 = q2 ? decodeQueryToSelection(queryToString(q2), latestOpts) : ({} as any);
+                        // Apply core from picked product
+                        partial2.mirrorStyle = picked.mirror_style?.toString() || partial2.mirrorStyle;
+                        partial2.lighting = picked.light_direction?.toString() || partial2.lighting;
+
+                        setCurrentConfig(prev => prev ? ({ ...prev,
+                          productLineId: targetPL.id,
+                          productLineName: targetPL.name,
+                          mirrorStyle: partial2.mirrorStyle || prev.mirrorStyle,
+                          lighting: partial2.lighting || prev.lighting,
+                          driver: partial2.driver || prev.driver,
+                          frameColor: partial2.frameColor || prev.frameColor,
+                          mounting: partial2.mounting || prev.mounting,
+                          lightOutput: partial2.lightOutput || prev.lightOutput,
+                          colorTemperature: partial2.colorTemperature || prev.colorTemperature,
+                          accessories: partial2.accessories || prev.accessories,
+                          width: (partial2 as any).width || prev.width,
+                          height: (partial2 as any).height || prev.height
+                        }) : prev);
+
+                        const cfg2 = { ...(currentConfig as any), ...partial2, productLineId: targetPL.id };
+                        await computeAvailableOptions(targetPL.id, cfg2);
+                        const overrides2 = await computeRuleOverrides(cfg2 as any);
+                        const fullSku2 = buildFullSku(cfg2 as any, latestOpts, targetPL, overrides2).sku;
+                        window.history.replaceState({}, '', `${window.location.pathname}?search=${encodeURIComponent(fullSku2)}`);
+                        return;
+                      }
+                      // Same line: apply core from product now
+                      partial.mirrorStyle = picked.mirror_style?.toString() || partial.mirrorStyle;
+                      partial.lighting = picked.light_direction?.toString() || partial.lighting;
+                    }
+
+                    // Apply selections on current line, recompute availability, update URL
+                    setCurrentConfig(prev => prev ? ({ ...prev,
+                      productLineId: currentProductLine!.id,
+                      productLineName: currentProductLine!.name,
+                      mirrorStyle: partial.mirrorStyle || prev.mirrorStyle,
+                      lighting: partial.lighting || prev.lighting,
+                      driver: partial.driver || prev.driver,
+                      frameColor: partial.frameColor || prev.frameColor,
+                      mounting: partial.mounting || prev.mounting,
+                      lightOutput: partial.lightOutput || prev.lightOutput,
+                      colorTemperature: partial.colorTemperature || prev.colorTemperature,
+                      accessories: partial.accessories || prev.accessories,
+                      width: (partial as any).width || prev.width,
+                      height: (partial as any).height || prev.height
+                    }) : prev);
+                    const cfg = { ...(currentConfig as any), ...partial, productLineId: currentProductLine!.id };
+                    await computeAvailableOptions(currentProductLine!.id, cfg);
+                    const overrides = await computeRuleOverrides(cfg as any);
+                    const fullSku = buildFullSku(cfg as any, (productOptions as any), currentProductLine!, overrides).sku;
+                    window.history.replaceState({}, '', `${window.location.pathname}?search=${encodeURIComponent(fullSku)}`);
+                  }}
+                />
+              )}
               <Button
                 onClick={() => setShowQuoteForm(true)}
                 disabled={quoteItems.length === 0}
@@ -930,8 +1240,8 @@ const App: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-11 gap-16 mt-[0px] mr-[0px] mb-[80px] ml-[0px]">
           {/* Product Visualization - Sticky on Desktop */}
-          <div className="space-y-8 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto lg:col-span-5">
-            <div className="w-full aspect-square bg-gray-50 rounded-lg overflow-hidden">
+          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto lg:col-span-5">
+            <div className="relative w-full aspect-square bg-white rounded-xl border shadow-sm overflow-hidden">
               {(() => {
                 // Get mounting option for image selection
                 const mountingOption = productOptions?.mountingOptions?.find(
@@ -952,11 +1262,14 @@ const App: React.FC = () => {
                 
                 if (imageUrl) {
                   return (
-                    <img
-                      src={imageUrl}
-                      alt={generateProductName()}
-                      className="w-full h-full object-contain"
-                    />
+                    <>
+                      <img
+                        src={imageUrl}
+                        alt={generateProductName()}
+                        className="w-full h-full object-contain"
+                      />
+                      <div className="absolute inset-x-0 bottom-0 pointer-events-none bg-gradient-to-t from-white/60 to-transparent h-10"></div>
+                    </>
                   );
                 } else if (currentConfig) {
                   return (
@@ -975,35 +1288,119 @@ const App: React.FC = () => {
               })()}
             </div>
 
-            {/* Current Product Info */}
+            {/* Thumbnails */}
             {currentProduct && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-1">Current Product</p>
-                  <p className="font-medium text-gray-900">{generateProductName()}</p>
-                  <p className="text-xs text-gray-500 mt-1">SKU: {currentProduct.name}</p>
-                  {(() => {
-                    const mountingOption = productOptions?.mountingOptions?.find(
-                      (mo: ProductOption) => mo.id.toString() === currentConfig?.mounting
-                    ) as MountingOption | undefined;
-                    const imageSelection = selectProductImage(currentProduct, mountingOption);
-                    
-                    return (
-                      <>
-                        {imageSelection.primaryImage && (
-                          <p className="text-xs text-green-600 mt-1">
-                            ✓ {imageSelection.orientation} image loaded ({imageSelection.source})
-                          </p>
-                        )}
-                        {!imageSelection.primaryImage && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            No image available
-                          </p>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
+              <div className="w-full">
+                {(() => {
+                  const thumbs = getProductThumbnails(currentProduct);
+                  if (thumbs.length === 0) return null;
+                  return (
+                    <div className="relative flex items-center gap-3 w-full max-w-full min-w-0">
+                      {/* Left button */}
+                      <button
+                        type="button"
+                        aria-label="Scroll thumbnails left"
+                        onClick={() => scrollThumbs('left')}
+                        disabled={!canScrollLeft}
+                        className={`h-9 w-9 rounded-full border bg-white shadow flex items-center justify-center ${canScrollLeft ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+
+                      {/* Scroller with fades */}
+                      <div className="relative flex-1 min-w-0 max-w-full">
+                        <div ref={thumbnailsRef} className="overflow-x-auto no-scrollbar w-full">
+                          <div className="flex gap-2 items-center min-w-0 px-2 py-1">
+                            {thumbs.map((url, i) => {
+                              return (
+                                <button
+                                  key={url}
+                                  type="button"
+                                  onClick={() => { setIsLightboxOpen(true); setLightboxIndex(i); }}
+                                  className="shrink-0 w-20 h-20 rounded-lg bg-white border border-gray-200 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 overflow-hidden"
+                                  title="View image"
+                                >
+                                  <img src={url} alt="Thumbnail" className="w-full h-full object-cover" />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        {/* Edge fades to complement main image card */}
+                        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent"></div>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent"></div>
+                      </div>
+
+                      {/* Right button */}
+                      <button
+                        type="button"
+                        aria-label="Scroll thumbnails right"
+                        onClick={() => scrollThumbs('right')}
+                        disabled={!canScrollRight}
+                        className={`h-9 w-9 rounded-full border bg-white shadow flex items-center justify-center ${canScrollRight ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Lightbox / Carousel Modal */}
+            {isLightboxOpen && currentProduct && createPortal(
+              (() => {
+                const imgs = getProductThumbnails(currentProduct);
+                const count = imgs.length;
+                const safeIndex = ((lightboxIndex % count) + count) % count;
+                const currentUrl = imgs[safeIndex];
+                const goPrev = () => setLightboxIndex(i => i - 1);
+                const goNext = () => setLightboxIndex(i => i + 1);
+                return (
+                  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-3" role="dialog" aria-modal="true" onClick={() => setIsLightboxOpen(false)}>
+                    <button
+                      aria-label="Close gallery"
+                      className="absolute top-4 right-4 text-white/90 hover:text-white"
+                      onClick={(e) => { e.stopPropagation(); setIsLightboxOpen(false); }}
+                    >
+                      ✕
+                    </button>
+                    {count > 1 && (
+                      <button
+                        aria-label="Previous image"
+                        onClick={(e) => { e.stopPropagation(); goPrev(); }}
+                        className="absolute left-6 md:left-10 text-white/90 hover:text-white"
+                      >
+                        <ChevronLeft className="w-8 h-8" />
+                      </button>
+                    )}
+                    <div className="relative max-w-5xl w-[92vw] md:w-[90vw] max-h-[84vh] bg-black/20 rounded-xl overflow-hidden flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                      {/* Lightbox edge fades */}
+                      <div className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-black/40 to-transparent"></div>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-black/40 to-transparent"></div>
+                      {currentUrl && (
+                        <img src={currentUrl} alt="Gallery image" className="w-full h-full object-contain" />
+                      )}
+                    </div>
+                    {count > 1 && (
+                      <button
+                        aria-label="Next image"
+                        onClick={(e) => { e.stopPropagation(); goNext(); }}
+                        className="absolute right-6 md:right-10 text-white/90 hover:text-white"
+                      >
+                        <ChevronRight className="w-8 h-8" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })(),
+              document.body
+            )}
+
+            {/* Current Selection SKU (replaces raw product SKU) */}
+            {currentConfig && productOptions && currentProductLine && (
+              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                <SkuDisplay config={currentConfig as any} options={productOptions as any} productLine={currentProductLine} />
               </div>
             )}
 

@@ -98,6 +98,56 @@ export function CurrentConfiguration({
     return options && options.length > 0;
   };
 
+  // Rule-aware combined accessories label + SKU
+  const [accessoriesSku, setAccessoriesSku] = React.useState<string>("");
+  const [accessoriesLabel, setAccessoriesLabel] = React.useState<string>("");
+  React.useEffect(() => {
+    const selected = (config.accessories || [])
+      .map(id => productOptions.accessoryOptions.find(a => a.id.toString() === id))
+      .filter(Boolean) as ProductOption[];
+    const names = selected.map(a => a.name).filter(Boolean) as string[];
+    const codes = selected.map(a => a.sku_code).filter(Boolean) as string[];
+
+    const baseLabel = names.length > 0 ? names.join(" + ") : "";
+    const baseSku = codes.length > 0 ? codes.join("+") : "";
+
+    // Build a minimal numeric rules context
+    const toNum = (v?: string) => (v ? parseInt(v, 10) : undefined);
+    const rulesContext: any = {
+      product_line: config.productLineId,
+      mirror_style: toNum(config.mirrorStyle),
+      light_direction: toNum(config.lighting),
+      frame_thickness: toNum(config.frameThickness),
+      mirror_control: toNum(config.mirrorControls),
+      frame_color: toNum(config.frameColor),
+      mounting: toNum(config.mounting),
+      driver: toNum(config.driver),
+      accessories: (config.accessories || []).map(a => parseInt(a, 10)).filter(n => Number.isFinite(n)),
+    };
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const { processRules } = await import("../../services/rules-engine");
+        const processed = await processRules(rulesContext);
+        const override = (processed as any).accessories_sku_code || (processed as any).accessory_sku_code;
+        const fallback = (processed as any).accessory_sku_code || (processed as any).accessories_sku_code;
+        const finalSku = override || (baseSku || undefined) || fallback || "";
+        const finalLabel = names.length > 0 ? baseLabel : (fallback ? "None" : "");
+        if (!cancelled) {
+          setAccessoriesSku(finalSku);
+          setAccessoriesLabel(finalLabel);
+        }
+      } catch {
+        if (!cancelled) {
+          setAccessoriesSku(baseSku);
+          setAccessoriesLabel(baseLabel);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [config, productOptions.accessoryOptions]);
+
   return (
     <Card className={cn("w-full", className)}>
       <CardHeader>
@@ -265,24 +315,21 @@ export function CurrentConfiguration({
           </div>
         </div>
 
-        {/* Accessories - Only show if accessories are selected AND accessory options are available */}
-        {config.accessories.length > 0 && hasAvailableOptions(productOptions.accessoryOptions) && (
+        {/* Accessories - Combined label and SKU (rule-aware). Show when selected or NA rule applies */}
+        {(!!accessoriesLabel || !!accessoriesSku) && hasAvailableOptions(productOptions.accessoryOptions) && (
           <div className="pt-4 border-t border-border">
-            <div className="flex flex-col space-y-2">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Accessories</span>
-              <div className="flex flex-wrap gap-2">
-                {config.accessories.map((accessoryId) => {
-                  const accessory = productOptions.accessoryOptions.find(a => a.id.toString() === accessoryId);
-                  return accessory ? (
-                    <div key={accessoryId} className="flex items-center space-x-2 bg-muted/50 rounded-lg px-3 py-2">
-                      <span className="text-sm font-medium text-foreground">{accessory.name}</span>
-                      <Badge variant="outline" className="bg-muted text-muted-foreground border-none rounded px-1.5 py-0.5 text-xs font-mono">
-                        {accessory.sku_code}
-                      </Badge>
-                    </div>
-                  ) : null;
-                })}
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Accessories</span>
+                <span className="text-sm font-semibold text-foreground truncate">
+                  {accessoriesLabel || "None"}
+                </span>
               </div>
+              {accessoriesSku && (
+                <Badge variant="outline" className="bg-muted text-muted-foreground border-none rounded px-1.5 py-0.5 text-xs font-mono">
+                  {accessoriesSku}
+                </Badge>
+              )}
             </div>
           </div>
         )}

@@ -26,7 +26,6 @@ export class GraphQLQueryValidator {
   private productCollections = new Set([
     'accessories',
     'color_temperatures',
-    'configuration_images',
     'drivers',
     'frame_colors',
     'frame_thicknesses',
@@ -83,11 +82,7 @@ export class GraphQLQueryValidator {
         { name: 'width', type: 'Int', isRequired: false },
         { name: 'height', type: 'Int', isRequired: false }
       ],
-      configuration_images: [
-        { name: 'image', type: 'String', isRequired: false },
-        { name: 'z_index', type: 'Int', isRequired: false },
-        { name: 'image_rules', type: 'JSON', isRequired: false }
-      ],
+      // configuration_images removed; product images are on products
       product_lines_default_options: [
         { name: 'product_lines_id', type: 'Int', isRequired: false },
         { name: 'collection', type: 'String', isRequired: false },
@@ -345,24 +340,7 @@ export function validateExistingQueries(): void {
         }
       `
     },
-    {
-      name: 'getAllConfigurationImages',
-      query: `
-        query GetConfigurationImages {
-          configuration_imagesCollection {
-            edges {
-              node {
-                id
-                name
-                image
-                z_index
-                image_rules
-              }
-            }
-          }
-        }
-      `
-    },
+    // configuration_images query removed
     {
       name: 'getAllOptionsOptimized',
       query: `
