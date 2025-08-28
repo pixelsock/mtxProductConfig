@@ -19,8 +19,6 @@ import {
   FrameThickness,
   Size,
   DecoProduct,
-  ConfigImageRule,
-  ConfigurationImage,
   Rule
 } from './directus-client';
 
@@ -43,8 +41,6 @@ export type {
   FrameThickness,
   Size,
   DecoProduct,
-  ConfigImageRule,
-  ConfigurationImage,
   Rule
 };
 
@@ -547,17 +543,7 @@ export function getNumericDimensions(size: Size): { width: number; height: numbe
   };
 }
 
-// Configuration Images - DEPRECATED: Now using vertical_image and horizontal_image from products
-export async function getActiveConfigurationImages(): Promise<ConfigurationImage[]> {
-  console.log('ℹ️ Configuration images collection is deprecated - using product vertical_image and horizontal_image instead');
-  return [];
-}
-
-// Configuration Images - DEPRECATED: Now using vertical_image and horizontal_image from products
-export async function getAllConfigurationImages(): Promise<ConfigurationImage[]> {
-  console.log('ℹ️ Configuration images collection is deprecated - using product vertical_image and horizontal_image instead');
-  return [];
-}
+// configuration_images removed; use product vertical/horizontal/additional images
 
 // Rules - Fetch rules for SKU generation and overrides
 export async function getRules(): Promise<Rule[]> {
@@ -581,6 +567,21 @@ export async function getRules(): Promise<Rule[]> {
   });
 }
 
+// Validate options_overrides structure
+function validateOptionsOverrides(overrides: any): boolean {
+  if (!Array.isArray(overrides)) return false;
+  
+  return overrides.every(override => 
+    override && 
+    typeof override === 'object' &&
+    'id' in override &&
+    'item' in override &&
+    'collection' in override &&
+    typeof override.item === 'string' &&
+    typeof override.collection === 'string'
+  );
+}
+
 // Get all products
 export async function getAllProducts(): Promise<DecoProduct[]> {
   return getCachedData('products', async () => {
@@ -602,6 +603,10 @@ export async function getAllProducts(): Promise<DecoProduct[]> {
               'horizontal_image',
               // New: fetch additional images (only file IDs to keep payload lean)
               'additional_images.directus_files_id.id',
+              // New: fetch options_overrides for hybrid filtering
+              'options_overrides.id',
+              'options_overrides.item',
+              'options_overrides.collection',
               'active'
             ],
             limit,
@@ -614,7 +619,22 @@ export async function getAllProducts(): Promise<DecoProduct[]> {
         offset += limit;
       }
       const activeItems = all.filter((p: any) => p.active !== false);
-      if (import.meta.env.DEV) console.log(`✓ Loaded ${activeItems.length} active products via SDK`);
+      
+      // Validate options_overrides for each product
+      activeItems.forEach(product => {
+        if (product.options_overrides && !validateOptionsOverrides(product.options_overrides)) {
+          console.warn(`Product ${product.id} has invalid options_overrides structure:`, product.options_overrides);
+          delete product.options_overrides; // Remove invalid data
+        }
+      });
+      
+      if (import.meta.env.DEV) {
+        console.log(`✓ Loaded ${activeItems.length} active products via SDK`);
+        const productsWithOverrides = activeItems.filter(p => p.options_overrides?.length > 0);
+        if (productsWithOverrides.length > 0) {
+          console.log(`✓ ${productsWithOverrides.length} products have options_overrides`);
+        }
+      }
       return activeItems;
     } catch (error) {
       console.error('Failed to fetch products via SDK:', error);
@@ -676,13 +696,53 @@ export async function getProductBySKU(
   return product;
 }
 
-// Filter options based on product line default options
+// Get product-specific options from options_overrides
+export function getProductSpecificOptions<T extends { id: number }>(
+  allOptions: T[],
+  product: DecoProduct | undefined,
+  collectionName: string
+): T[] | null {
+  if (!product?.options_overrides || product.options_overrides.length === 0) {
+    return null; // No overrides, should use product line defaults
+  }
+
+  // Find overrides for this specific collection
+  const relevantOverrides = product.options_overrides.filter(
+    override => override.collection === collectionName
+  );
+
+  if (relevantOverrides.length === 0) {
+    return null; // No overrides for this collection, use defaults
+  }
+
+  // Map override items to actual options
+  const overrideIds = relevantOverrides.map(o => parseInt(o.item)).filter(n => Number.isFinite(n));
+  const filtered = allOptions.filter(o => overrideIds.includes(o.id));
+  
+  if (import.meta.env.DEV) {
+    console.log(`🎯 Using product-specific overrides for ${collectionName} on product ${product.name}: ${filtered.length} options`);
+  }
+  
+  return filtered;
+}
+
+// Filter options based on product line default options with hybrid support
 export function filterOptionsByProductLine<T extends { id: number }>(
   allOptions: T[],
   productLine: ProductLine,
-  collectionName: string
+  collectionName: string,
+  product?: DecoProduct  // New optional parameter for hybrid filtering
 ): T[] {
-  if (import.meta.env.DEV) console.log(`🔍 Filtering ${collectionName} for ${productLine.name} (SKU: ${productLine.sku_code})`);
+  // First check for product-specific overrides (hybrid approach)
+  if (product) {
+    const productOverrides = getProductSpecificOptions(allOptions, product, collectionName);
+    if (productOverrides !== null) {
+      return productOverrides; // Use product-specific options
+    }
+  }
+
+  // Fall back to product line defaults
+  if (import.meta.env.DEV) console.log(`🔍 Filtering ${collectionName} for ${productLine.name} (SKU: ${productLine.sku_code}) - using product line defaults`);
 
   // If no defaults configured, this product line has no option sets
   if (!productLine.default_options || productLine.default_options.length === 0) {
@@ -702,9 +762,14 @@ export function filterOptionsByProductLine<T extends { id: number }>(
   return [];
 }
 
-// Get filtered options for a specific product line
-export async function getFilteredOptionsForProductLine(productLine: ProductLine) {
-  if (import.meta.env.DEV) console.log(`🔧 Loading filtered options for ${productLine.name}...`);
+// Get filtered options for a specific product line with optional product overrides
+export async function getFilteredOptionsForProductLine(productLine: ProductLine, product?: DecoProduct) {
+  if (import.meta.env.DEV) {
+    console.log(`🔧 Loading filtered options for ${productLine.name}...`);
+    if (product?.options_overrides?.length) {
+      console.log(`🎯 Product ${product.name} has ${product.options_overrides.length} option overrides`);
+    }
+  }
 
   // Use bulk data fetch for better performance
   let allOptions: any = {};
@@ -779,19 +844,19 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
   }
 
 
-  // Filter based on product line default options
+  // Filter based on product line default options with hybrid product overrides support
   const filteredOptions = {
-    mirrorControls: filterOptionsByProductLine<MirrorControl>(allOptions.allMirrorControls, productLine, 'mirror_controls'),
-    frameColors: filterOptionsByProductLine<FrameColor>(allOptions.allFrameColors, productLine, 'frame_colors'),
-    frameThickness: filterOptionsByProductLine<FrameThickness>(allOptions.allFrameThicknesses, productLine, 'frame_thicknesses'),
-    mirrorStyles: filterOptionsByProductLine<MirrorStyle>(allOptions.allMirrorStyles, productLine, 'mirror_styles'),
-    mountingOptions: filterOptionsByProductLine<MountingOption>(allOptions.allMountingOptions, productLine, 'mounting_options'),
-    lightingOptions: filterOptionsByProductLine<LightDirection>(allOptions.allLightDirections, productLine, 'light_directions'),
-    colorTemperatures: filterOptionsByProductLine<ColorTemperature>(allOptions.allColorTemperatures, productLine, 'color_temperatures'),
-    lightOutputs: filterOptionsByProductLine<LightOutput>(allOptions.allLightOutputs, productLine, 'light_outputs'),
-    drivers: filterOptionsByProductLine<Driver>(allOptions.allDrivers, productLine, 'drivers'),
-    accessories: filterOptionsByProductLine<Accessory>(allOptions.allAccessories, productLine, 'accessories'),
-    sizes: filterOptionsByProductLine<Size>(allOptions.allSizes, productLine, 'sizes')
+    mirrorControls: filterOptionsByProductLine<MirrorControl>(allOptions.allMirrorControls, productLine, 'mirror_controls', product),
+    frameColors: filterOptionsByProductLine<FrameColor>(allOptions.allFrameColors, productLine, 'frame_colors', product),
+    frameThickness: filterOptionsByProductLine<FrameThickness>(allOptions.allFrameThicknesses, productLine, 'frame_thicknesses', product),
+    mirrorStyles: filterOptionsByProductLine<MirrorStyle>(allOptions.allMirrorStyles, productLine, 'mirror_styles', product),
+    mountingOptions: filterOptionsByProductLine<MountingOption>(allOptions.allMountingOptions, productLine, 'mounting_options', product),
+    lightingOptions: filterOptionsByProductLine<LightDirection>(allOptions.allLightDirections, productLine, 'light_directions', product),
+    colorTemperatures: filterOptionsByProductLine<ColorTemperature>(allOptions.allColorTemperatures, productLine, 'color_temperatures', product),
+    lightOutputs: filterOptionsByProductLine<LightOutput>(allOptions.allLightOutputs, productLine, 'light_outputs', product),
+    drivers: filterOptionsByProductLine<Driver>(allOptions.allDrivers, productLine, 'drivers', product),
+    accessories: filterOptionsByProductLine<Accessory>(allOptions.allAccessories, productLine, 'accessories', product),
+    sizes: filterOptionsByProductLine<Size>(allOptions.allSizes, productLine, 'sizes', product)
   };
 
   if (import.meta.env.DEV) console.log(`✓ Filtered options for ${productLine.name}:`, {

@@ -58,6 +58,29 @@ npm run lint         # MUST run before commits to ensure code quality
 
 ## Service Layer Architecture
 
+### Hybrid Product Options System
+The application supports a hybrid approach where products can have specific option overrides while maintaining backward compatibility with product line defaults:
+
+```typescript
+// Product-specific overrides (via options_overrides)
+interface OptionsOverride {
+  id: number;
+  item: string;  // ID of the option
+  collection: string;  // Collection name (e.g., 'frame_thicknesses')
+}
+
+// Filtering cascade logic:
+1. Check product.options_overrides for the collection
+2. If found, use only those specific options
+3. If not found, fall back to productLine.default_options
+4. Products gradually migrate from line defaults to specific overrides
+```
+
+**Key Functions:**
+- `getProductSpecificOptions()` - Retrieves product-level overrides
+- `filterOptionsByProductLine()` - Enhanced with optional product parameter
+- `getFilteredOptionsForProductLine()` - Accepts optional product for hybrid filtering
+
 ### Supabase GraphQL Functions
 ```typescript
 // Core GraphQL fetcher
@@ -242,6 +265,13 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...  # Supabase anon 
 - Fixed field mappings (hex_code, sku_code vs value)
 - Supabase Storage integration for SVG assets
 - Build and TypeScript validation completed
+
+### Phase 4: Hybrid Product Options System ✅
+- Implemented product-specific options via `options_overrides` field
+- Products can override product line defaults for granular control
+- Backward compatible - products without overrides use product line defaults
+- Supports all option collections (frame_thicknesses, sizes, mirror_styles, etc.)
+- 52+ Deco products now use frame_thickness overrides for better filtering
 
 ## Troubleshooting Guide
 

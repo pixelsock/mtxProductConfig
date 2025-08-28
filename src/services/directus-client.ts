@@ -15,7 +15,6 @@ interface DirectusSchema {
   frame_thicknesses: FrameThickness[];
   sizes: Size[];
   accessories: Accessory[];
-  configuration_images: ConfigurationImage[];
   products: DecoProduct[];
   rules: Rule[];
 }
@@ -142,6 +141,14 @@ export interface Size {
   webflow_id?: string;
 }
 
+// Interface for polymorphic options overrides
+export interface OptionsOverride {
+  id: number;
+  products_id?: number;
+  item: string;  // ID of the related item as string
+  collection: string;  // Collection name (e.g., 'frame_thicknesses', 'sizes')
+}
+
 export interface DecoProduct {
   id: string | number;
   name: string;
@@ -164,26 +171,11 @@ export interface DecoProduct {
   mirror_style?: number;
   light_direction?: number;
   frame_thickness?: number;
+  // New: product-specific options overrides for hybrid filtering
+  options_overrides?: OptionsOverride[];
 }
 
-export interface ConfigImageRule {
-  [key: string]: any;
-  _and?: ConfigImageRule[];
-  _or?: ConfigImageRule[];
-  _eq?: any;
-  _in?: any[];
-  _contains?: string;
-}
-
-export interface ConfigurationImage {
-  id: string;
-  name: string;
-  image: string;
-  z_index: number | string;
-  image_rules: ConfigImageRule;
-  active?: boolean;
-  sort?: number;
-}
+// configuration_images deprecated; product assets are used instead
 
 export interface Rule {
   id: string;
@@ -370,19 +362,7 @@ export const BULK_COLLECTIONS_QUERY = `
   }
 `;
 
-export const CONFIGURATION_IMAGES_QUERY = `
-  query ConfigurationImages($filter: configuration_images_filter) {
-    configuration_images(filter: $filter, sort: ["z_index", "name"], limit: -1) {
-      id
-      name
-      image
-      z_index
-      image_rules
-      active
-      sort
-    }
-  }
-`;
+// configuration_images query removed (deprecated)
 
 export const DECO_PRODUCTS_QUERY = `
   query DecoProducts {

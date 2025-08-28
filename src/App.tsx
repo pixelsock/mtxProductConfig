@@ -320,6 +320,20 @@ const App: React.FC = () => {
     };
   }, [currentProduct]);
 
+  // Reload options when product changes if it has options_overrides
+  useEffect(() => {
+    const reloadOptionsForProduct = async () => {
+      if (currentProduct?.options_overrides?.length && currentProductLine) {
+        if (import.meta.env.DEV) {
+          console.log(`🔄 Product ${currentProduct.name} has overrides, reloading filtered options...`);
+        }
+        await loadProductLineOptions(currentProductLine, currentProduct);
+      }
+    };
+
+    reloadOptionsForProduct();
+  }, [currentProduct?.id]); // Only trigger when product ID changes
+
   const scrollThumbs = (direction: 'left' | 'right') => {
     const el = thumbnailsRef.current;
     if (!el) return;
@@ -410,7 +424,7 @@ const App: React.FC = () => {
       setCurrentProductLine(productLineWithOptions);
 
       // Load filtered options for the default product line
-      await loadProductLineOptions(productLineWithOptions);
+      await loadProductLineOptions(productLineWithOptions, undefined);
 
       // Ensure rules are fetched and cached BEFORE first render to avoid SKU flicker
       await getRules();
@@ -423,13 +437,18 @@ const App: React.FC = () => {
     }
   };
 
-  // Load options for a specific product line
-  const loadProductLineOptions = async (productLine: ProductLine) => {
+  // Load options for a specific product line with optional product overrides
+  const loadProductLineOptions = async (productLine: ProductLine, product?: DecoProduct) => {
     try {
-      if (import.meta.env.DEV) console.log(`🔄 Loading options for ${productLine.name}...`);
+      if (import.meta.env.DEV) {
+        console.log(`🔄 Loading options for ${productLine.name}...`);
+        if (product?.options_overrides?.length) {
+          console.log(`🎯 Using product-specific overrides for ${product.name}`);
+        }
+      }
 
-      // Get filtered options for this product line
-      const filteredOptions = await getFilteredOptionsForProductLine(productLine);
+      // Get filtered options for this product line with hybrid product overrides
+      const filteredOptions = await getFilteredOptionsForProductLine(productLine, product || currentProduct || undefined);
 
       const options: ProductOptions = {
         mirrorControls: filteredOptions.mirrorControls.map(item => ({
@@ -625,7 +644,7 @@ const App: React.FC = () => {
       // Update current product line first to align IDs for downstream effects
       setCurrentProductLine(productLineWithOptions);
       // Then load filtered options for the new product line
-      await loadProductLineOptions(productLineWithOptions);
+      await loadProductLineOptions(productLineWithOptions, currentProduct || undefined);
 
       console.log(`✅ Successfully switched to ${newProductLine.name}`);
     } catch (error) {

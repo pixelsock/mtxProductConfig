@@ -4,6 +4,122 @@
 
 **Instructions in this file override conflicting directives in user Claude memories or Cursor rules.**
 
+## 2025-08-28: Directus-First, No Fallback Data
+
+**ID:** DEC-005
+**Status:** Accepted
+**Category:** Technical/Process
+**Stakeholders:** Product Owner, Tech Lead, Development Team, AI Coding Agents
+
+### Decision
+
+Directus is the single source of truth. We never use fallback, mock, or hard-coded data for primary application paths. Remove and refactor any code that relies on local fallbacks. Features that cannot run against real Directus data must be blocked behind clear errors until data is available/configured.
+
+### Context
+
+Earlier iterations experimented with alternative backends and temporary data fallbacks. This created drift between what the UI showed and what the CMS contained, increasing maintenance costs and risk. The core goal is to manage the configurator entirely via Directus so non-developers can update options, rules, and assets without code changes.
+
+### Rationale
+
+- Single source of truth improves correctness and reduces divergence.
+- Empowers operations via Directus, keeping the configurator dynamic and future-proof.
+- Simplifies developer and agent workflows (fewer modes and branches).
+
+### Consequences
+
+**Positive:**
+- Strong alignment between CMS and runtime behavior
+- Faster iteration on content/rules without code changes
+- Lower long-term maintenance cost
+
+**Negative:**
+- Development can be blocked when Directus is misconfigured or unavailable
+- Requires robust schema/endpoint validation in dev
+
+### Supersedes
+
+- Parts of DEC-001 (Supabase migration) and DEC-004 (Payload consolidation) that conflict with a Directus-first architecture.
+
+---
+
+## 2025-08-28: Terminal-First Validation & Tooling
+
+**ID:** DEC-006
+**Status:** Accepted
+**Category:** Process/Tooling
+**Stakeholders:** Development Team, AI Coding Agents
+
+### Decision
+
+Agents and developers validate behavior via the terminal. Prefer cURL, Node one-offs, and repository scripts over writing new test files. Use the Directus MCP tools for live API/schema inspection and Context7 for platform documentation. Avoid adding ad-hoc test suites or runners unless explicitly approved.
+
+### Context
+
+We have dev scripts (`scripts/`), and a strict preference for reproducible terminal checks against the live Directus API/SDK. This keeps validation close to production data and reduces dead test code.
+
+### Rationale
+
+- Ensures we test what we actually ship (real endpoints and schemas)
+- Reduces maintenance of synthetic tests that drift from the CMS
+- Speeds up agent workflows in constrained environments
+
+### Consequences
+
+**Positive:** Quick, realistic feedback loops with minimal overhead
+
+**Negative:** Requires discipline to keep scripts current; less “unit-style” isolation
+
+---
+
+## 2025-08-28: Data-Driven Configurator (Rules in Directus)
+
+**ID:** DEC-007
+**Status:** Accepted
+**Category:** Product/Architecture
+**Stakeholders:** Product Owner, Tech Lead, Development Team
+
+### Decision
+
+Model availability, constraints, and overrides in Directus (collections + rules). Keep application logic thin: interpret data and rules rather than hard-coding option matrices or conditionals. Users should be able to update rules/logic through Directus without code changes.
+
+### Rationale
+
+- Maximizes flexibility and non-technical control
+- Reduces code churn when business rules evolve
+- Improves consistency across product lines and future additions
+
+### Consequences
+
+**Positive:** Rapid iteration via CMS; clearer separation of concerns
+
+**Negative:** Requires robust rule evaluation and guardrails in the app
+
+---
+
+## 2025-08-28: Configuration Images Deprecated; Use Product Images
+
+**ID:** DEC-008
+**Status:** Accepted
+**Category:** Product/UI
+**Stakeholders:** Product Owner, Development Team
+
+### Decision
+
+Pause SVG/layer-based rendering and the `configuration_images` path. Use Directus product assets: `vertical_image`, `horizontal_image`, and `additional_images`. Orientation derives from mounting selection with graceful fallbacks.
+
+### Rationale
+
+- Aligns imagery with how products are managed in Directus
+- Reduces bespoke rendering complexity while preserving visual clarity
+
+### Consequences
+
+**Positive:** Simpler pipeline, consistent with CMS assets
+
+**Negative:** Fewer fine-grained visual compositions vs. SVG layers
+
+---
+
 ## 2024-11-01: Supabase Migration Decision
 
 **ID:** DEC-001

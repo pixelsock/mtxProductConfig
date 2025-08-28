@@ -1,131 +1,75 @@
 # Product Roadmap
 
-## Phase 0: Already Completed
+Focus: Build an exceptional Search-by-SKU experience with intuitive autosuggestion, tight Directus integration, and rule-aware prefill.
 
-The following features have been implemented:
+## Phase 0: Baseline (Completed)
 
-- [x] React application with TypeScript foundation - Core configurator built with modern stack
-- [x] Product line selection (Deco, Thin, Tech) - Multi-line support with smart filtering
-- [x] 13 configuration categories - Complete option coverage for all product attributes
-- [x] Real-time SVG visualization - Dynamic layer rendering for product preview
-- [x] Quote generation system - Export configurations with customer data
-- [x] Directus to Supabase migration - Moved to GraphQL-based cloud database
-- [x] Active status filtering - Only show available options to users
-- [x] Caching layer implementation - 5-minute cache for performance
-- [x] Type validation system - Runtime type guards for API responses
-- [x] shadcn/ui component library - 30+ reusable UI components
+- [x] React + TypeScript foundation
+- [x] Directus SDK integration (REST + GraphQL)
+- [x] Product images via `vertical_image`, `horizontal_image`, `additional_images`
+- [x] Rule evaluation and actions (no hard-coded matrices)
+- [x] Deterministic SKU generation and parsing
+- [x] 5-minute cache with runtime validation
 
-## Phase 1: Payload Frontend Integration ✅ COMPLETE
+## Phase 1: SKU Normalization & Parsing Enhancements
 
-**Goal:** Migrate React configurator into Payload's Next.js frontend for unified architecture
-**Success Criteria:** Configurator runs at /configurator with direct Payload API access
-**Status:** Complete - Successfully migrated with zero regression and improved performance
+Goal: Accept partial and full SKUs; normalize inputs across product lines.
 
-### Features
+- [ ] Canonicalize SKU tokens (product line, style, direction)
+- [ ] Robust partial parsing with tolerant separators and casing
+- [ ] Infer product line from SKU prefix with longest-prefix match
+- [ ] Round-trip parity: generated SKUs parse to same components
+- [ ] Terminal validations against live Directus products
 
-- [x] Move React app to app/(frontend)/configurator - Set up Next.js route structure `L`
-- [x] Convert to Payload Local API - Replace Supabase GraphQL with getPayload() `M`
-- [x] Adapt components for Next.js - Convert from Vite to Next.js patterns `M`
-- [x] Implement server components - Use RSC for data fetching where possible `S`
-- [x] Integrate Payload auth - Use Payload user system for quotes `S`
+## Phase 2: Autosuggest Engine
 
-### Phase 1 Results
+Goal: Instant, helpful suggestions as the user types.
 
-**✅ Migration Success Metrics:**
-- **Zero Functionality Regression**: All original features working correctly
-- **Performance Improvements**: 18% faster initial load, 29% faster API responses  
-- **Architecture Unified**: Single Payload-based system with Local API
-- **Developer Experience**: Enhanced debugging, better TypeScript integration
-- **Production Ready**: Comprehensive testing and validation completed
+- [ ] Debounced input + async suggestions
+- [ ] Token-aware suggestions (e.g., after base code, suggest styles; then directions)
+- [ ] Fuzzy matching for minor typos; highlight matched segments
+- [ ] Zero-state: show popular and recent SKUs
+- [ ] Accessibility: keyboard navigation and ARIA roles
 
-**✅ Key Deliverables:**
-- Complete configurator application at `/configurator`
-- Server Component data loading with error boundaries
-- Next.js Server Actions for quote generation and mutations
-- Payload Local API service layer with intelligent caching
-- Authentication integration with user-specific quote history
-- Comprehensive documentation and migration notes
-- Development debug panel for troubleshooting
+## Phase 3: Indexing & Relevance (Directus-Backed)
 
-### Dependencies
+Goal: Fast, high-quality matches grounded in Directus data.
 
-- [x] Payload collections already migrated
-- [x] Next.js App Router understanding
-- [x] Payload Local API documentation
+- [ ] Build searchable tokens from Directus `products` (name/SKU) and related attributes
+- [ ] Optionally materialize/search fields or use a lightweight in-memory index synced from Directus
+- [ ] Relevance scoring: exact > prefix > partial > fuzzy
+- [ ] Boost active products; deprioritize inactive
+- [ ] Terminal-first performance checks and schema validation
 
-## Phase 2: Product SKU System
+## Phase 4: Prefill & Deep Linking
 
-**Goal:** Implement comprehensive SKU management using Payload collections
-**Success Criteria:** All configurations generate valid SKUs matching inventory system
+Goal: Turn a found SKU into a usable configuration instantly.
 
-### Features
+- [ ] Parse suggestion → prefill configurator (rule-aware)
+- [ ] Shareable URLs with SKU state (copy/paste)
+- [ ] “Open by SKU” command palette entry
+- [ ] Thumbnail previews in suggestions using product images
 
-- [ ] SKU generation in Payload - Create SKUs from configuration options `M`
-- [ ] SKU validation hooks - Verify SKUs using Payload hooks `S`
-- [ ] Product code mapping - Map configuration to inventory codes `M`
-- [ ] SKU display in quotes - Show product codes in generated quotes `S`
-- [ ] SKU search via Payload API - Find products by SKU code `M`
+## Phase 5: Analytics & Quality Loops
 
-### Dependencies
+Goal: Continuously improve suggestions and reduce null-results.
 
-- Payload hooks documentation
-- Business rules for SKU format
+- [ ] Capture search terms, selection rates, null-result rates
+- [ ] Identify common typos and add normalization rules (data-driven)
+- [ ] Error telemetry for Directus/API failures; visible to developers
 
-## Phase 3: Business Logic Layer
+## Phase 6: Integrations & Scale
 
-**Goal:** Implement Payload hooks and custom endpoints for complex calculations
-**Success Criteria:** Business logic centralized in Payload with improved performance
+Goal: Make search a first-class entry point for teams.
 
-### Features
+- [ ] Quote creation directly from search results
+- [ ] Export/share SKUs with context (images + attributes)
+- [ ] Optional CRM linking (attach SKUs to opportunities)
+- [ ] Multi-tenant readiness (namespacing if/when needed)
 
-- [ ] Pricing calculation hooks - Dynamic pricing based on configuration `L`
-- [ ] Compatibility validation - Verify option combinations via Payload hooks `M`
-- [ ] Inventory checking - Real-time availability via Payload API `L`
-- [ ] Bulk quote processing - Handle multiple configurations efficiently `M`
-- [ ] Custom dimension validation - Ensure sizes are manufacturable `S`
+## Principles (Applies to All Phases)
 
-### Dependencies
-
-- Payload hooks system
-- Pricing rules documentation
-- Inventory system integration
-
-## Phase 4: Enhanced User Experience
-
-**Goal:** Improve usability and reduce configuration errors through smart features
-**Success Criteria:** 50% reduction in configuration time and support requests
-
-### Features
-
-- [ ] Configuration templates - Pre-built popular configurations `M`
-- [ ] Smart recommendations - Suggest options based on selections `L`
-- [ ] Comparison tool - Compare multiple configurations side-by-side `M`
-- [ ] Configuration history - Save and recall previous quotes `M`
-- [ ] Advanced search - Find products by specifications `S`
-- [ ] Mobile responsive design - Full functionality on all devices `L`
-
-### Dependencies
-
-- User behavior analytics
-- A/B testing framework
-
-## Phase 5: Integration & Scale
-
-**Goal:** Connect configurator with external systems and prepare for scale
-**Success Criteria:** Seamless integration with CRM, ERP, and fulfillment systems
-
-### Features
-
-- [ ] CRM integration - Sync quotes with sales pipeline `L`
-- [ ] Order management API - Submit orders to fulfillment `XL`
-- [ ] Multi-tenant support - White-label for partners `XL`
-- [ ] Analytics dashboard - Usage metrics and insights `L`
-- [ ] Webhook system - Real-time event notifications `M`
-- [ ] API rate limiting - Protect against abuse `S`
-
-### Dependencies
-
-- CRM system API documentation
-- Order management system access
-- Analytics platform selection
-- Security audit completion
+- Directus-first: never use fallback data
+- Terminal-first validation: cURL/Node and MCP tools over test files
+- Data-driven: rules in Directus define availability/overrides
+- Accessibility and performance are non-negotiable
