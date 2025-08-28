@@ -1,148 +1,198 @@
 {
-  "Product Line": {
+  "product_line": {
     "id": {
       "type": "integer",
       "field": "id",
       "template": "{{name}}",
       "interface": "select-dropdown-m2o",
       "collection": "product_lines",
-      "filter": { "active": { "_eq": true } }
+      "filter": {
+        "active": {
+          "_eq": true
+        }
+      }
     },
-    "SKU Code": { "type": "string", "field": "sku_code" }
+    "sku_code": {
+      "type": "string",
+      "field": "sku_code"
+    }
   },
-  "Size": {
-    "id": {
-      "type": "integer",
-      "field": "id",
-      "template": "{{name}}",
-      "interface": "select-dropdown-m2o",
-      "collection": "sizes",
-      "filter": { "active": { "_eq": true } }
-    },
-    "Width": { "type": "string", "field": "width" },
-    "Height": { "type": "string", "field": "height" },
-    "SKU Code": { "type": "string", "field": "sku_code" }
-  },
-  "Driver": {
-    "id": {
-      "type": "integer",
-      "field": "id",
-      "template": "{{name}}",
-      "interface": "select-dropdown-m2o",
-      "collection": "drivers",
-      "filter": { "active": { "_eq": true } }
-    },
-    "SKU Code": { "type": "string", "field": "sku_code" }
-  },
-  "Frame Color": {
-    "id": {
-      "type": "integer",
-      "field": "id",
-      "template": "{{name}}",
-      "interface": "select-dropdown-m2o",
-      "collection": "frame_colors",
-      "filter": { "active": { "_eq": true } }
-    },
-    "Hex Code": { "type": "string", "field": "hex_code" },
-    "SKU Code": { "type": "string", "field": "sku_code" }
-  },
-  "Frame Thickness": {
-    "id": {
-      "type": "integer",
-      "field": "id",
-      "template": "{{name}}",
-      "interface": "select-dropdown-m2o",
-      "collection": "frame_thicknesses",
-      "filter": { "active": { "_eq": true } }
-    },
-    "SKU Code": { "type": "string", "field": "sku_code" }
-  },
-  "Mirror Style": {
-    "id": {
-      "type": "integer",
-      "field": "id",
-      "template": "{{name}}",
-      "interface": "select-dropdown-m2o",
-      "collection": "mirror_styles",
-      "filter": { "active": { "_eq": true } }
-    },
-    "SKU Code": { "type": "string", "field": "sku_code" }
-  },
-  "Mirror Control": {
-    "id": {
-      "type": "integer",
-      "field": "id",
-      "template": "{{name}}",
-      "interface": "select-dropdown-m2o",
-      "collection": "mirror_controls",
-      "filter": { "active": { "_eq": true } }
-    },
-    "SKU Code": { "type": "string", "field": "sku_code" }
-  },
-  "Light Output": {
-    "id": {
-      "type": "integer",
-      "field": "id",
-      "template": "{{name}}",
-      "interface": "select-dropdown-m2o",
-      "collection": "light_outputs",
-      "filter": { "active": { "_eq": true } }
-    },
-    "SKU Code": { "type": "string", "field": "sku_code" }
-  },
-  "Light Direction": {
-    "id": {
-      "type": "integer",
-      "field": "id",
-      "template": "{{name}}",
-      "interface": "select-dropdown-m2o",
-      "collection": "light_directions",
-      "filter": { "active": { "_eq": true } }
-    },
-    "SKU Code": { "type": "string", "field": "sku_code" }
-  },
-  "Color Temperature": {
-    "id": {
-      "type": "integer",
-      "field": "id",
-      "template": "{{name}}",
-      "interface": "select-dropdown-m2o",
-      "collection": "color_temperatures",
-      "filter": { "active": { "_eq": true } }
-    },
-    "SKU Code": { "type": "string", "field": "sku_code" }
-  },
-  "Mounting Option": {
-    "id": {
-      "type": "integer",
-      "field": "id",
-      "template": "{{name}}",
-      "interface": "select-dropdown-m2o",
-      "collection": "mounting_options",
-      "filter": { "active": { "_eq": true } }
-    },
-    "SKU Code": { "type": "string", "field": "sku_code" }
-  },
-  "Hanging Technique": {
-    "id": {
-      "type": "integer",
-      "field": "id",
-      "template": "{{name}}",
-      "interface": "select-dropdown-m2o",
-      "collection": "hanging_techiques"
-    },
-    "SKU Code": { "type": "string", "field": "sku_code" }
-  },
-  "Accessory": {
+  "accessory": {
     "id": {
       "type": "integer",
       "field": "id",
       "template": "{{name}}",
       "interface": "select-dropdown-m2o",
       "collection": "accessories",
-      "filter": { "active": { "_eq": true } }
+      "filter": {
+        "active": {
+          "_eq": true
+        }
+      }
     },
-    "SKU Code": { "type": "string", "field": "sku_code" },
-    "Price": { "type": "decimal", "field": "price" }
+    "sku_code": {
+      "type": "string",
+      "field": "sku_code"
+    }
+  },
+  "size": {
+    "type": "integer",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "sizes",
+    "filter": {
+      "active": {
+        "_eq": true
+      }
+    }
+  },
+  "driver": {
+    "type": "integer",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "drivers",
+    "filter": {
+      "active": {
+        "_eq": true
+      }
+    }
+  },
+  "frame_color": {
+    "type": "integer",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "frame_colors",
+    "filter": {
+      "active": {
+        "_eq": true
+      }
+    }
+  },
+  "frame_thickness": {
+    "type": "integer",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "frame_thicknesses",
+    "filter": {
+      "active": {
+        "_eq": true
+      }
+    }
+  },
+  "mirror_style": {
+    "type": "integer",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "mirror_styles",
+    "filter": {
+      "active": {
+        "_eq": true
+      }
+    }
+  },
+  "mirror_control": {
+    "type": "integer",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "mirror_controls",
+    "filter": {
+      "active": {
+        "_eq": true
+      }
+    }
+  },
+  "light_output": {
+    "type": "integer",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "light_outputs",
+    "filter": {
+      "active": {
+        "_eq": true
+      }
+    }
+  },
+  "light_direction": {
+    "type": "integer",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "light_directions",
+    "filter": {
+      "active": {
+        "_eq": true
+      }
+    }
+  },
+  "color_temperature": {
+    "type": "integer",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "color_temperatures",
+    "filter": {
+      "active": {
+        "_eq": true
+      }
+    }
+  },
+  "mounting_option": {
+    "type": "integer",
+    "field": "id",
+    "template": "{{name}}",
+    "interface": "select-dropdown-m2o",
+    "collection": "mounting_options",
+    "filter": {
+      "active": {
+        "_eq": true
+      }
+    }
+  },
+  "size_sku_code": {
+    "type": "string",
+    "field": "sku_code"
+  },
+  "driver_sku_code": {
+    "type": "string",
+    "field": "sku_code"
+  },
+  "frame_color_sku_code": {
+    "type": "string",
+    "field": "sku_code"
+  },
+  "frame_thickness_sku_code": {
+    "type": "string",
+    "field": "sku_code"
+  },
+  "mirror_style_sku_code": {
+    "type": "string",
+    "field": "sku_code"
+  },
+  "mirror_control_sku_code": {
+    "type": "string",
+    "field": "sku_code"
+  },
+  "light_output_sku_code": {
+    "type": "string",
+    "field": "sku_code"
+  },
+  "light_direction_sku_code": {
+    "type": "string",
+    "field": "sku_code"
+  },
+  "color_temperature_sku_code": {
+    "type": "string",
+    "field": "sku_code"
+  },
+  "mounting_option_sku_code": {
+    "type": "string",
+    "field": "sku_code"
   }
 }

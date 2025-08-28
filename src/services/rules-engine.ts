@@ -1,6 +1,11 @@
 // Rules Processing Engine for Product Configuration
 import { Rule, getRules } from './directus';
 
+// Accessor for rule actions – expects `then_that` (no legacy fallback)
+function getRuleActions(rule: any): any {
+  return rule && (rule as any).then_that ? (rule as any).then_that : null;
+}
+
 /**
  * Evaluates if a rule's conditions match the current configuration
  * @param rule The rule to evaluate
@@ -34,6 +39,15 @@ function evaluateDirectusFilter(filter: any, data: any): boolean {
   if (filter._or && Array.isArray(filter._or)) {
     return filter._or.some((subFilter: any) => evaluateDirectusFilter(subFilter, data));
   }
+
+  // Helper: generic emptiness
+  const isEmptyVal = (v: any) => {
+    if (v === null || v === undefined) return true;
+    if (typeof v === 'string') return v.length === 0;
+    if (Array.isArray(v)) return v.length === 0;
+    if (typeof v === 'object') return Object.keys(v).length === 0;
+    return false;
+  };
 
   // Handle field comparisons
   for (const field in filter) {
@@ -72,6 +86,16 @@ function evaluateDirectusFilter(filter: any, data: any): boolean {
     
     if (typeof fieldFilter === 'object' && fieldFilter !== null) {
       // Handle comparison operators
+      if (fieldFilter._empty !== undefined) {
+        const empty = isEmptyVal(value);
+        const expected = !!fieldFilter._empty;
+        if (empty !== expected) return false;
+      }
+      if (fieldFilter._nempty !== undefined) {
+        const empty = isEmptyVal(value);
+        const expectedNot = !!fieldFilter._nempty;
+        if ((empty === true) === expectedNot) return false;
+      }
       if (fieldFilter._eq !== undefined) {
         let matches = compareValue == fieldFilter._eq; // default
         // Special: accessories array membership
@@ -155,13 +179,12 @@ function evaluateDirectusFilter(filter: any, data: any): boolean {
  * @returns Modified configuration
  */
 export function applyRuleActions(rule: Rule, config: any): any {
-  if (!rule.than_that) return config;
-  
+  const actions = getRuleActions(rule);
+  if (!actions) return config;
+
   const modifiedConfig = { ...config };
-  
-  // Apply the actions from than_that
-  applyActions(rule.than_that, modifiedConfig);
-  
+  // Apply the actions object
+  applyActions(actions, modifiedConfig);
   return modifiedConfig;
 }
 
@@ -257,30 +280,31 @@ export async function processRules(config: any): Promise<any> {
  * @returns SKU override value or null
  */
 export function extractSKUOverride(rule: Rule): string | null {
-  if (!rule.than_that) {
-    console.log('    No than_that in rule');
+  const actions: any = getRuleActions(rule);
+  if (!actions) {
+    console.log('    No then_that actions in rule');
     return null;
   }
-  
-  console.log('    Extracting SKU from than_that:', JSON.stringify(rule.than_that));
-  
+
+  console.log('    Extracting SKU from then_that:', JSON.stringify(actions));
+
   // Check for product_line.sku_code override
-  const skuOverride = rule.than_that.product_line?.sku_code?._eq;
+  const skuOverride = actions.product_line?.sku_code?._eq;
   if (skuOverride) {
     console.log(`    Found product_line.sku_code override: ${skuOverride}`);
     return skuOverride;
   }
   
   // Check for direct sku_code override
-  if (rule.than_that.sku_code?._eq) {
-    console.log(`    Found direct sku_code override: ${rule.than_that.sku_code._eq}`);
-    return rule.than_that.sku_code._eq;
+  if (actions.sku_code?._eq) {
+    console.log(`    Found direct sku_code override: ${actions.sku_code._eq}`);
+    return actions.sku_code._eq;
   }
   
   // Also check for sku_code without _eq (direct assignment)
-  if (rule.than_that.sku_code && typeof rule.than_that.sku_code === 'string') {
-    console.log(`    Found direct sku_code string: ${rule.than_that.sku_code}`);
-    return rule.than_that.sku_code;
+  if (actions.sku_code && typeof actions.sku_code === 'string') {
+    console.log(`    Found direct sku_code string: ${actions.sku_code}`);
+    return actions.sku_code;
   }
   
   console.log('    No SKU override found in rule');
@@ -305,7 +329,7 @@ export async function getSKUOverride(config: any): Promise<string | null> {
     for (const rule of rules) {
       console.log(`\n📋 Checking rule: "${rule.name}"`);
       console.log('  Conditions:', JSON.stringify(rule.if_this, null, 2));
-      console.log('  Actions:', JSON.stringify(rule.than_that, null, 2));
+      console.log('  Actions:', JSON.stringify(getRuleActions(rule), null, 2));
       
       const matches = evaluateRuleConditions(rule, config);
       console.log(`  Matches: ${matches}`);
@@ -412,7 +436,7 @@ export function buildRuleConstraints(rules: Rule[], config: any): RuleConstraint
   for (const rule of ordered) {
     if (!evaluateRuleConditions(rule, config)) continue;
     const acc: RuleConstraints = {};
-    collectConstraintsFromNode((rule as any).than_that || {}, acc, 'and');
+    collectConstraintsFromNode(getRuleActions(rule) || {}, acc, 'and');
     for (const [field, set] of Object.entries(acc)) {
       constraints[field] = constraints[field]
         ? mergeConstraintSets(constraints[field]!, set as ConstraintSet, 'and')
