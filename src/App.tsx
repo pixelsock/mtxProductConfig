@@ -60,6 +60,10 @@ import { selectProductImage, constructDirectusAssetUrl } from "./services/image-
 import { ProductLineSelector } from "./components/ui/product-line-selector";
 import { CurrentConfiguration } from "./components/ui/current-configuration";
 import { EnvironmentIndicator } from "./components/ui/environment-indicator";
+import { SkuDisplay } from "./components/ui/sku-display";
+import { encodeSkuToQuery, queryToString, decodeQueryToSelection, buildSearchParam, parseSearchParam } from "./utils/sku-url";
+import { buildFullSku } from "./utils/sku-builder";
+import { SkuSearchHeader } from "./components/ui/sku-search-header";
 
 interface ProductConfig {
   id: string;
@@ -144,6 +148,8 @@ const App: React.FC = () => {
   });
 
   const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const [productsForLine, setProductsForLine] = useState<DecoProduct[]>([]);
+  const [allProducts, setAllProducts] = useState<DecoProduct[]>([]);
 
   // Custom size toggle state
   const [useCustomSize, setUseCustomSize] = useState(false);
@@ -195,7 +201,10 @@ const App: React.FC = () => {
           mirror_control: parseInt(currentConfig.mirrorControls),
           frame_color: parseInt(currentConfig.frameColor),
           mounting: parseInt(currentConfig.mounting),
-          driver: currentConfig.driver ? parseInt(currentConfig.driver) : undefined
+          driver: currentConfig.driver ? parseInt(currentConfig.driver) : undefined,
+          accessories: Array.isArray(currentConfig.accessories)
+            ? currentConfig.accessories.map((a) => parseInt(a, 10)).filter(n => Number.isFinite(n))
+            : []
         };
         
         // Process rules to get any overrides
@@ -348,20 +357,44 @@ const App: React.FC = () => {
       // Initialize Directus service first
       await initializeDirectusService();
 
+      // Preload all products for cross-line search
+      let productsCache: DecoProduct[] = [];
+      try {
+        const products = await getAllProducts();
+        productsCache = products;
+        setAllProducts(products);
+      } catch (e) {
+        if (import.meta.env.DEV) console.warn('Failed to preload all products:', e);
+        setAllProducts([]);
+      }
+
       // Load all product lines
       const productLines = await getActiveProductLines();
       setAvailableProductLines(productLines);
 
-      // Get first product line as default, or look for one named "Deco" if available
-      let defaultProductLine = productLines[0];
-      
-      // Try to find a product line named "Deco" (case-insensitive)
-      const decoProductLine = productLines.find(pl => 
-        pl.name.toLowerCase().includes('deco')
-      );
-      
-      if (decoProductLine) {
-        defaultProductLine = decoProductLine;
+      // Choose default product line...
+      const usp0 = new URLSearchParams(window.location.search);
+      const searchSku0 = usp0.get('search');
+      let defaultProductLine: ProductLine | null = null;
+      if (searchSku0) {
+        const parsed = parseSearchParam(searchSku0, (productsCache as any), productLines, {} as any);
+        if (parsed && parsed.productLine) defaultProductLine = parsed.productLine;
+      }
+      if (!defaultProductLine) {
+        // 1) If URL has ?pl= code, prefer that
+        const urlPl = usp0.get('pl');
+        defaultProductLine = (urlPl
+          ? productLines.find(pl => (pl.sku_code || '').toUpperCase() === urlPl.toUpperCase())
+          : undefined) || null;
+      }
+      if (!defaultProductLine) {
+        // 2) Else prefer one named "Deco" (case-insensitive)
+        const decoProductLine = productLines.find(pl => pl.name.toLowerCase().includes('deco'));
+        if (decoProductLine) defaultProductLine = decoProductLine;
+      }
+      if (!defaultProductLine) {
+        // 3) Fallback to first
+        defaultProductLine = productLines[0];
       }
       
       if (!defaultProductLine) {
@@ -378,6 +411,9 @@ const App: React.FC = () => {
 
       // Load filtered options for the default product line
       await loadProductLineOptions(productLineWithOptions);
+
+      // Ensure rules are fetched and cached BEFORE first render to avoid SKU flicker
+      await getRules();
 
     } catch (err) {
       console.error("Failed to load product data:", err);
@@ -481,37 +517,70 @@ const App: React.FC = () => {
 
       setProductOptions(options);
 
-      // Initialize current configuration with first available options and default size
-      const defaultSize = options.sizes[0]; // First size preset
-
-      // Only set configuration if we have at least some options available
-      if (options.mirrorControls.length > 0 || options.frameColors.length > 0 || options.sizes.length > 0) {
-        const initialConfig: ProductConfig = {
-          id: `config-${Date.now()}`,
-          productLineId: productLine.id,
-          productLineName: productLine.name,
-          mirrorControls: options.mirrorControls[0]?.id.toString() || "",
-          frameColor: options.frameColors[0]?.id.toString() || "",
-          frameThickness: options.frameThickness[0]?.id.toString() || "",
-          mirrorStyle: options.mirrorStyles[0]?.id.toString() || "",
-          width: defaultSize?.width?.toString() || "24",
-          height: defaultSize?.height?.toString() || "36",
-          mounting: options.mountingOptions[0]?.id.toString() || "",
-          lighting: options.lightingOptions[0]?.id.toString() || "",
-          colorTemperature: options.colorTemperatures[0]?.id.toString() || "",
-          lightOutput: options.lightOutputs[0]?.id.toString() || "",
-          driver: options.drivers[0]?.id.toString() || "",
-          accessories: [],
-          quantity: 1,
-        };
-        setCurrentConfig(initialConfig);
-
-        // Compute initial availability based on defaults using freshly loaded options
-        await computeAvailableOptions(productLine.id, initialConfig, options);
-      } else {
-        console.log(`⚠️ No options available for ${productLine.name}, configuration not initialized`);
-        setCurrentConfig(null);
+      // Preload products for this product line to power product-driven search
+      try {
+        const allProducts = await getAllProducts();
+        const forLine = allProducts.filter(p => p.product_line === productLine.id && p.active !== false);
+        setProductsForLine(forLine);
+      } catch (e) {
+        if (import.meta.env.DEV) console.warn('Failed to preload products for search:', e);
+        setProductsForLine([]);
       }
+
+      // Initialize current configuration (prefer ?search=SKU, fallback to legacy qs)
+      const uspInit = new URLSearchParams(window.location.search);
+      const searchSkuInit = uspInit.get('search');
+      const defaultSize = options.sizes[0];
+      const fromUrl = decodeQueryToSelection(window.location.search, options);
+      let initialConfig: ProductConfig = {
+        id: `config-${Date.now()}`,
+        productLineId: productLine.id,
+        productLineName: productLine.name,
+        mirrorControls: options.mirrorControls[0]?.id.toString() || "",
+        frameColor: fromUrl.frameColor || options.frameColors[0]?.id.toString() || "",
+        frameThickness: options.frameThickness[0]?.id.toString() || "",
+        mirrorStyle: fromUrl.mirrorStyle || options.mirrorStyles[0]?.id.toString() || "",
+        width: defaultSize?.width?.toString() || "24",
+        height: defaultSize?.height?.toString() || "36",
+        mounting: fromUrl.mounting || options.mountingOptions[0]?.id.toString() || "",
+        lighting: fromUrl.lighting || options.lightingOptions[0]?.id.toString() || "",
+        colorTemperature: fromUrl.colorTemperature || options.colorTemperatures[0]?.id.toString() || "",
+        lightOutput: fromUrl.lightOutput || options.lightOutputs[0]?.id.toString() || "",
+        driver: fromUrl.driver || options.drivers[0]?.id.toString() || "",
+        accessories: fromUrl.accessories || [],
+        quantity: 1,
+      } as ProductConfig;
+
+      if (searchSkuInit) {
+        // Parse using current product line code and freshly loaded options
+        const { parsePartialSkuToQuery, queryToString, decodeQueryToSelection } = await import('./utils/sku-url');
+        const q = parsePartialSkuToQuery(searchSkuInit, productLine.sku_code, options as any);
+        if (q) {
+          const sel = decodeQueryToSelection(queryToString(q), options as any);
+          initialConfig = {
+            ...initialConfig,
+            mirrorStyle: sel.mirrorStyle || initialConfig.mirrorStyle,
+            lighting: sel.lighting || initialConfig.lighting,
+            driver: sel.driver || initialConfig.driver,
+            frameColor: sel.frameColor || initialConfig.frameColor,
+            mounting: sel.mounting || initialConfig.mounting,
+            lightOutput: sel.lightOutput || initialConfig.lightOutput,
+            colorTemperature: sel.colorTemperature || initialConfig.colorTemperature,
+            accessories: sel.accessories || initialConfig.accessories,
+            width: (sel as any).width || initialConfig.width,
+            height: (sel as any).height || initialConfig.height,
+          };
+        }
+      }
+      setCurrentConfig(initialConfig);
+      await computeAvailableOptions(productLine.id, initialConfig, options);
+
+      // Normalize URL to simplified search param on initial load
+      try {
+        const overrides = await computeRuleOverrides(initialConfig as any);
+        const fullSkuInit = buildFullSku(initialConfig as any, options as any, productLine, overrides).sku;
+        window.history.replaceState({}, '', `${window.location.pathname}?search=${encodeURIComponent(fullSkuInit)}`);
+      } catch {}
 
       if (import.meta.env.DEV) {
         console.log("✓ Real product data loaded successfully");
@@ -583,6 +652,54 @@ const App: React.FC = () => {
     if (currentProductLine) {
       await computeAvailableOptions(currentProductLine.id, newConfig);
     }
+
+    // Update URL query with simplified search SKU (rule-aware)
+    try {
+      if (productOptions && currentProductLine) {
+        const overrides = await computeRuleOverrides(newConfig as any);
+        const fullSku = buildFullSku(newConfig as any, productOptions as any, currentProductLine, overrides).sku;
+        const qs = `?search=${encodeURIComponent(fullSku)}`;
+        window.history.replaceState({}, '', `${window.location.pathname}${qs}`);
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  // Helper: compute per-segment code overrides from rules
+  const computeRuleOverrides = async (cfg: any) => {
+    try {
+      const processed = await processRules({
+        product_line: cfg.productLineId,
+        mirror_style: parseInt(cfg.mirrorStyle || '0', 10) || undefined,
+        light_direction: parseInt(cfg.lighting || '0', 10) || undefined,
+        frame_thickness: parseInt(cfg.frameThickness || '0', 10) || undefined,
+        mirror_control: parseInt(cfg.mirrorControls || '0', 10) || undefined,
+        frame_color: parseInt(cfg.frameColor || '0', 10) || undefined,
+        mounting: parseInt(cfg.mounting || '0', 10) || undefined,
+        driver: parseInt(cfg.driver || '0', 10) || undefined,
+        light_output: parseInt(cfg.lightOutput || '0', 10) || undefined,
+        color_temperature: parseInt(cfg.colorTemperature || '0', 10) || undefined,
+        accessories: Array.isArray(cfg.accessories) ? cfg.accessories.map((a: string) => parseInt(a, 10)).filter((n: number) => Number.isFinite(n)) : [],
+      });
+      return {
+        productLineSkuOverride: (processed as any).product_line_sku_code || undefined,
+        accessoriesOverride: (processed as any).accessories_sku_code || (processed as any).accessory_sku_code || undefined,
+        accessoryFallback: (processed as any).accessory_sku_code || (processed as any).accessories_sku_code || undefined,
+        // core
+        mirrorStyleSkuOverride: (processed as any).mirror_style_sku_code || undefined,
+        lightDirectionSkuOverride: (processed as any).light_direction_sku_code || undefined,
+        // segments
+        sizeSkuOverride: (processed as any).size_sku_code || undefined,
+        lightOutputSkuOverride: (processed as any).light_output_sku_code || undefined,
+        colorTemperatureSkuOverride: (processed as any).color_temperature_sku_code || undefined,
+        driverSkuOverride: (processed as any).driver_sku_code || undefined,
+        mountingSkuOverride: (processed as any).mounting_option_sku_code || (processed as any).mounting_sku_code || undefined,
+        frameColorSkuOverride: (processed as any).frame_color_sku_code || undefined,
+      } as const;
+    } catch {
+      return undefined;
+    }
   };
 
   // Compute generic available options (IDs per product field) from Products
@@ -606,6 +723,9 @@ const App: React.FC = () => {
         driver: parseInt(config.driver || '0', 10) || undefined,
         light_output: parseInt(config.lightOutput || '0', 10) || undefined,
         color_temperature: parseInt(config.colorTemperature || '0', 10) || undefined,
+        accessories: Array.isArray(config.accessories)
+          ? config.accessories.map((a) => parseInt(a, 10)).filter(n => Number.isFinite(n))
+          : [],
         // flattened keys for nested rule comparisons like product_line.sku_code, mirror_style.sku_code
         product_line_sku_code: currentProductLine?.sku_code,
         mirror_style_sku_code: selectedMirrorStyle?.sku_code,
@@ -645,6 +765,8 @@ const App: React.FC = () => {
               return (opts?.mirrorStyles || []).map(o => o.id);
             case 'light_direction':
               return (opts?.lightingOptions || []).map(o => o.id);
+            case 'size':
+              return (opts?.sizes || []).map(o => o.id);
             case 'frame_thickness':
               return (opts?.frameThickness || []).map(o => o.id);
             case 'frame_color':
@@ -981,7 +1103,93 @@ const App: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4 w-full max-w-xl">
+              {currentConfig && productOptions && currentProductLine && (
+                <SkuSearchHeader
+                  className="flex-1"
+                  productLine={currentProductLine}
+                  options={productOptions as any}
+                  config={currentConfig as any}
+                  computeOverrides={computeRuleOverrides as any}
+                  products={(allProducts.length ? allProducts : productsForLine).map(p => ({ id: p.id, name: p.name }))}
+                  availableIds={availableOptionIds}
+                  initialValue={new URLSearchParams(window.location.search).get('search') || ''}
+                  onApply={async (sku) => {
+                    const raw = sku.trim().toUpperCase();
+                    const core = raw.split('-')[0] || raw;
+                    // Prefer exact/unique product core match across ALL products
+                    const pool = allProducts.length ? allProducts : productsForLine;
+                    let matched = pool.filter(p => (p.name || '').toUpperCase().startsWith(core));
+                    let picked = matched.find(p => (p.name || '').toUpperCase() === core) || (matched.length === 1 ? matched[0] : undefined);
+
+                    // Parse dashed segments into selection codes
+                    const { parsePartialSkuToQuery, queryToString, decodeQueryToSelection } = await import('./utils/sku-url');
+                    const q = parsePartialSkuToQuery(raw, (currentProductLine!.sku_code), productOptions as any);
+                    let partial = q ? decodeQueryToSelection(queryToString(q), productOptions as any) : ({} as any);
+
+                    if (picked) {
+                      const targetPL = availableProductLines.find(pl => pl.id === picked.product_line);
+                      if (targetPL && targetPL.id !== currentProductLine!.id) {
+                        await handleProductLineChange(targetPL);
+                        // Parse using the target product line code and the (now) current options
+                        const { parsePartialSkuToQuery, queryToString, decodeQueryToSelection } = await import('./utils/sku-url');
+                        const latestOpts = productOptions as any;
+                        const q2 = parsePartialSkuToQuery(raw, targetPL.sku_code, latestOpts);
+                        let partial2 = q2 ? decodeQueryToSelection(queryToString(q2), latestOpts) : ({} as any);
+                        // Apply core from picked product
+                        partial2.mirrorStyle = picked.mirror_style?.toString() || partial2.mirrorStyle;
+                        partial2.lighting = picked.light_direction?.toString() || partial2.lighting;
+
+                        setCurrentConfig(prev => prev ? ({ ...prev,
+                          productLineId: targetPL.id,
+                          productLineName: targetPL.name,
+                          mirrorStyle: partial2.mirrorStyle || prev.mirrorStyle,
+                          lighting: partial2.lighting || prev.lighting,
+                          driver: partial2.driver || prev.driver,
+                          frameColor: partial2.frameColor || prev.frameColor,
+                          mounting: partial2.mounting || prev.mounting,
+                          lightOutput: partial2.lightOutput || prev.lightOutput,
+                          colorTemperature: partial2.colorTemperature || prev.colorTemperature,
+                          accessories: partial2.accessories || prev.accessories,
+                          width: (partial2 as any).width || prev.width,
+                          height: (partial2 as any).height || prev.height
+                        }) : prev);
+
+                        const cfg2 = { ...(currentConfig as any), ...partial2, productLineId: targetPL.id };
+                        await computeAvailableOptions(targetPL.id, cfg2);
+                        const overrides2 = await computeRuleOverrides(cfg2 as any);
+                        const fullSku2 = buildFullSku(cfg2 as any, latestOpts, targetPL, overrides2).sku;
+                        window.history.replaceState({}, '', `${window.location.pathname}?search=${encodeURIComponent(fullSku2)}`);
+                        return;
+                      }
+                      // Same line: apply core from product now
+                      partial.mirrorStyle = picked.mirror_style?.toString() || partial.mirrorStyle;
+                      partial.lighting = picked.light_direction?.toString() || partial.lighting;
+                    }
+
+                    // Apply selections on current line, recompute availability, update URL
+                    setCurrentConfig(prev => prev ? ({ ...prev,
+                      productLineId: currentProductLine!.id,
+                      productLineName: currentProductLine!.name,
+                      mirrorStyle: partial.mirrorStyle || prev.mirrorStyle,
+                      lighting: partial.lighting || prev.lighting,
+                      driver: partial.driver || prev.driver,
+                      frameColor: partial.frameColor || prev.frameColor,
+                      mounting: partial.mounting || prev.mounting,
+                      lightOutput: partial.lightOutput || prev.lightOutput,
+                      colorTemperature: partial.colorTemperature || prev.colorTemperature,
+                      accessories: partial.accessories || prev.accessories,
+                      width: (partial as any).width || prev.width,
+                      height: (partial as any).height || prev.height
+                    }) : prev);
+                    const cfg = { ...(currentConfig as any), ...partial, productLineId: currentProductLine!.id };
+                    await computeAvailableOptions(currentProductLine!.id, cfg);
+                    const overrides = await computeRuleOverrides(cfg as any);
+                    const fullSku = buildFullSku(cfg as any, (productOptions as any), currentProductLine!, overrides).sku;
+                    window.history.replaceState({}, '', `${window.location.pathname}?search=${encodeURIComponent(fullSku)}`);
+                  }}
+                />
+              )}
               <Button
                 onClick={() => setShowQuoteForm(true)}
                 disabled={quoteItems.length === 0}
@@ -1170,35 +1378,10 @@ const App: React.FC = () => {
               document.body
             )}
 
-            {/* Current Product Info */}
-            {currentProduct && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-1">Current Product</p>
-                  <p className="font-medium text-gray-900">{generateProductName()}</p>
-                  <p className="text-xs text-gray-500 mt-1">SKU: {currentProduct.name}</p>
-                  {(() => {
-                    const mountingOption = productOptions?.mountingOptions?.find(
-                      (mo: ProductOption) => mo.id.toString() === currentConfig?.mounting
-                    ) as MountingOption | undefined;
-                    const imageSelection = selectProductImage(currentProduct, mountingOption);
-                    
-                    return (
-                      <>
-                        {imageSelection.primaryImage && (
-                          <p className="text-xs text-green-600 mt-1">
-                            ✓ {imageSelection.orientation} image loaded ({imageSelection.source})
-                          </p>
-                        )}
-                        {!imageSelection.primaryImage && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            No image available
-                          </p>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
+            {/* Current Selection SKU (replaces raw product SKU) */}
+            {currentConfig && productOptions && currentProductLine && (
+              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                <SkuDisplay config={currentConfig as any} options={productOptions as any} productLine={currentProductLine} />
               </div>
             )}
 

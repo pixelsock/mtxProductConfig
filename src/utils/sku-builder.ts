@@ -40,6 +40,7 @@ export interface BuildSkuResult {
 export interface SkuOverrides {
   productLineSkuOverride?: string;
   accessoryFallback?: string; // used when no accessories selected
+  accessoriesOverride?: string; // explicit override even when accessories exist
   // Core overrides
   mirrorStyleSkuOverride?: string;
   lightDirectionSkuOverride?: string;
@@ -108,7 +109,9 @@ export function buildFullSku(
   if (frameColor) parts.frame_color = frameColor;
 
   // accessories: join multiple by '+' inside the segment, but omit segment entirely if none
-  if (Array.isArray(config.accessories) && config.accessories.length > 0) {
+  if (overrides?.accessoriesOverride) {
+    parts.accessories = overrides.accessoriesOverride;
+  } else if (Array.isArray(config.accessories) && config.accessories.length > 0) {
     const codes: string[] = [];
     for (const idStr of config.accessories) {
       const id = parseInt(idStr, 10);

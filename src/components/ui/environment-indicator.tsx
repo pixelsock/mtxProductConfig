@@ -52,7 +52,7 @@ export function EnvironmentIndicator() {
       <Badge 
         variant={getVariant()} 
         className={getBadgeClassName()}
-        title={`Connected to: ${config.supabaseUrl}`}
+        title={config.supabaseUrl ? `Connected to: ${config.supabaseUrl}` : 'Environment'}
       >
         🔧 {getEnvironmentName()}
       </Badge>

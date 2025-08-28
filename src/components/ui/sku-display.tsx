@@ -64,6 +64,7 @@ export const SkuDisplay: React.FC<SkuDisplayProps> = ({ config, options, product
 
         const overrides = {
           productLineSkuOverride: (processed as any).product_line_sku_code || undefined,
+          accessoriesOverride: (processed as any).accessories_sku_code || (processed as any).accessory_sku_code || undefined,
           accessoryFallback: (processed as any).accessory_sku_code || (processed as any).accessories_sku_code || undefined,
           // core
           mirrorStyleSkuOverride: (processed as any).mirror_style_sku_code || undefined,
