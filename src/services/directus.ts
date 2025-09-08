@@ -412,6 +412,29 @@ export async function getProductLineWithOptions(sku: string): Promise<ProductLin
     }
 
     const productLine = items[0];
+    // Normalize default_options: if it's an array of numeric IDs, resolve via junction table
+    if (Array.isArray((productLine as any).default_options) && (productLine as any).default_options.length > 0) {
+      const first = (productLine as any).default_options[0];
+      if (typeof first === 'number' || typeof first === 'string') {
+        try {
+          const junction = await getDirectusItems<any>('product_lines_default_options', {
+            filter: { product_lines_id: { _eq: productLine.id } },
+            limit: -1,
+            sort: ['id']
+          });
+          const normalized = junction.map((row: any) => ({
+            id: row.id,
+            product_lines_id: row.product_lines_id,
+            collection: row.collection,
+            item: String(row.item)
+          }));
+          (productLine as any).default_options = normalized;
+          if (import.meta.env.DEV) console.log(`🔧 Normalized default_options via junction for ${productLine.name}: ${normalized.length} items`);
+        } catch (e) {
+          console.warn('⚠️ Failed to normalize default_options from junction table:', e);
+        }
+      }
+    }
     if (import.meta.env.DEV) console.log(`✓ Found product line ${productLine.name} with ${productLine.default_options?.length || 0} default options`);
     
     // Debug: Log the structure of default_options
