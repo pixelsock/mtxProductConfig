@@ -13,6 +13,8 @@ interface ConfigurationOptionsProps {
   handleConfigChange: (key: keyof ProductConfiguration, value: any) => void;
   onQuantityChange: (quantity: number) => void;
   onAddToQuote: () => void;
+  // Optional: preloaded dynamic options by collection
+  dynamicOptionsByCollection?: Record<string, any[]> | null;
 }
 
 export const ConfigurationOptions: React.FC<ConfigurationOptionsProps> = ({
@@ -24,7 +26,8 @@ export const ConfigurationOptions: React.FC<ConfigurationOptionsProps> = ({
   setUseCustomSize,
   handleConfigChange,
   onQuantityChange,
-  onAddToQuote
+  onAddToQuote,
+  dynamicOptionsByCollection = null,
 }) => {
   if (!currentConfig || !productOptions) {
     return null;
@@ -48,6 +51,9 @@ export const ConfigurationOptions: React.FC<ConfigurationOptionsProps> = ({
         customSize={useCustomSize}
         onToggleCustomSize={setUseCustomSize}
         onChange={handleConfigChange}
+        preloadedOptionsByCollection={
+          import.meta.env.VITE_DYNAMIC_OPTIONS === 'true' ? (dynamicOptionsByCollection || undefined) : undefined
+        }
       />
     </div>
   );

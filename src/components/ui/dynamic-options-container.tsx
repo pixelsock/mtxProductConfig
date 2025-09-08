@@ -10,6 +10,8 @@ interface Props {
   availableOptionIds?: Record<string, number[]>;
   customSize?: boolean;
   onToggleCustomSize?: (v: boolean) => void;
+  // Optional: preloaded options map to avoid fetching per-collection
+  preloadedOptionsByCollection?: Record<string, any[]>;
 }
 
 export const DynamicOptionsContainer: React.FC<Props> = ({
@@ -19,6 +21,7 @@ export const DynamicOptionsContainer: React.FC<Props> = ({
   availableOptionIds = {},
   customSize = false,
   onToggleCustomSize,
+  preloadedOptionsByCollection,
 }) => {
   const [optionsByCollection, setOptionsByCollection] = React.useState<Record<string, any[]>>({});
   const [uiByCollection, setUiByCollection] = React.useState<Record<string, string>>({});
@@ -61,19 +64,32 @@ export const DynamicOptionsContainer: React.FC<Props> = ({
           setUiSortByCollection(uiSort);
         }
 
-        // Fetch options for each collection dynamically
-        const byColl: Record<string, any[]> = {};
-        await Promise.all(
-          collections.map(async (coll) => {
+        // Use preloaded options if provided; otherwise fetch dynamically
+        if (preloadedOptionsByCollection && Object.keys(preloadedOptionsByCollection).length > 0) {
+          // Preserve requested order based on defaults
+          const byColl: Record<string, any[]> = {};
+          for (const coll of collections) {
             const idList = (idsByCollection[coll] || []).map((x) => (typeof x === 'number' ? x : String(x)));
-            if (idList.length === 0) { byColl[coll] = []; return; }
-            const rows = await getOptions<any>(coll, { filter: { id: { _in: idList } }, limit: -1 });
+            const rows = preloadedOptionsByCollection[coll] || [];
             const indexMap = new Map(idList.map((v, i) => [String(v), i]));
             const sorted = (rows || []).sort((a: any, b: any) => (indexMap.get(String(a.id)) ?? 0) - (indexMap.get(String(b.id)) ?? 0));
             byColl[coll] = sorted;
-          })
-        );
-        if (!cancelled) setOptionsByCollection(byColl);
+          }
+          if (!cancelled) setOptionsByCollection(byColl);
+        } else {
+          const byColl: Record<string, any[]> = {};
+          await Promise.all(
+            collections.map(async (coll) => {
+              const idList = (idsByCollection[coll] || []).map((x) => (typeof x === 'number' ? x : String(x)));
+              if (idList.length === 0) { byColl[coll] = []; return; }
+              const rows = await getOptions<any>(coll, { filter: { id: { _in: idList } }, limit: -1 });
+              const indexMap = new Map(idList.map((v, i) => [String(v), i]));
+              const sorted = (rows || []).sort((a: any, b: any) => (indexMap.get(String(a.id)) ?? 0) - (indexMap.get(String(b.id)) ?? 0));
+              byColl[coll] = sorted;
+            })
+          );
+          if (!cancelled) setOptionsByCollection(byColl);
+        }
       } catch (e: any) {
         if (!cancelled) setError(e?.message || 'Failed to load options');
       } finally {
@@ -83,7 +99,7 @@ export const DynamicOptionsContainer: React.FC<Props> = ({
     return () => {
       cancelled = true;
     };
-  }, [productLineDefaults]);
+  }, [productLineDefaults, preloadedOptionsByCollection]);
 
   if (error) {
     return <div className="text-sm text-red-600">{error}</div>;

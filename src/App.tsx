@@ -59,6 +59,7 @@ import { selectProductImage, constructDirectusAssetUrl } from "./services/image-
 import { ProductLineSelector } from "./components/ui/product-line-selector";
 import { getFeatureFlags } from './utils/environment';
 import { CurrentConfiguration } from "./components/ui/current-configuration";
+import DynamicOptionsContainer from "./components/ui/dynamic-options-container";
 import { EnvironmentIndicator } from "./components/ui/environment-indicator";
 
 interface ProductConfig {
@@ -121,6 +122,7 @@ const iconMapping: { [key: string]: any } = {
 const App: React.FC = () => {
   // App state
   const [productOptions, setProductOptions] = useState<ProductOptions | null>(null);
+  const [dynamicOptionsByCollection, setDynamicOptionsByCollection] = useState<Record<string, any[]> | null>(null);
   const [currentProduct, setCurrentProduct] = useState<DecoProduct | null>(null);
   const [currentProductLine, setCurrentProductLine] = useState<ProductLine | null>(null);
   const [availableProductLines, setAvailableProductLines] = useState<ProductLine[]>([]);
@@ -416,6 +418,12 @@ const App: React.FC = () => {
 
       // Get filtered options for this product line
       const filteredOptions = await getFilteredOptionsForProductLine(productLine);
+      // Capture dynamic option sets if present
+      if ((filteredOptions as any)?.dynamicSets && typeof (filteredOptions as any).dynamicSets === 'object') {
+        setDynamicOptionsByCollection((filteredOptions as any).dynamicSets as Record<string, any[]>);
+      } else {
+        setDynamicOptionsByCollection(null);
+      }
 
       const options: ProductOptions = {
         mirrorControls: filteredOptions.mirrorControls.map(item => ({
@@ -1342,8 +1350,23 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {/* Configuration Options - REORDERED ACCORDING TO SPECIFICATION */}
-            {currentConfig && (
+            {/* Configuration Options - Feature flag for dynamic renderer */}
+            {currentConfig && import.meta.env.VITE_DYNAMIC_OPTIONS === 'true' && (
+              <div className="space-y-10">
+                <DynamicOptionsContainer
+                  productLineDefaults={(currentProductLine?.default_options as any) || []}
+                  currentConfig={currentConfig}
+                  availableOptionIds={availableOptionIds}
+                  customSize={useCustomSize}
+                  onToggleCustomSize={setUseCustomSize}
+                  onChange={(key, value) => handleConfigChange(key as any, value)}
+                  preloadedOptionsByCollection={dynamicOptionsByCollection || undefined}
+                />
+              </div>
+            )}
+
+            {/* Legacy hardcoded options rendering (default path) */}
+            {currentConfig && import.meta.env.VITE_DYNAMIC_OPTIONS !== 'true' && (
             <div className="space-y-10">
               {/* 1. Mirror Controls */}
               {productOptions.mirrorControls.length > 0 && (
