@@ -873,7 +873,49 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
     sizes: filteredOptions.sizes.length
   });
 
-  return filteredOptions;
+  // Build dynamic option sets directly from product_line.default_options (data-driven)
+  const dynamicSets: Record<string, any[]> = {};
+  try {
+    if (Array.isArray((productLine as any).default_options) && (productLine as any).default_options.length > 0) {
+      const groups = (productLine as any).default_options.reduce((acc: Record<string, number[]>, opt: any) => {
+        const col = opt?.collection;
+        const idNum = parseInt(String(opt?.item), 10);
+        if (!col || !Number.isFinite(idNum)) return acc;
+        if (!acc[col]) acc[col] = [];
+        if (!acc[col].includes(idNum)) acc[col].push(idNum);
+        return acc;
+      }, {} as Record<string, number[]>);
+
+      // Fetch each referenced collection generically
+      for (const [collection, ids] of Object.entries(groups)) {
+        if (!Array.isArray(ids) || ids.length === 0) {
+          dynamicSets[collection] = [];
+          continue;
+        }
+        try {
+          const items = await getDirectusItems<any>(collection, {
+            filter: { id: { _in: ids }, active: { _eq: true } },
+            sort: ['sort']
+          });
+          // Preserve requested order (ids order)
+          const byId = new Map(items.map((i: any) => [i.id, i]));
+          dynamicSets[collection] = ids.map((id: number) => byId.get(id)).filter(Boolean);
+        } catch (err) {
+          console.warn(`⚠️ Failed to load dynamic set for ${collection}:`, err);
+          dynamicSets[collection] = [];
+        }
+      }
+
+      if (import.meta.env.VITE_ENABLE_DEBUG_LOGGING === 'true') {
+        const counts = Object.fromEntries(Object.entries(dynamicSets).map(([k, v]) => [k, (v as any[]).length]));
+        console.log('🧩 Dynamic option sets (by collection):', counts);
+      }
+    }
+  } catch (err) {
+    console.warn('⚠️ Dynamic option-set build failed:', err);
+  }
+
+  return { ...filteredOptions, dynamicSets };
 }
 
 // Enhanced relationship mapping functions
