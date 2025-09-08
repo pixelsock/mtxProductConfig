@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Product 1807 Overrides</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #fff; }
+        .log { margin: 10px 0; padding: 10px; border-left: 3px solid #4a90e2; background: #2a2a2a; }
+        .error { border-color: #e24a4a; }
+        .success { border-color: #4ae24a; }
+        .warn { border-color: #e2e24a; }
+        button { padding: 10px 20px; margin: 10px; background: #4a90e2; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Product 1807 Options Overrides Test</h1>
+    <button onclick="testProduct1807()">Run Test</button>
+    <div id="logs"></div>
+
+    <script type="module">
+        import { getAllProducts, getActiveProductLines, getFilteredOptionsForProduct } from './src/services/directus.ts';
+
+        window.log = (message, type = 'log') => {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = message.replace(/\n/g, '<br>');
+            document.getElementById('logs').appendChild(div);
+        };
+
+        window.testProduct1807 = async () => {
+            document.getElementById('logs').innerHTML = '';
+            window.log('🧪 Starting Product 1807 options_overrides test...', 'log');
+
+            try {
+                // 1. Get all products and find product 1807
+                window.log('1. Fetching all products...');
+                const allProducts = await getAllProducts();
+                const product1807 = allProducts.find(p => p.id === '1807' || p.id === 1807);
+                
+                if (!product1807) {
+                    window.log('❌ Product 1807 not found!', 'error');
+                    return;
+                }
+
+                window.log(`✓ Found product 1807:<br>` +
+                    `  - ID: ${product1807.id}<br>` +
+                    `  - Name: ${product1807.name}<br>` +
+                    `  - Product Line: ${product1807.product_line}<br>` +
+                    `  - Options Overrides: ${JSON.stringify(product1807.options_overrides)}`, 'success');
+
+                // 2. Get the product line for product 1807
+                window.log('2. Fetching product lines...');
+                const productLines = await getActiveProductLines();
+                const productLine = productLines.find(pl => pl.id === product1807.product_line);
+                
+                if (!productLine) {
+                    window.log('❌ Product line not found for product 1807!', 'error');
+                    return;
+                }
+
+                window.log(`✓ Found product line:<br>` +
+                    `  - ID: ${productLine.id}<br>` +
+                    `  - Name: ${productLine.name}<br>` +
+                    `  - SKU Code: ${productLine.sku_code}<br>` +
+                    `  - Default Options: ${productLine.default_options ? productLine.default_options.length + ' options' : 'none'}`, 'success');
+
+                // 3. Test the new override-aware function
+                window.log('3. Testing override-aware filtering...');
+                const filteredOptions = await getFilteredOptionsForProduct(product1807, productLine);
+                
+                let resultsHtml = '✓ Override-aware filtering results:<br>';
+                Object.entries(filteredOptions).forEach(([key, options]) => {
+                    if (Array.isArray(options) && options.length > 0) {
+                        resultsHtml += `  - ${key}: ${options.length} options<br>`;
+                        options.slice(0, 2).forEach(opt => {
+                            resultsHtml += `    * ${opt.name || opt.id} (ID: ${opt.id})<br>`;
+                        });
+                        if (options.length > 2) {
+                            resultsHtml += `    ... and ${options.length - 2} more<br>`;
+                        }
+                    }
+                });
+
+                window.log(resultsHtml, 'success');
+
+                // 4. Verify specific overrides
+                if (product1807.options_overrides && product1807.options_overrides.length > 0) {
+                    window.log('4. Verifying specific overrides are applied...');
+                    const overrideIds = product1807.options_overrides;
+                    window.log(`Expected override IDs: ${JSON.stringify(overrideIds)}`);
+                    
+                    // Check each collection to see if only override IDs are included
+                    let foundOverrides = [];
+                    Object.entries(filteredOptions).forEach(([collectionName, options]) => {
+                        if (Array.isArray(options)) {
+                            const optionIds = options.map(opt => opt.id);
+                            const matchingIds = overrideIds.filter(id => optionIds.includes(id));
+                            if (matchingIds.length > 0) {
+                                foundOverrides.push({
+                                    collection: collectionName,
+                                    matchingIds,
+                                    totalOptions: options.length,
+                                    allOptionIds: optionIds
+                                });
+                            }
+                        }
+                    });
+
+                    if (foundOverrides.length > 0) {
+                        let overrideResultsHtml = '✅ Found options matching override IDs:<br>';
+                        foundOverrides.forEach(({ collection, matchingIds, totalOptions, allOptionIds }) => {
+                            overrideResultsHtml += `  - ${collection}: ${matchingIds.length}/${totalOptions} options match overrides<br>`;
+                            overrideResultsHtml += `    Override matches: ${matchingIds.join(', ')}<br>`;
+                            overrideResultsHtml += `    All option IDs: ${allOptionIds.join(', ')}<br>`;
+                        });
+                        window.log(overrideResultsHtml, 'success');
+                    } else {
+                        window.log('⚠️ No options found matching override IDs - checking if this is expected...', 'warn');
+                        
+                        // Show all available option IDs to debug
+                        let debugHtml = 'Debug: All available option IDs:<br>';
+                        Object.entries(filteredOptions).forEach(([collectionName, options]) => {
+                            if (Array.isArray(options) && options.length > 0) {
+                                const optionIds = options.map(opt => opt.id);
+                                debugHtml += `  - ${collectionName}: [${optionIds.join(', ')}]<br>`;
+                            }
+                        });
+                        window.log(debugHtml, 'warn');
+                    }
+                } else {
+                    window.log('4. No options_overrides found for product 1807', 'warn');
+                }
+
+                window.log('🎉 Test completed successfully!', 'success');
+
+            } catch (error) {
+                window.log(`❌ Test failed: ${error.message}<br>Stack: ${error.stack}`, 'error');
+            }
+        };
+    </script>
+</body>
+</html>

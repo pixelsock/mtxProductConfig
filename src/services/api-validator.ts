@@ -184,10 +184,11 @@ export class APIValidator {
       errors: []
     };
 
-    // Validate rule structure
-    if (!rule.if_this || !rule.than_that) {
+    // Validate rule structure (support both then_that and legacy than_that)
+    const actions = (rule && (rule.then_that ?? rule.than_that)) as any;
+    if (!rule.if_this || !actions) {
       result.success = false;
-      result.errors?.push('Rule missing if_this or than_that');
+      result.errors?.push('Rule missing if_this or then_that');
       return result;
     }
 
@@ -205,7 +206,7 @@ export class APIValidator {
 
     // Validate action structure
     try {
-      const actionValidation = await this.validateRuleActions(rule.than_that);
+      const actionValidation = await this.validateRuleActions(actions);
       if (!actionValidation.success) {
         result.actionValid = false;
         result.errors?.push(...(actionValidation.errors || []));
@@ -457,7 +458,7 @@ export class APIValidator {
     // Validate core collections
     const collections = await Promise.all([
       this.validateCollection('product_lines', ['id', 'name', 'sku_code']),
-      this.validateCollection('rules', ['id', 'name', 'if_this', 'than_that']),
+      this.validateCollection('rules', ['id', 'name', 'if_this', 'then_that']),
       this.validateCollection('mirror_styles', ['id', 'name', 'sku_code', 'active']),
       this.validateCollection('drivers', ['id', 'name', 'sku_code', 'active']),
       this.validateCollection('products', ['id', 'name']),

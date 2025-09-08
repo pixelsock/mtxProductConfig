@@ -1,0 +1,28 @@
+# MyProject Brownfield Enhancement PRD
+
+## Table of Contents
+
+- [MyProject Brownfield Enhancement PRD](#table-of-contents)
+  - [Intro Project Analysis and Context](./intro-project-analysis-and-context.md)
+    - [Existing Project Overview](./intro-project-analysis-and-context.md#existing-project-overview)
+    - [Available Documentation Analysis](./intro-project-analysis-and-context.md#available-documentation-analysis)
+    - [Enhancement Scope Definition](./intro-project-analysis-and-context.md#enhancement-scope-definition)
+    - [Goals and Background Context](./intro-project-analysis-and-context.md#goals-and-background-context)
+  - [Requirements](./requirements.md)
+      - [Functional](./requirements.md#functional)
+      - [Non-Functional](./requirements.md#non-functional)
+  - [Epic and Story Structure](./epic-and-story-structure.md)
+    - [Epic 1: Foundation & Option Registry](./epic-and-story-structure.md#epic-1-foundation-option-registry)
+      - [Story 1.1: Standardize Status Filtering](./epic-and-story-structure.md#story-11-standardize-status-filtering)
+      - [Story 1.2: Implement OptionSet Registry](./epic-and-story-structure.md#story-12-implement-optionset-registry)
+      - [Story 1.3: Create Generic Option Fetcher](./epic-and-story-structure.md#story-13-create-generic-option-fetcher)
+    - [Epic 2: Dynamic UI & Rules Engine](./epic-and-story-structure.md#epic-2-dynamic-ui-rules-engine)
+      - [Story 2.1: Dynamic UI Rendering](./epic-and-story-structure.md#story-21-dynamic-ui-rendering)
+      - [Story 2.2: Generalize Rules Engine](./epic-and-story-structure.md#story-22-generalize-rules-engine)
+    - [Epic 3: SKU Generation, Images & Realtime](./epic-and-story-structure.md#epic-3-sku-generation-images-realtime)
+      - [Story 3.1: SKU Generation as Content](./epic-and-story-structure.md#story-31-sku-generation-as-content)
+      - [Story 3.2: Dynamic Image Layering](./epic-and-story-structure.md#story-32-dynamic-image-layering)
+      - [Story 3.3: Real-time Updates & Cache Invalidation](./epic-and-story-structure.md#story-33-real-time-updates-cache-invalidation)
+    - [Epic 4: Cleanup & Documentation](./epic-and-story-structure.md#epic-4-cleanup-documentation)
+      - [Story 4.1: Consolidate Validators & Remove Legacy Code](./epic-and-story-structure.md#story-41-consolidate-validators-remove-legacy-code)
+      - [Story 4.2: Update Documentation & Admin Guide](./epic-and-story-structure.md#story-42-update-documentation-admin-guide)

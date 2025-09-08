@@ -49,8 +49,7 @@ import {
 
 // Import rules and product matching services
 import { processRules, evaluateRuleConditions, buildRuleConstraints, applyConstraintsToIds } from "./services/rules-engine";
-import { generateProductSKU } from "./services/sku-generator";
-import { findBestMatchingProduct } from "./services/product-matcher";
+import { findProductsByCriteria, selectBestProduct } from "./services/simple-product-matcher";
 import { selectProductImage, constructDirectusAssetUrl } from "./services/image-selector";
 
 // Import API validation and test suite
@@ -58,6 +57,7 @@ import { selectProductImage, constructDirectusAssetUrl } from "./services/image-
 
 // Import components
 import { ProductLineSelector } from "./components/ui/product-line-selector";
+import { getFeatureFlags } from './utils/environment';
 import { CurrentConfiguration } from "./components/ui/current-configuration";
 import { EnvironmentIndicator } from "./components/ui/environment-indicator";
 
@@ -128,6 +128,7 @@ const App: React.FC = () => {
   // Generic availability state (option-agnostic)
   const [availableOptionIds, setAvailableOptionIds] = useState<Record<string, number[]>>({});
   const [isComputingAvailability, setIsComputingAvailability] = useState(false);
+  const DEBUG_AVAIL = getFeatureFlags().debugLogging || (import.meta as any).env?.VITE_DEBUG_AVAILABILITY === 'true';
 
   // Loading states
   const [isLoadingApp, setIsLoadingApp] = useState(true);
@@ -144,6 +145,16 @@ const App: React.FC = () => {
   });
 
   const [showQuoteForm, setShowQuoteForm] = useState(false);
+
+  // Debug helper: expose availability and current config after state exists
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).printAvailability = () => {
+        console.log('Available Option IDs:', availableOptionIds);
+        console.log('Current Config:', currentConfig);
+      };
+    }
+  }, [availableOptionIds, currentConfig]);
 
   // Custom size toggle state
   const [useCustomSize, setUseCustomSize] = useState(false);
@@ -183,6 +194,26 @@ const App: React.FC = () => {
       ) as LightDirection | undefined;
       
       if (!mirrorStyle || !lightDirection) return;
+
+      // If current selections are invalid per computed availability, wait for auto-correction
+      try {
+        const ldIds = availableOptionIds?.['light_direction'];
+        if (Array.isArray(ldIds) && ldIds.length > 0) {
+          const selLd = parseInt(currentConfig.lighting || '0', 10);
+          if (selLd && !ldIds.includes(selLd)) {
+            if (import.meta.env.DEV) console.log('⏳ Waiting for auto-correct of light_direction based on availability');
+            return;
+          }
+        }
+        const ftIds = availableOptionIds?.['frame_thickness'];
+        if (Array.isArray(ftIds) && ftIds.length > 0) {
+          const selFt = parseInt(currentConfig.frameThickness || '0', 10);
+          if (selFt && !ftIds.includes(selFt)) {
+            if (import.meta.env.DEV) console.log('⏳ Waiting for auto-correct of frame_thickness based on availability');
+            return;
+          }
+        }
+      } catch {}
       
       try {
         // Build configuration context for rules (ensure all values are primitives, not objects)
@@ -197,50 +228,41 @@ const App: React.FC = () => {
           mounting: parseInt(currentConfig.mounting),
           driver: currentConfig.driver ? parseInt(currentConfig.driver) : undefined
         };
-        
-        // Process rules to get any overrides
-        const processedConfig = await processRules(configContext);
-        
-        // Generate SKU with rules applied (ensure we pass primitive IDs for rule evaluation)
-        const generatedSKU = await generateProductSKU({
-          productLine: currentProductLine,
-          frameThickness,
-          mirrorStyle,
-          lightDirection,
-          // Pass the primitive IDs for rule evaluation, not the processed config objects
-          product_line: configContext.product_line,
-          frame_thickness: configContext.frame_thickness,
-          mirror_style: configContext.mirror_style,
-          light_direction: configContext.light_direction
-        });
-        
-        if (import.meta.env.DEV) console.log('🔍 SKU Generation Debug:', {
-          productLine: currentProductLine.name,
-          frameThickness: frameThickness?.name,
-          generatedSKU,
-          rulesApplied: JSON.stringify(processedConfig) !== JSON.stringify(configContext)
-        });
-        
-        // Find best matching product
-        const mirrorStyleCode = mirrorStyle?.sku_code ? parseInt(mirrorStyle.sku_code, 10) : undefined;
-        const product = await findBestMatchingProduct({
-          sku: generatedSKU,
+
+        // Process rules to get any overrides (currently not altering product selection)
+        await processRules(configContext);
+
+        // Strictly use products: match by attributes instead of building SKU
+        const candidates = await findProductsByCriteria({
           productLineId: currentConfig.productLineId,
-          mirrorStyleId: mirrorStyle?.id,
-          mirrorStyleCode,
-          lightDirectionId: lightDirection.id
+          mirrorStyleId: mirrorStyle.id,
+          lightDirectionId: lightDirection.id,
+          frameThicknessId: frameThickness?.id
         });
-        
-        if (import.meta.env.DEV) console.log('🔍 Product Match Debug:', {
+
+        const product = selectBestProduct(candidates);
+
+        if (!product) {
+          const details = {
+            productLineId: currentConfig.productLineId,
+            mirrorStyleId: mirrorStyle.id,
+            lightDirectionId: lightDirection.id,
+            frameThicknessId: frameThickness?.id,
+          };
+          console.error('❌ No products matched strict criteria. Verify products and permissions:', details);
+          setError('No products matched the selected options. Ensure products have mirror_style, light_direction, and (for this line) frame_thickness set and readable via API.');
+        }
+
+        if (import.meta.env.DEV) console.log('🔍 Product Match (attributes):', {
           foundProduct: !!product,
+          count: candidates.length,
           productName: product?.name,
+          productSku: (product as any)?.sku_code || undefined,
           productId: product?.id,
           hasVerticalImage: !!product?.vertical_image,
-          hasHorizontalImage: !!product?.horizontal_image,
-          verticalImage: product?.vertical_image,
-          horizontalImage: product?.horizontal_image
+          hasHorizontalImage: !!product?.horizontal_image
         });
-        
+
         // Set the product if found
         setCurrentProduct(product);
       } catch (error) {
@@ -577,6 +599,7 @@ const App: React.FC = () => {
     if (!currentConfig) return;
 
     const newConfig = { ...currentConfig, [field]: value };
+    if (DEBUG_AVAIL) console.log('📝 Config change:', field, '->', value);
     setCurrentConfig(newConfig);
 
     // Recompute generic availability after any relevant change
@@ -669,6 +692,18 @@ const App: React.FC = () => {
       }
       setAvailableOptionIds(ids);
 
+      if (DEBUG_AVAIL) {
+        console.groupCollapsed(
+          `🔎 Availability for PL ${productLineId}`,
+          `MS ${context.mirror_style ?? '-'} LD ${context.light_direction ?? '-'} FT ${context.frame_thickness ?? '-'}`
+        );
+        const pick = (k: string) => (Array.isArray(ids[k]) ? [...ids[k]].sort((a,b)=>a-b) : ids[k]);
+        console.log('mirror_style:', pick('mirror_style'));
+        console.log('light_direction:', pick('light_direction'));
+        console.log('frame_thickness:', pick('frame_thickness'));
+        console.groupEnd();
+      }
+
       // Enforce defaults for any invalid selections across constrained sets
       if (opts) {
         let updated: Partial<ProductConfig> = {};
@@ -694,7 +729,10 @@ const App: React.FC = () => {
         };
 
         // Enforce for light direction, mounting (circle styles), and rule-constrained outputs
+        // Ensure light direction respects current mirror style + (optional) frame thickness
         ensureValid('light_direction', 'lighting', opts.lightingOptions);
+        // Ensure frame thickness respects current mirror style + light direction
+        ensureValid('frame_thickness', 'frameThickness', opts.frameThickness);
         // Mounting: also derive from available images for this style/line
         ensureValid('mounting', 'mounting', opts.mountingOptions);
         ensureValid('light_output', 'lightOutput', opts.lightOutputs);

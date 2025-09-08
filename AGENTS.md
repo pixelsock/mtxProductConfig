@@ -1,5 +1,7 @@
 # Repository Guidelines
 
+## NEVER
+- NEVER use fallback logic for anything. 
 ## Project Structure & Module Organization
 - `src/`: Application code
   - `components/`: React UI (Shadcn UI + Tailwind)
@@ -50,3 +52,40 @@ Example: `VITE_DIRECTUS_URL=https://pim.dude.digital VITE_DIRECTUS_API_KEY=... n
 - Do not commit secrets. `VITE_*` values are exposed to the browser; use only non‑sensitive tokens there.
 - Server‑only secrets (e.g., `DIRECTUS_TOKEN`) must remain outside client builds.
 - Minimal env to run locally: `VITE_DIRECTUS_URL`, `VITE_DIRECTUS_API_KEY`.
+
+## Directus Schema Summary (current)
+- Core option sets: `mirror_styles`, `light_directions`, `frame_thicknesses`, `frame_colors`, `mounting_options`, `drivers`, `light_outputs`, `color_temperatures`, `accessories`, `sizes`.
+  - Required fields: `id (integer)`, `name (string)`, `sku_code (string)`, `active (boolean)`, `sort (integer)`.
+  - Extras by collection: `frame_colors.hex_code`, `light_directions.svg_code`, `mirror_styles.svg_code`, `sizes.width`, `sizes.height`.
+- Products: `products`
+  - Fields: `id`, `name`, `sku_code`, `product_line (m2o)`, `mirror_style (m2o)`, `light_direction (m2o)`, `frame_thickness (json)`, `vertical_image (file)`, `horizontal_image (file)`, `additional_images (files alias)`, `options_overrides (m2a alias)`, `active`, `sort`.
+- Product Lines: `product_lines`
+  - Fields: `id`, `name`, `sku_code`, `description`, `image (file)`, `active`, `sort`, `default_options (m2a alias via product_lines_default_options)`.
+- Images
+  - Source of truth: `products.vertical_image` and `products.horizontal_image` (file fields)
+  - Thumbnails: `products.additional_images` (files alias)
+  - Note: The `configuration_images` collection is not used.
+
+- UI + SKU control:
+  - `configuration_ui`: `id (uuid)`, `collection (string)`, `ui_type (string)`, `sort (int)`, `date_updated (timestamp)`. Optional UI fields are supported by the app when present (`label`, `value_field`, etc.) but not required.
+  - `sku_code_order`: `id (uuid)`, `sku_code_item (string)`, `order (int)`.
+- Rules: `rules`
+  - Fields: `id (uuid)`, `name (string)`, `priority (int|null)`, `if_this (json)`, `then_that (json)`.
+  - Notes: Validators accept `then_that` (preferred) and fallback to legacy `than_that` if encountered.
+
+## Image Handling Notes
+- Use `products.vertical_image` and `products.horizontal_image` for hero/layered rendering.
+- Use `products.additional_images` for thumbnails and galleries.
+- We do not use a `configuration_images` collection; remove or refactor any references when encountered.
+
+## Rules Field Naming Change
+- The application logic now standardizes on `then_that` for rule actions.
+- Validators and runtime support legacy `than_that` for backward compatibility, but new data should use `then_that` only.
+
+## Validation Utilities
+- Node: `apiValidator.runFullValidation()` via `src/services/api-validator.ts` (uses curl under the hood)
+- Browser console: `validateAPI()` from `src/services/browser-api-validator.ts`
+- Both check:
+  - Core collections and required fields
+  - Rules structure (`if_this`, `then_that`)
+  - Product line default options linking

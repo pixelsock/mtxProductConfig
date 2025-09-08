@@ -21,7 +21,8 @@ import {
   DecoProduct,
   ConfigImageRule,
   ConfigurationImage,
-  Rule
+  Rule,
+  BULK_COLLECTIONS_QUERY
 } from './directus-client';
 
 // All data comes from Directus API - no static fallbacks
@@ -248,22 +249,72 @@ async function getDirectusItems<T = any>(collection: string, query?: any): Promi
   }
 }
 
-// Bulk fetch all collections using GraphQL
+// Bulk fetch all collections using REST SDK (no GraphQL)
 async function fetchBulkData(): Promise<any> {
   try {
-    // Check cache first
     if (bulkDataCache && (Date.now() - bulkDataTimestamp < CACHE_DURATION)) {
       console.log('✓ Using cached bulk data');
       return bulkDataCache;
     }
 
-    console.log('⚠️ GraphQL bulk data fetch disabled due to schema issues');
-    console.log('⚠️ Using individual REST API calls instead');
-    
-    // Return null to trigger individual REST API calls
-    return null;
+    await authenticateIfNeeded();
+
+    const toNum = (v: any) => (typeof v === 'string' && /^-?\d+(\.\d+)?$/.test(v) ? Number(v) : v);
+    const normalizeList = (arr: any[] | undefined, numKeys: string[]): any[] =>
+      (arr || []).map((it: any) => {
+        const out: any = { ...it };
+        for (const k of numKeys) if (k in out) out[k] = toNum(out[k]);
+        return out;
+      });
+
+    const [
+      product_lines,
+      frame_colors,
+      mirror_controls,
+      mirror_styles,
+      mounting_options,
+      light_directions,
+      color_temperatures,
+      light_outputs,
+      drivers,
+      frame_thicknesses,
+      sizes,
+      accessories,
+    ] = await Promise.all([
+      directusClient.request(readItems('product_lines' as any, { sort: ['sort'] } as any)),
+      directusClient.request(readItems('frame_colors' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
+      directusClient.request(readItems('mirror_controls' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
+      directusClient.request(readItems('mirror_styles' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
+      directusClient.request(readItems('mounting_options' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
+      directusClient.request(readItems('light_directions' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
+      directusClient.request(readItems('color_temperatures' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
+      directusClient.request(readItems('light_outputs' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
+      directusClient.request(readItems('drivers' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
+      directusClient.request(readItems('frame_thicknesses' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
+      directusClient.request(readItems('sizes' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
+      directusClient.request(readItems('accessories' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
+    ]);
+
+    bulkDataCache = {
+      product_lines: normalizeList(product_lines as any, ['id', 'sort']),
+      frame_colors: normalizeList(frame_colors as any, ['id', 'sort']),
+      mirror_controls: normalizeList(mirror_controls as any, ['id', 'sort']),
+      mirror_styles: normalizeList(mirror_styles as any, ['id', 'sort']),
+      mounting_options: normalizeList(mounting_options as any, ['id', 'sort']),
+      light_directions: normalizeList(light_directions as any, ['id', 'sort']),
+      color_temperatures: normalizeList(color_temperatures as any, ['id', 'sort']),
+      light_outputs: normalizeList(light_outputs as any, ['id', 'sort']),
+      drivers: normalizeList(drivers as any, ['id', 'sort']),
+      frame_thicknesses: normalizeList(frame_thicknesses as any, ['id', 'sort']),
+      sizes: normalizeList(sizes as any, ['id', 'sort']),
+      accessories: normalizeList(accessories as any, ['id', 'sort']),
+    };
+
+    bulkDataTimestamp = Date.now();
+    console.log('✓ Loaded bulk collections via REST');
+    return bulkDataCache;
   } catch (error) {
-    console.error('❌ Error in bulk data function:', error);
+    console.error('❌ Error in bulk data function (REST):', error);
     return null;
   }
 }
@@ -586,39 +637,53 @@ export async function getAllProducts(): Promise<DecoProduct[]> {
   return getCachedData('products', async () => {
     try {
       await authenticateIfNeeded();
+
       const limit = 200;
       let offset = 0;
-      let all: any[] = [];
+      const all: any[] = [];
+      const toNum = (v: any) => (typeof v === 'string' && /^-?\d+(\.\d+)?$/.test(v) ? Number(v) : v);
       while (true) {
         const page = await directusClient.request<any[]>(
           readItems('products' as any, {
             fields: [
               'id',
               'name',
-              'product_line',
-              'mirror_style',
-              'light_direction',
+              'sku_code',
+              'active',
               'vertical_image',
               'horizontal_image',
-              // New: fetch additional images (only file IDs to keep payload lean)
-              'additional_images.directus_files_id.id',
-              'active'
+              'frame_thickness',
+              'product_line.id',
+              'mirror_style.id',
+              'light_direction.id',
+              'additional_images.directus_files_id.id'
             ],
+            sort: ['id'],
             limit,
             offset,
-            sort: ['id']
           } as any)
         );
-        all = all.concat(page || []);
+        const normalized = (page || []).map((p: any) => {
+          const norm: any = { ...p };
+          norm.id = toNum(p.id);
+          norm.product_line = toNum(p.product_line?.id ?? p.product_line);
+          norm.mirror_style = toNum(p.mirror_style?.id ?? p.mirror_style);
+          norm.light_direction = toNum(p.light_direction?.id ?? p.light_direction);
+          norm.frame_thickness = toNum((p.frame_thickness?.id ?? p.frame_thickness?.key ?? p.frame_thickness));
+          norm.vertical_image = p.vertical_image ?? null;
+          norm.horizontal_image = p.horizontal_image ?? null;
+          return norm;
+        });
+        all.push(...normalized);
         if (!page || page.length < limit) break;
         offset += limit;
       }
-      const activeItems = all.filter((p: any) => p.active !== false);
-      if (import.meta.env.DEV) console.log(`✓ Loaded ${activeItems.length} active products via SDK`);
-      return activeItems;
+      const activeItems = all.filter((p: any) => p.active === true || p.active === undefined);
+      if (import.meta.env.DEV) console.log(`✓ Loaded ${activeItems.length} active products via REST`);
+      return activeItems as DecoProduct[];
     } catch (error) {
-      console.error('Failed to fetch products via SDK:', error);
-      return [];
+      console.error('Failed to fetch products via REST SDK:', error);
+      throw new Error('Products fetch failed via REST. Verify permissions for fields: id,name,sku_code,product_line.id,mirror_style.id,light_direction.id,frame_thickness,vertical_image,horizontal_image,additional_images.directus_files_id.id');
     }
   });
 }
@@ -1022,16 +1087,16 @@ export async function initializeDirectusService(): Promise<void> {
     // Test connection and authenticate first
     await testConnection();
     
-    // Warm up cache using bulk GraphQL query for better performance
-    const startTime = Date.now();
-    console.log('Loading collections with bulk GraphQL query...');
-    
-    try {
-      // Try to load all data with single GraphQL query
-      await fetchBulkData();
-      console.log('✓ Bulk data loaded successfully');
-    } catch (error) {
-      console.warn('Bulk data loading failed, using individual calls:', error);
+  // Warm up cache using bulk REST loader for better performance
+  const startTime = Date.now();
+  console.log('Loading collections with bulk REST loader...');
+  
+  try {
+    // Load all collections via REST in parallel
+    await fetchBulkData();
+    console.log('✓ Bulk data loaded successfully');
+  } catch (error) {
+    console.warn('Bulk data loading failed, using individual calls:', error);
       
       // Fallback to individual calls
       await Promise.all([
@@ -1154,27 +1219,8 @@ export async function getAvailableLightDirectionsForMirrorStyle(
     
     console.log(`💡 Available light direction IDs: ${lightDirectionIds.join(', ')}`);
     
-    // Get the light direction objects
-    const lightDirections = await getCachedData('light_directions', async () => {
-      const isDev = import.meta.env.DEV;
-      const API_KEY = import.meta.env.VITE_DIRECTUS_API_KEY || 'SatmtC2cTo-k-V17usWeYpBcc6hbtXjC';
-      const baseUrl = isDev ? '/api/directus/items/light_directions' : `${import.meta.env.VITE_DIRECTUS_URL || 'https://pim.dude.digital'}/items/light_directions`;
-      const headers: HeadersInit = isDev ? {} : { 'Authorization': `Bearer ${API_KEY}` };
-      const limit = 200;
-      let offset = 0;
-      let all: any[] = [];
-      while (true) {
-        const url = `${baseUrl}?limit=${limit}&offset=${offset}`;
-        const resp = await fetch(url, { headers });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const json = await resp.json();
-        const page = json.data || [];
-        all = all.concat(page);
-        if (page.length < limit) break;
-        offset += limit;
-      }
-      return all;
-    });
+    // Get the light direction objects using service (GraphQL bulk or REST fallback)
+    const lightDirections = await getActiveLightDirections();
     
     // Filter to only include available light directions
     const availableLightDirections = lightDirections.filter((ld: any) => 
@@ -1196,27 +1242,39 @@ export async function getAvailableOptionIdsForSelections(
   selections: Record<string, string | number | undefined | null>
 ): Promise<Record<string, number[]>> {
   try {
-    // Fetch only products for the given product line with pagination
-    const API_KEY = import.meta.env.VITE_DIRECTUS_API_KEY || 'SatmtC2cTo-k-V17usWeYpBcc6hbtXjC';
-    const baseUrl = import.meta.env.DEV
-      ? '/api/directus/items/products'
-      : `${import.meta.env.VITE_DIRECTUS_URL || 'https://pim.dude.digital'}/items/products`;
-    const headers: HeadersInit = API_KEY ? { 'Authorization': `Bearer ${API_KEY}` } : {};
+    await authenticateIfNeeded();
+    let productsForLine: any[] = [];
+    // REST pagination scoped by product line
     const limit = 200;
     let offset = 0;
-    let productsForLine: any[] = [];
+    const toNum = (v: any) => (typeof v === 'string' && /^-?\d+(\.\d+)?$/.test(v) ? Number(v) : v);
     while (true) {
       const page = await directusClient.request<any[]>(
         readItems('products' as any, {
-          filter: { product_line: { _eq: productLineId }, active: { _neq: false } },
-          fields: ['id','name','product_line','mirror_style','light_direction','vertical_image','horizontal_image','active'],
+          filter: { product_line: { _eq: productLineId }, active: { _eq: true } },
+          fields: [
+            'id',
+            'name',
+            'active',
+            'frame_thickness',
+            'product_line.id',
+            'mirror_style.id',
+            'light_direction.id',
+          ],
+          sort: ['id'],
           limit,
           offset,
-          sort: ['id']
         } as any)
       );
-      const cleaned = (page || []).filter((p: any) => p.active !== false);
-      productsForLine = productsForLine.concat(cleaned);
+      const normalized = (page || []).map((p: any) => ({
+        ...p,
+        id: toNum(p.id),
+        product_line: toNum(p.product_line?.id ?? p.product_line),
+        mirror_style: toNum(p.mirror_style?.id ?? p.mirror_style),
+        light_direction: toNum(p.light_direction?.id ?? p.light_direction),
+        frame_thickness: toNum(p.frame_thickness?.id ?? p.frame_thickness?.key ?? p.frame_thickness),
+      }));
+      productsForLine = productsForLine.concat(normalized);
       if (!page || page.length < limit) break;
       offset += limit;
     }
@@ -1245,36 +1303,49 @@ export async function getAvailableOptionIdsForSelections(
     // Filter products by product line and current selections (only fields that actually exist on product objects)
     if (productsForLine.length === 0) return {};
 
-    // Determine candidate numeric FK fields (dynamic)
-    const sample = productsForLine[0] as any;
-    const blocked = new Set(['id', 'product_line', 'active', 'name', 'vertical_image', 'horizontal_image']);
-    const candidateFields = Object.keys(sample).filter(k => typeof (sample as any)[k] === 'number' && !blocked.has(k));
+  // Determine candidate numeric FK fields (dynamic)
+  const sample = productsForLine[0] as any;
+  const blocked = new Set(['id', 'product_line', 'active', 'name', 'vertical_image', 'horizontal_image']);
+  const candidateFields = Object.keys(sample).filter(k => typeof (sample as any)[k] === 'number' && !blocked.has(k));
 
-    // For each candidate field, compute availability by applying all other selection constraints except that field
-    const result: Record<string, number[]> = {};
-    for (const field of candidateFields) {
-      const selectionKeys = Array.from(new Set([
-        ...Object.keys(numericSel),
-        ...Object.keys(stringSel),
-      ]));
-      const otherKeys = selectionKeys.filter(k => (k in sample || k === 'mirror_style_code' || k === 'mirror_style_sku_code') && k !== field);
+  // For each candidate field, compute availability by applying all other selection constraints except that field
+  const result: Record<string, number[]> = {};
 
-      // Special-case for light_direction: only constrain by mirror_style (and product_line already applied)
-      if (field === 'light_direction') {
-        const msId = numericSel['mirror_style'];
-        const filtered = productsForLine.filter((p: any) => {
-          if (msId !== undefined) return p.mirror_style === msId;
-          // If no mirror style selected, do not constrain
-          return true;
-        });
-        const ids = new Set<number>();
-        for (const p of filtered) {
-          const val = (p as any)[field];
-          if (typeof val === 'number') ids.add(val);
-        }
-        result[field] = Array.from(ids.values());
-        continue;
-      }
+  // Always compute light_direction availability explicitly based on selected mirror_style
+  {
+    const msId = numericSel['mirror_style'];
+    const ftId = numericSel['frame_thickness'];
+    const filtered = productsForLine.filter((p: any) => {
+      if (msId !== undefined && p.mirror_style !== msId) return false;
+      if (ftId !== undefined && p.frame_thickness !== ftId) return false;
+      return true;
+    });
+    const ids = new Set<number>();
+    for (const p of filtered) {
+      const val = (p as any).light_direction;
+      if (typeof val === 'number') ids.add(val);
+    }
+    result['light_direction'] = Array.from(ids.values());
+
+    if (import.meta.env.VITE_ENABLE_DEBUG_LOGGING === 'true') {
+      console.log(
+        '🔎 light_direction availability',
+        Array.from(ids.values()),
+        'for mirror_style', msId,
+        'frame_thickness', ftId,
+        'candidates', filtered.length
+      );
+    }
+  }
+  for (const field of candidateFields) {
+    const selectionKeys = Array.from(new Set([
+      ...Object.keys(numericSel),
+      ...Object.keys(stringSel),
+    ]));
+    const otherKeys = selectionKeys.filter(k => (k in sample || k === 'mirror_style_code' || k === 'mirror_style_sku_code') && k !== field);
+
+    // Skip recomputing light_direction here (handled explicitly above)
+    if (field === 'light_direction') continue;
 
       const filtered = productsForLine.filter((p: any) => {
         return otherKeys.every(k => {

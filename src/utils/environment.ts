@@ -69,15 +69,14 @@ export function getEnvironmentConfig(): EnvironmentConfig {
   const supabaseAnonKey = getSupabaseAnonKey();
   const errors: string[] = [];
 
-  // Validate required environment variables
-  if (!supabaseUrl) {
-    errors.push('VITE_SUPABASE_URL is not configured');
-  } else if (!isValidUrl(supabaseUrl)) {
-    errors.push('VITE_SUPABASE_URL is not a valid URL');
-  }
-
-  if (!supabaseAnonKey) {
-    errors.push('VITE_SUPABASE_ANON_KEY is not configured');
+  // Supabase is optional in this project. Only validate when provided.
+  if (supabaseUrl) {
+    if (!isValidUrl(supabaseUrl)) {
+      errors.push('VITE_SUPABASE_URL is not a valid URL');
+    }
+    if (!supabaseAnonKey) {
+      errors.push('VITE_SUPABASE_ANON_KEY is not configured');
+    }
   }
 
   // Determine environment
@@ -179,7 +178,9 @@ export function validateEnvironment(): boolean {
   
   if (!config.isValid) {
     console.error('❌ Invalid environment configuration:', config.errors);
-    return false;
+    // Don't block app when only optional Supabase config is missing
+    const onlySupabaseIssues = config.errors.every((e) => e.includes('VITE_SUPABASE'));
+    return onlySupabaseIssues ? true : false;
   }
   
   return true;

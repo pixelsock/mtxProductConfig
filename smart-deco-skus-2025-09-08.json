@@ -1,0 +1,1547 @@
+{
+  "summary": {
+    "generatedAt": "2025-09-08T14:15:56.430Z",
+    "duration": 30,
+    "decoProductsProcessed": 5,
+    "totalValidCombinations": 1800,
+    "uniqueSKUs": 1800,
+    "rulesAppliedCount": 288,
+    "optionCounts": {
+      "frameColors": 3,
+      "sizes": 3,
+      "lightOutputs": 2,
+      "colorTemperatures": 3,
+      "drivers": 2,
+      "mountingOptions": 2,
+      "accessories": 3
+    }
+  },
+  "sampleSkus": [
+    {
+      "sku": "T01-2436-BLK-30K-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-30K",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-30K-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-30K-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-30K-10V-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-30K-10V-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-30K-10V",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-30K-10V-L-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-30K-10V-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-30K-10V-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-40K-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-40K",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-40K-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-40K-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-40K-10V-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-40K-10V-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-40K-10V",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-40K-10V-L-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-40K-10V-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-40K-10V-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-ADJ-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-ADJ",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-ADJ-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-ADJ-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-ADJ-10V-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-ADJ-10V-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-ADJ-10V",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-ADJ-10V-L-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-ADJ-10V-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-ADJ-10V-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-HI-ADJ-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-HI-ADJ",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-HI-ADJ-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-HI-ADJ-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-HI-ADJ-10V-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-HI-ADJ-10V-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-HI-ADJ-10V",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-HI-ADJ-10V-L-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-HI-ADJ-10V-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-2436-BLK-HI-ADJ-10V-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "24\"x36\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-30K-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-30K",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-30K-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-30K-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-30K-10V-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-30K-10V-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-30K-10V",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-30K-10V-L-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-30K-10V-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-30K-10V-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-40K-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-40K",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-40K-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-40K-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-40K-10V-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-40K-10V-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-40K-10V",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-40K-10V-L-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-40K-10V-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-40K-10V-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-ADJ-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-ADJ",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-ADJ-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-ADJ-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-ADJ-10V-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-ADJ-10V-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-ADJ-10V",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-ADJ-10V-L-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-ADJ-10V-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-ADJ-10V-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "Standard",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-HI-ADJ-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-HI-ADJ",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-HI-ADJ-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-HI-ADJ-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-HI-ADJ-10V-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-HI-ADJ-10V-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-HI-ADJ-10V",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-HI-ADJ-10V-L-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-HI-ADJ-10V-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3040-BLK-HI-ADJ-10V-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "30\"x40\"",
+        "light_output": "High Output",
+        "color_temperature": "Adjustable",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-30K-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-30K",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-30K-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-30K-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-30K-10V-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-30K-10V-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-30K-10V",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-30K-10V-L-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-30K-10V-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-30K-10V-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "3000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-40K-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-40K",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-40K-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-40K-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "Non-Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-40K-10V-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-40K-10V-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-40K-10V",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Portrait",
+        "accessory": []
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-40K-10V-L-AF",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Anti-Fog"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-40K-10V-L-NL",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": [
+          "Nightlight"
+        ]
+      }
+    },
+    {
+      "sku": "T01-3648-BLK-40K-10V-L",
+      "product_id": 1720,
+      "product_name": "T01D",
+      "config": {
+        "frame_color": "Black",
+        "size": "36\"x48\"",
+        "light_output": "Standard",
+        "color_temperature": "4000K",
+        "driver": "0-10V Dimming",
+        "mounting_option": "Landscape",
+        "accessory": []
+      }
+    }
+  ],
+  "metadata": {
+    "description": "Smart generated Deco SKUs with business rules applied",
+    "sampleSize": 100,
+    "totalSize": 1800,
+    "generatorVersion": "1.0.0"
+  }
+}

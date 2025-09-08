@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combination Generation Debug</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #fff; }
+        .log { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 4px; }
+        .error { border-left: 3px solid #e24a4a; }
+        .success { border-left: 3px solid #4ae24a; }
+        button { padding: 12px 24px; margin: 10px 0; background: #4a90e2; color: white; border: none; cursor: pointer; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Combination Generation Debug</h1>
+    <button onclick="testCombinations()">Test Combination Generation</button>
+    <div id="results"></div>
+
+    <script type="module">
+        import { 
+            getActiveFrameColors,
+            getActiveMirrorControls,
+            getActiveProductLines
+        } from './src/services/directus.ts';
+
+        window.log = (message, type = 'log') => {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = message;
+            document.getElementById('results').appendChild(div);
+            console.log(message);
+        };
+
+        // Generate all possible configurations for a set of options
+        function generateAllCombinations(options) {
+            const keys = Object.keys(options);
+            const combinations = [];
+
+            function generate(current, keyIndex) {
+                if (keyIndex === keys.length) {
+                    combinations.push({ ...current });
+                    return;
+                }
+
+                const key = keys[keyIndex];
+                const values = options[key];
+
+                // Skip empty arrays - don't include this option in combinations
+                if (!values || values.length === 0) {
+                    generate(current, keyIndex + 1);
+                    return;
+                }
+
+                for (const value of values) {
+                    const newCurrent = { ...current };
+                    newCurrent[key] = value;
+                    generate(newCurrent, keyIndex + 1);
+                }
+            }
+
+            generate({}, 0);
+            return combinations;
+        }
+
+        window.testCombinations = async function() {
+            document.getElementById('results').innerHTML = '';
+            window.log('🔧 Testing combination generation...');
+            
+            try {
+                // Get minimal data for testing
+                const frameColors = await getActiveFrameColors();
+                const mirrorControls = await getActiveMirrorControls();
+                const productLines = await getActiveProductLines();
+
+                // Use only first few items for testing
+                const testOptions = {
+                    frameColors: frameColors.slice(0, 2), // Just 2 colors
+                    mirrorControls: mirrorControls.slice(0, 2) // Just 2 controls
+                };
+
+                window.log(`Test options: frameColors=${testOptions.frameColors.length}, mirrorControls=${testOptions.mirrorControls.length}`);
+                
+                const combinations = generateAllCombinations(testOptions);
+                window.log(`✅ Generated ${combinations.length} combinations`, 'success');
+                
+                // Show first few combinations
+                combinations.slice(0, 5).forEach((combo, i) => {
+                    const frameColor = combo.frameColors?.name || 'None';
+                    const mirrorControl = combo.mirrorControls?.name || 'None';
+                    window.log(`  ${i + 1}. Frame: ${frameColor}, Control: ${mirrorControl}`);
+                });
+
+                if (combinations.length > 5) {
+                    window.log(`  ... and ${combinations.length - 5} more combinations`);
+                }
+
+                // Find Deco product line
+                const decoProductLine = productLines.find(pl => pl.sku_code === 'D' || pl.name?.toLowerCase().includes('deco'));
+                if (decoProductLine) {
+                    window.log(`✅ Found Deco product line: ${decoProductLine.name}`, 'success');
+                } else {
+                    window.log(`❌ No Deco product line found`, 'error');
+                }
+
+            } catch (error) {
+                window.log(`❌ Error: ${error.message}`, 'error');
+                console.error('Test error:', error);
+            }
+        };
+
+        window.addEventListener('load', function() {
+            window.log('Ready to test combination generation');
+        });
+    </script>
+</body>
+</html>

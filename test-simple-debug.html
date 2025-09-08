@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Directus Debug Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #fff; }
+        .log { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 4px; }
+        .error { border-left: 3px solid #e24a4a; }
+        .success { border-left: 3px solid #4ae24a; }
+        button { padding: 12px 24px; margin: 10px 0; background: #4a90e2; color: white; border: none; cursor: pointer; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Simple Directus Debug Test</h1>
+    <button onclick="testBasicConnections()">Test Basic API Connections</button>
+    <div id="results"></div>
+
+    <script type="module">
+        import { 
+            getActiveFrameColors,
+            getActiveMirrorControls,
+            getActiveSizes,
+            getActiveProductLines
+        } from './src/services/directus.ts';
+
+        window.log = (message, type = 'log') => {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = message;
+            document.getElementById('results').appendChild(div);
+            console.log(message);
+        };
+
+        window.testBasicConnections = async function() {
+            document.getElementById('results').innerHTML = '';
+            window.log('🔍 Starting basic connection tests...');
+            
+            const tests = [
+                { name: 'Frame Colors', fn: getActiveFrameColors },
+                { name: 'Mirror Controls', fn: getActiveMirrorControls },
+                { name: 'Sizes', fn: getActiveSizes },
+                { name: 'Product Lines', fn: getActiveProductLines }
+            ];
+
+            for (const test of tests) {
+                try {
+                    window.log(`Testing ${test.name}...`);
+                    const result = await test.fn();
+                    window.log(`✅ ${test.name}: ${result.length} items`, 'success');
+                    if (result.length > 0) {
+                        window.log(`   Sample item: ${JSON.stringify(result[0], null, 2).substring(0, 200)}...`);
+                    }
+                } catch (error) {
+                    window.log(`❌ ${test.name}: ${error.message}`, 'error');
+                    console.error(`${test.name} error:`, error);
+                }
+            }
+
+            window.log('🎯 Basic tests complete');
+        };
+
+        // Auto-run on page load
+        window.addEventListener('load', function() {
+            window.log('Page loaded - click button to test API connections');
+        });
+    </script>
+</body>
+</html>

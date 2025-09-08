@@ -1,0 +1,209 @@
+# Sub-story Template for Parallel Workflows
+
+# Template metadata
+name: "sub-story-tmpl"
+version: "1.0"
+description: "Template for creating sub-stories optimized for parallel development workflows"
+author: "BMAD Core"
+created: "2024-01-01"
+
+# Template structure
+sections:
+  - name: "story_header"
+    title: "Story {epic}.{story}.{sub_id}: {Sub-story Title}"
+    required: true
+    owner: "sm"
+    editors: ["sm", "po"]
+    elicit: false
+    instruction: |
+      Create the main story header with sub-story identification
+      Include parent story reference and worktree assignment
+      
+      Format:
+      # Story {epic}.{story}.{sub_id}: {Sub-story Title}
+      
+      ## Status: Draft
+      
+      ## Parent Story
+      **Original Story:** {epic}.{story} - {original_title}
+      **Worktree:** {worktree_name}
+      **Parallel Development:** Yes
+      **Dependencies:** {list of dependent sub-stories}
+
+  - name: "story_statement"
+    title: "Story"
+    required: true
+    owner: "sm"
+    editors: ["sm", "po"]
+    elicit: true
+    instruction: |
+      Create the user story statement focused on the sub-story scope
+      Ensure it's specific to the sub-story's component/feature
+      
+      Format:
+      As a {user_type},
+      I want {specific_capability_for_this_sub_story},
+      So that {value_delivered_by_this_sub_story}.
+
+  - name: "sub_story_scope"
+    title: "Sub-story Scope"
+    required: true
+    owner: "sm"
+    editors: ["sm"]
+    elicit: false
+    instruction: |
+      Define the specific scope and boundaries of this sub-story
+      Include file ownership and integration points
+      
+      Format:
+      **Primary Focus:** {specific component/feature}
+      **File Ownership:** {list of owned files}
+      **Integration Points:** {where this connects to other sub-stories}
+      **Excluded Scope:** {what this sub-story does NOT include}
+
+  - name: "acceptance_criteria"
+    title: "Acceptance Criteria"
+    required: true
+    owner: "sm"
+    editors: ["sm", "po"]
+    elicit: true
+    instruction: |
+      Define acceptance criteria specific to this sub-story
+      Include integration requirements with other sub-stories
+      
+      Format:
+      1. {Sub-story specific AC 1}
+      2. {Sub-story specific AC 2}
+      3. Integration with {other_sub_story} works correctly
+      4. No regression in existing functionality
+      5. {Additional sub-story specific criteria}
+
+  - name: "tasks_subtasks"
+    title: "Tasks / Subtasks"
+    required: true
+    owner: "sm"
+    editors: ["sm", "dev"]
+    elicit: false
+    instruction: |
+      Break down the sub-story into specific, actionable tasks
+      Include integration and coordination tasks
+      
+      Format:
+      - [ ] Task 1: {Sub-story specific task}
+      - [ ] Task 2: {Sub-story specific task}
+      - [ ] Task 3: Integration testing with {other_sub_story}
+      - [ ] Task 4: Merge preparation and conflict resolution
+      - [ ] Task 5: {Additional sub-story tasks}
+
+  - name: "parallel_development_notes"
+    title: "Parallel Development Notes"
+    required: true
+    owner: "sm"
+    editors: ["sm"]
+    elicit: false
+    instruction: |
+      Document parallel development considerations
+      Include coordination requirements and conflict prevention
+      
+      Format:
+      **Coordination Required:**
+      - Sync with {other_sub_story} on {specific_integration_point}
+      - Merge conflicts possible in: {list of shared files}
+      - Integration testing needed with: {other_sub_stories}
+      
+      **Worktree Setup:**
+      - Clone repository to: {worktree_path}
+      - Branch: {sub_story_branch}
+      - Sync schedule: {daily/weekly/as_needed}
+      
+      **Conflict Prevention:**
+      - File ownership: {owned_files}
+      - Shared files: {read_only_shared_files}
+      - Coordination points: {sync_checkpoints}
+
+  - name: "integration_requirements"
+    title: "Integration Requirements"
+    required: true
+    owner: "sm"
+    editors: ["sm", "dev"]
+    elicit: false
+    instruction: |
+      Define how this sub-story integrates with others
+      Include API contracts and data flow
+      
+      Format:
+      **Input Dependencies:**
+      - Receives data from: {other_sub_story}
+      - API endpoints consumed: {list}
+      - Data structures used: {list}
+      
+      **Output Dependencies:**
+      - Provides data to: {other_sub_story}
+      - API endpoints exposed: {list}
+      - Data structures created: {list}
+      
+      **Integration Testing:**
+      - Cross-sub-story tests: {list}
+      - Mock requirements: {list}
+      - Test data setup: {requirements}
+
+  - name: "definition_of_done"
+    title: "Definition of Done"
+    required: true
+    owner: "sm"
+    editors: ["sm", "dev", "qa"]
+    elicit: false
+    instruction: |
+      Define completion criteria for this sub-story
+      Include integration and quality requirements
+      
+      Format:
+      - [ ] All sub-story acceptance criteria met
+      - [ ] Integration with other sub-stories verified
+      - [ ] No merge conflicts with other sub-stories
+      - [ ] Code reviewed and approved
+      - [ ] Integration tests pass
+      - [ ] Ready for parent story integration
+      - [ ] Documentation updated
+      - [ ] Performance requirements met
+
+  - name: "risk_mitigation"
+    title: "Risk Mitigation"
+    required: true
+    owner: "sm"
+    editors: ["sm"]
+    elicit: false
+    instruction: |
+      Identify and mitigate risks specific to parallel development
+      Include conflict prevention and resolution strategies
+      
+      Format:
+      **Identified Risks:**
+      - Merge conflicts in: {specific_files}
+      - Integration issues with: {other_sub_story}
+      - Performance impact on: {system_components}
+      
+      **Mitigation Strategies:**
+      - Conflict prevention: {specific_measures}
+      - Integration testing: {testing_approach}
+      - Performance monitoring: {monitoring_setup}
+      
+      **Contingency Plans:**
+      - If conflicts occur: {resolution_procedure}
+      - If integration fails: {fallback_approach}
+      - If performance degrades: {optimization_plan}
+
+# Template validation rules
+validation:
+  required_sections: ["story_header", "story_statement", "sub_story_scope", "acceptance_criteria", "tasks_subtasks", "parallel_development_notes", "integration_requirements", "definition_of_done", "risk_mitigation"]
+  section_dependencies:
+    - story_statement: ["sub_story_scope"]
+    - acceptance_criteria: ["sub_story_scope"]
+    - tasks_subtasks: ["acceptance_criteria", "integration_requirements"]
+    - definition_of_done: ["acceptance_criteria", "integration_requirements"]
+  quality_checks:
+    - sub_story_scope_must_define_file_ownership
+    - integration_requirements_must_specify_dependencies
+    - parallel_development_notes_must_include_coordination
+    - risk_mitigation_must_address_conflicts
+

@@ -145,6 +145,7 @@ export interface Size {
 export interface DecoProduct {
   id: string | number;
   name: string;
+  sku_code?: string;
   description?: string;
   applicationImage?: string;
   vertical_image?: string;
@@ -190,12 +191,15 @@ export interface Rule {
   name: string;
   priority: number | null;
   if_this: any; // Directus filter object
-  than_that: any; // Actions/overrides object
+  // Preferred field name in schema
+  then_that?: any; // Actions/overrides object
+  // Legacy fallback supported by validators for backward compatibility
+  than_that?: any;
 }
 
 // Get the Directus URL and API key from environment
 const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL || 'https://pim.dude.digital';
-const API_KEY = import.meta.env.VITE_DIRECTUS_API_KEY || 'SatmtC2cTo-k-V17usWeYpBcc6hbtXjC';
+const API_KEY = import.meta.env.VITE_DIRECTUS_API_KEY;
 
 // Create the Directus client with proper configuration
 // Try API key first, then fall back to authentication
@@ -234,7 +238,6 @@ export async function authenticateIfNeeded() {
 
     if (email && password) {
       console.log('🔐 Attempting authentication with provided credentials...');
-      console.log('Using email:', email);
       
       // For non-static token clients, use authentication
       if (!API_KEY) {
@@ -271,12 +274,6 @@ export const BULK_COLLECTIONS_QUERY = `
         id
         filename_disk
         title
-      }
-      default_options {
-        id
-        product_lines_id
-        item
-        collection
       }
     }
     frame_colors(filter: { active: { _eq: true } }, sort: ["sort"]) {

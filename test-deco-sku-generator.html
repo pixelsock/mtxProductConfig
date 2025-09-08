@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deco SKU Generator Test</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: #fff; 
+            max-width: 1200px; 
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4a90e2;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4a90e2;
+        }
+        .stat-label {
+            color: #ccc;
+            font-size: 0.9em;
+        }
+        .search-section {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background: #1a1a1a;
+            border: 2px solid #444;
+            color: #fff;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+        .autocomplete-results {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            display: none;
+        }
+        .autocomplete-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+        }
+        .autocomplete-item:hover {
+            background: #333;
+        }
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        .sku-match {
+            font-weight: bold;
+            color: #4a90e2;
+        }
+        .config-details {
+            font-size: 0.9em;
+            color: #ccc;
+            margin-top: 5px;
+        }
+        .log { 
+            margin: 10px 0; 
+            padding: 10px; 
+            border-left: 3px solid #4a90e2; 
+            background: #2a2a2a; 
+            border-radius: 4px;
+        }
+        .error { border-color: #e24a4a; }
+        .success { border-color: #4ae24a; }
+        .warn { border-color: #e2e24a; }
+        button { 
+            padding: 12px 24px; 
+            margin: 10px; 
+            background: #4a90e2; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #357abd;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4a90e2, #357abd);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .generation-controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔧 Smart Deco SKU Generator</h1>
+        <p>Load and search intelligently generated SKU combinations for the Deco product line using product constraints and business rules</p>
+    </div>
+
+    <div class="generation-controls">
+        <button id="generateBtn" onclick="generateAllDecoSKUs()">Load Generated Deco SKUs</button>
+        <button id="clearBtn" onclick="clearResults()" disabled>Clear Results</button>
+        <div id="progress" class="progress" style="display: none;">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div id="totalSkus" class="stat-number">0</div>
+            <div class="stat-label">Total SKUs Generated</div>
+        </div>
+        <div class="stat-card">
+            <div id="uniqueSkus" class="stat-number">0</div>
+            <div class="stat-label">Unique SKUs</div>
+        </div>
+        <div class="stat-card">
+            <div id="productsCount" class="stat-number">0</div>
+            <div class="stat-label">Product Lines</div>
+        </div>
+        <div class="stat-card">
+            <div id="generationTime" class="stat-number">0ms</div>
+            <div class="stat-label">Generation Time</div>
+        </div>
+    </div>
+
+    <div class="search-section">
+        <h3>🔍 SKU Search & Autocomplete</h3>
+        <input 
+            type="text" 
+            id="skuSearch" 
+            class="search-box" 
+            placeholder="Search for SKUs... (e.g. D01, D01D, D01D-24X36)"
+            disabled
+        >
+        <div id="autocompleteResults" class="autocomplete-results"></div>
+        <div id="searchStats" style="color: #ccc; font-size: 0.9em;"></div>
+    </div>
+
+    <div id="logs"></div>
+
+    <script>
+        // Global state for pre-generated SKUs
+        let allGeneratedSKUs = [];
+        let skuData = null;
+
+        // Utility functions
+        window.log = (message, type = 'log') => {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = message.replace(/\n/g, '<br>');
+            document.getElementById('logs').appendChild(div);
+            console.log(message);
+        };
+
+        function updateStats(stats) {
+            document.getElementById('totalSkus').textContent = stats.totalSkus || 0;
+            document.getElementById('uniqueSkus').textContent = stats.uniqueSkus || 0;
+            document.getElementById('productsCount').textContent = stats.productsCount || 0;
+            document.getElementById('generationTime').textContent = stats.generationTime || '0ms';
+        }
+
+        function updateProgress(percent) {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = `${percent}%`;
+        }
+
+
+        // Load pre-generated SKU data
+        window.generateAllDecoSKUs = async function() {
+            const startTime = Date.now();
+            
+            try {
+                document.getElementById('generateBtn').disabled = true;
+                document.getElementById('progress').style.display = 'block';
+                allGeneratedSKUs = [];
+
+                window.log('🚀 Loading pre-generated Deco SKUs...', 'log');
+                updateProgress(20);
+
+                // Load the JSON file generated by our backend script
+                window.log('1. Loading smart-deco-skus-2025-09-08.json...');
+                const response = await fetch('./smart-deco-skus-2025-09-08.json');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load SKU data: ${response.statusText}`);
+                }
+
+                skuData = await response.json();
+                window.log(`✓ Loaded SKU data file`, 'success');
+                updateProgress(50);
+
+                // Process the loaded data
+                window.log('2. Processing SKU combinations...');
+                const processedSKUs = [];
+                const uniqueSKUs = new Set();
+
+                // Process sample SKUs from the generated file
+                for (const skuItem of skuData.sampleSkus) {
+                    const processedSKU = {
+                        sku: skuItem.sku,
+                        productId: skuItem.product_id,
+                        productName: skuItem.product_name,
+                        configuration: skuItem.config,
+                        generatedBy: 'smart-backend-generator'
+                    };
+                    
+                    processedSKUs.push(processedSKU);
+                    uniqueSKUs.add(skuItem.sku);
+                }
+
+                allGeneratedSKUs = processedSKUs;
+                updateProgress(100);
+
+                const endTime = Date.now();
+                const loadTime = endTime - startTime;
+
+                // Update stats with actual data from the summary
+                updateStats({
+                    totalSkus: skuData.summary.totalValidCombinations || processedSKUs.length,
+                    uniqueSkus: uniqueSKUs.size,
+                    productsCount: skuData.summary.decoProductsProcessed || 1,
+                    generationTime: `${skuData.summary.duration}ms (backend) + ${loadTime}ms (load)`
+                });
+
+                // Enable search
+                document.getElementById('skuSearch').disabled = false;
+                document.getElementById('clearBtn').disabled = false;
+                setupAutocomplete();
+
+                window.log(`🎉 SKU data loaded successfully!`, 'success');
+                window.log(`  - Backend generated: ${skuData.summary.totalValidCombinations.toLocaleString()} total combinations`, 'success');
+                window.log(`  - Sample loaded: ${processedSKUs.length} SKUs`, 'success');
+                window.log(`  - Unique SKUs in sample: ${uniqueSKUs.size}`, 'success');
+                window.log(`  - Products processed: ${skuData.summary.decoProductsProcessed}`, 'success');
+                window.log(`  - Backend generation time: ${skuData.summary.duration}ms`, 'success');
+                window.log(`  - Rules applied: ${skuData.summary.rulesAppliedCount}`, 'success');
+
+                // Show sample SKUs
+                window.log('\n📋 Sample Generated SKUs:', 'log');
+                processedSKUs.slice(0, 10).forEach((item, i) => {
+                    window.log(`  ${i+1}. ${item.sku} (${item.productName})`, 'log');
+                });
+
+                if (processedSKUs.length > 10) {
+                    window.log(`  ... and ${processedSKUs.length - 10} more`, 'log');
+                }
+
+            } catch (error) {
+                window.log(`❌ Failed to load SKU data: ${error.message}`, 'error');
+                window.log(`Make sure the smart-deco-skus-2025-09-08.json file exists in the same directory`, 'warn');
+                console.error('Load error:', error);
+            } finally {
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('progress').style.display = 'none';
+            }
+        };
+
+        // Setup autocomplete functionality
+        function setupAutocomplete() {
+            const searchInput = document.getElementById('skuSearch');
+            const resultsDiv = document.getElementById('autocompleteResults');
+            const searchStats = document.getElementById('searchStats');
+
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim().toLowerCase();
+                
+                if (query.length === 0) {
+                    resultsDiv.style.display = 'none';
+                    searchStats.textContent = '';
+                    return;
+                }
+
+                // Search for matching SKUs
+                const matches = allGeneratedSKUs
+                    .filter(skuData => skuData.sku.toLowerCase().includes(query))
+                    .slice(0, 20); // Limit to 20 results
+
+                searchStats.textContent = `Found ${matches.length} matches${matches.length === 20 ? ' (showing first 20)' : ''}`;
+
+                if (matches.length === 0) {
+                    resultsDiv.style.display = 'none';
+                    return;
+                }
+
+                // Display results with detailed configuration info
+                resultsDiv.innerHTML = matches.map(skuData => {
+                    const highlightedSku = skuData.sku.replace(
+                        new RegExp(query, 'gi'), 
+                        match => `<span class="sku-match">${match}</span>`
+                    );
+
+                    // Extract configuration details for display
+                    const config = skuData.configuration;
+                    const configDetails = [];
+                    
+                    if (config.frame_color) configDetails.push(`Frame: ${config.frame_color}`);
+                    if (config.size) configDetails.push(`Size: ${config.size}`);
+                    if (config.light_output) configDetails.push(`Output: ${config.light_output}`);
+                    if (config.color_temperature) configDetails.push(`Temp: ${config.color_temperature}`);
+                    if (config.driver) configDetails.push(`Driver: ${config.driver}`);
+                    if (config.mounting_option) configDetails.push(`Mount: ${config.mounting_option}`);
+                    if (config.accessory && Array.isArray(config.accessory)) {
+                        if (config.accessory.length === 0) {
+                            configDetails.push(`Accessories: None`);
+                        } else {
+                            configDetails.push(`Accessories: ${config.accessory.length} selected`);
+                        }
+                    }
+
+                    return `
+                        <div class="autocomplete-item">
+                            <div>${highlightedSku}</div>
+                            <div class="config-details">
+                                Product: ${skuData.productName} | ${configDetails.join(' | ')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                resultsDiv.style.display = 'block';
+            });
+
+            // Hide autocomplete when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+                    resultsDiv.style.display = 'none';
+                }
+            });
+        }
+
+        // Clear results
+        window.clearResults = function() {
+            allGeneratedSKUs = [];
+            document.getElementById('skuSearch').value = '';
+            document.getElementById('skuSearch').disabled = true;
+            document.getElementById('autocompleteResults').style.display = 'none';
+            document.getElementById('searchStats').textContent = '';
+            document.getElementById('clearBtn').disabled = true;
+            
+            updateStats({
+                totalSkus: 0,
+                uniqueSkus: 0,
+                productsCount: 0,
+                generationTime: '0ms'
+            });
+
+            document.getElementById('logs').innerHTML = '';
+            window.log('Results cleared', 'log');
+        };
+
+        // Auto-run on page load
+        window.addEventListener('load', function() {
+            window.log('Page loaded - click "Load Generated Deco SKUs" to load pre-generated data', 'log');
+            window.log('The SKUs were generated using our smart backend that respects product constraints and business rules', 'log');
+        });
+    </script>
+</body>
+</html>

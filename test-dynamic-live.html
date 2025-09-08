@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dynamic Configuration</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; font-family: monospace; }
+        .pass { color: green; }
+        .fail { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Dynamic Configuration Test</h1>
+    
+    <div class="test-section">
+        <h2>1. API Connectivity</h2>
+        <div id="api-test" class="log">Testing...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Configuration UI Data</h2>
+        <div id="config-ui-test" class="log">Testing...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. SKU Code Order</h2>
+        <div id="sku-order-test" class="log">Testing...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Dynamic Mappings</h2>
+        <div id="mappings-test" class="log">Testing...</div>
+    </div>
+
+    <script>
+        async function testDynamicSystem() {
+            const log = (id, message, isError = false) => {
+                const element = document.getElementById(id);
+                const className = isError ? 'fail' : 'pass';
+                element.innerHTML += `<div class="${className}">${message}</div>`;
+            };
+
+            try {
+                // Test 1: API Connectivity
+                log('api-test', '🔗 Testing API connectivity...');
+                const productLinesResponse = await fetch('https://pim.dude.digital/items/product_lines?limit=3');
+                if (productLinesResponse.ok) {
+                    const data = await productLinesResponse.json();
+                    log('api-test', `✅ Product lines API: ${data.data.length} items`);
+                } else {
+                    log('api-test', '❌ Product lines API failed', true);
+                }
+
+                // Test 2: Configuration UI
+                log('config-ui-test', '⚙️ Testing configuration_ui...');
+                const configResponse = await fetch('https://pim.dude.digital/items/configuration_ui?limit=20&sort=sort');
+                if (configResponse.ok) {
+                    const configData = await configResponse.json();
+                    log('config-ui-test', `✅ Configuration UI: ${configData.data.length} mappings`);
+                    
+                    configData.data.slice(0, 5).forEach(item => {
+                        log('config-ui-test', `   ${item.collection} -> ${item.ui_type} (sort: ${item.sort})`);
+                    });
+                } else {
+                    log('config-ui-test', '❌ Configuration UI API failed', true);
+                }
+
+                // Test 3: SKU Code Order
+                log('sku-order-test', '🏷️ Testing sku_code_order...');
+                const skuResponse = await fetch('https://pim.dude.digital/items/sku_code_order?sort=order');
+                if (skuResponse.ok) {
+                    const skuData = await skuResponse.json();
+                    log('sku-order-test', `✅ SKU Code Order: ${skuData.data.length} items`);
+                    
+                    skuData.data.slice(0, 8).forEach(item => {
+                        log('sku-order-test', `   ${item.order}: ${item.sku_code_item}`);
+                    });
+                } else {
+                    log('sku-order-test', '❌ SKU Code Order API failed', true);
+                }
+
+                // Test 4: Sample collection data
+                log('mappings-test', '🗂️ Testing sample collections...');
+                const collections = ['frame_colors', 'mirror_styles', 'light_directions'];
+                
+                for (const collection of collections) {
+                    try {
+                        const response = await fetch(`https://pim.dude.digital/items/${collection}?limit=3&fields=id,name,sku_code`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            log('mappings-test', `✅ ${collection}: ${data.data.length} items available`);
+                            
+                            data.data.forEach(item => {
+                                log('mappings-test', `   ID:${item.id} "${item.name}" (${item.sku_code})`);
+                            });
+                        } else {
+                            log('mappings-test', `❌ ${collection} failed`, true);
+                        }
+                    } catch (error) {
+                        log('mappings-test', `❌ ${collection} error: ${error.message}`, true);
+                    }
+                }
+
+                log('mappings-test', '🎉 Dynamic configuration test completed!');
+
+            } catch (error) {
+                log('api-test', `❌ Test failed: ${error.message}`, true);
+            }
+        }
+
+        // Run tests when page loads
+        testDynamicSystem();
+    </script>
+</body>
+</html>

@@ -1,9 +1,16 @@
 // Rules Processing Engine for Product Configuration
 import { Rule, getRules } from './directus';
 
-// Accessor for rule actions – expects `then_that` (no legacy fallback)
+// Lightweight debug gate for rules logging
+const RULES_DEBUG = (import.meta as any)?.env?.VITE_RULES_DEBUG === 'true' ||
+  (import.meta as any)?.env?.VITE_ENABLE_DEBUG_LOGGING === 'true';
+const dlog = (...args: any[]) => { if (RULES_DEBUG) console.log(...args); };
+
+// Accessor for rule actions – prefer `then_that`, fallback to legacy `than_that`
 function getRuleActions(rule: any): any {
-  return rule && (rule as any).then_that ? (rule as any).then_that : null;
+  if (!rule) return null;
+  const r: any = rule as any;
+  return r.then_that ?? r.than_that ?? null;
 }
 
 /**
@@ -19,7 +26,7 @@ export function evaluateRuleConditions(rule: Rule, config: any): boolean {
     // Evaluate the Directus filter format conditions
     return evaluateDirectusFilter(rule.if_this, config);
   } catch (error) {
-    console.warn(`Failed to evaluate rule "${rule.name}":`, error);
+    if (RULES_DEBUG) console.warn(`Failed to evaluate rule "${rule.name}":`, error);
     return false;
   }
 }
@@ -82,7 +89,7 @@ function evaluateDirectusFilter(filter: any, data: any): boolean {
       }
     }
     
-    console.log(`    Evaluating field "${field}": value=${compareValue} (original: ${typeof value === 'object' ? JSON.stringify(value) : value}), filter=${JSON.stringify(fieldFilter)}`);
+    dlog(`    Evaluating field "${field}": value=${compareValue} (original: ${typeof value === 'object' ? JSON.stringify(value) : value}), filter=${JSON.stringify(fieldFilter)}`);
     
     if (typeof fieldFilter === 'object' && fieldFilter !== null) {
       // Handle comparison operators
@@ -104,7 +111,7 @@ function evaluateDirectusFilter(filter: any, data: any): boolean {
           const arrNums = value.map((v: any) => typeof v === 'string' ? parseInt(v, 10) : v).filter((n: any) => Number.isFinite(n));
           matches = arrNums.includes(target);
         }
-        console.log(`      _eq comparison: ${compareValue} == ${fieldFilter._eq} = ${matches}`);
+        dlog(`      _eq comparison: ${compareValue} == ${fieldFilter._eq} = ${matches}`);
         if (!matches) return false;
       }
       if (fieldFilter._neq !== undefined) {
@@ -189,13 +196,13 @@ export function applyRuleActions(rule: Rule, config: any): any {
 }
 
 /**
- * Recursively applies actions from than_that object
+ * Recursively applies actions from then_that object
  */
 function applyActions(actions: any, target: any, path: string[] = []): void {
   for (const key in actions) {
     const value = actions[key];
     
-    // Handle logical arrays in than_that (e.g., { _and: [ {...}, {...} ] })
+    // Handle logical arrays in then_that (e.g., { _and: [ {...}, {...} ] })
     if ((key === '_and' || key === '_or') && Array.isArray(value)) {
       for (const item of value) {
         if (typeof item === 'object' && item !== null) {
