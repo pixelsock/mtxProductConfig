@@ -916,10 +916,15 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
           continue;
         }
         try {
-          const items = await getDirectusItems<any>(collection, {
-            filter: { id: { _in: ids }, active: { _eq: true } },
-            sort: ['sort']
-          });
+          // Read minimal fields to avoid permission issues on extra columns/relations
+          const items = await directusClient.request<any[]>(
+            readItems(collection as any, {
+              fields: ['id', 'name', 'sku_code', 'description', 'sort', 'active'],
+              filter: { id: { _in: ids } },
+              sort: ['sort'],
+              limit: -1,
+            } as any)
+          );
           // Preserve requested order (ids order)
           const byId = new Map(items.map((i: any) => [i.id, i]));
           dynamicSets[collection] = ids.map((id: number) => byId.get(id)).filter(Boolean);
