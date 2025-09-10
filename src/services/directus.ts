@@ -412,27 +412,39 @@ export async function getProductLineWithOptions(sku: string): Promise<ProductLin
     }
 
     const productLine = items[0];
-    // Normalize default_options: if it's an array of numeric IDs, resolve via junction table
-    if (Array.isArray((productLine as any).default_options) && (productLine as any).default_options.length > 0) {
-      const first = (productLine as any).default_options[0];
-      if (typeof first === 'number' || typeof first === 'string') {
-        try {
-          const junction = await getDirectusItems<any>('product_lines_default_options', {
-            filter: { product_lines_id: { _eq: productLine.id } },
-            limit: -1,
-            sort: ['id']
-          });
-          const normalized = junction.map((row: any) => ({
-            id: row.id,
-            product_lines_id: row.product_lines_id,
-            collection: row.collection,
-            item: String(row.item)
-          }));
-          (productLine as any).default_options = normalized;
-          if (import.meta.env.DEV) console.log(`🔧 Normalized default_options via junction for ${productLine.name}: ${normalized.length} items`);
-        } catch (e) {
-          console.warn('⚠️ Failed to normalize default_options from junction table:', e);
+    // Always try to fetch default_options from junction table for consistency
+    try {
+      if (import.meta.env.DEV) console.log(`🔍 Loading default_options for ${productLine.name} (ID: ${productLine.id})...`);
+      
+      const junction = await getDirectusItems<any>('product_lines_default_options', {
+        filter: { product_lines_id: { _eq: productLine.id } },
+        limit: -1,
+        sort: ['id']
+      });
+      
+      if (junction && junction.length > 0) {
+        const normalized = junction.map((row: any) => ({
+          id: row.id,
+          product_lines_id: row.product_lines_id,
+          collection: row.collection,
+          item: String(row.item)
+        }));
+        (productLine as any).default_options = normalized;
+        if (import.meta.env.DEV) console.log(`✅ Loaded ${normalized.length} default_options from junction table for ${productLine.name}`);
+      } else {
+        // If no junction table data, check if default_options came directly from API
+        if (Array.isArray((productLine as any).default_options) && (productLine as any).default_options.length > 0) {
+          if (import.meta.env.DEV) console.log(`✅ Using ${(productLine as any).default_options.length} default_options from direct API response for ${productLine.name}`);
+        } else {
+          if (import.meta.env.DEV) console.warn(`⚠️ No default_options found for ${productLine.name} in either junction table or direct API response`);
+          (productLine as any).default_options = [];
         }
+      }
+    } catch (e) {
+      console.warn('⚠️ Failed to load default_options from junction table:', e);
+      // Fallback to existing default_options from API if available
+      if (!Array.isArray((productLine as any).default_options)) {
+        (productLine as any).default_options = [];
       }
     }
     if (import.meta.env.DEV) console.log(`✓ Found product line ${productLine.name} with ${productLine.default_options?.length || 0} default options`);
@@ -608,8 +620,20 @@ export async function getActiveSizes(): Promise<Size[]> {
     try {
       return await getBulkDataCollection<Size>('sizes', validateSize);
     } catch (error) {
-      console.error('Failed to fetch sizes from API:', error);
-      throw error;
+      console.error('Error fetching sizes:', error);
+      return [];
+    }
+  });
+}
+
+// Hanging Techniques
+export async function getActiveHangingTechniques(): Promise<any[]> {
+  return getCachedData('hanging_techniques', async () => {
+    try {
+      return await getBulkDataCollection<any>('hanging_techniques', validateBasicItem);
+    } catch (error) {
+      console.error('Error fetching hanging techniques:', error);
+      return [];
     }
   });
 }
@@ -814,7 +838,8 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
         allLightOutputs: validateData<LightOutput>(bulkData.light_outputs || [], validateBasicItem, 'light_outputs'),
         allDrivers: validateData<Driver>(bulkData.drivers || [], validateBasicItem, 'drivers'),
         allAccessories: validateData<Accessory>(bulkData.accessories || [], validateAccessory, 'accessories'),
-        allSizes: validateData<Size>(bulkData.sizes || [], validateSize, 'sizes')
+        allSizes: validateData<Size>(bulkData.sizes || [], validateSize, 'sizes'),
+        allHangingTechniques: validateData<any>(bulkData.hanging_techniques || [], validateBasicItem, 'hanging_techniques')
       };
       
       if (import.meta.env.DEV) console.log('✓ Using bulk data for filtered options');
@@ -836,7 +861,8 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
       allLightOutputs,
       allDrivers,
       allAccessories,
-      allSizes
+      allSizes,
+      allHangingTechniques
     ] = await Promise.all([
       getActiveMirrorControls(),
       getActiveFrameColors(),
@@ -848,7 +874,8 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
       getActiveLightOutputs(),
       getActiveDrivers(),
       getActiveAccessories(),
-      getActiveSizes()
+      getActiveSizes(),
+      getActiveHangingTechniques()
     ]);
     
     allOptions = {
@@ -862,7 +889,8 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
       allLightOutputs,
       allDrivers,
       allAccessories,
-      allSizes
+      allSizes,
+      allHangingTechniques
     };
   }
 
@@ -879,7 +907,8 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
     lightOutputs: filterOptionsByProductLine<LightOutput>(allOptions.allLightOutputs, productLine, 'light_outputs'),
     drivers: filterOptionsByProductLine<Driver>(allOptions.allDrivers, productLine, 'drivers'),
     accessories: filterOptionsByProductLine<Accessory>(allOptions.allAccessories, productLine, 'accessories'),
-    sizes: filterOptionsByProductLine<Size>(allOptions.allSizes, productLine, 'sizes')
+    sizes: filterOptionsByProductLine<Size>(allOptions.allSizes, productLine, 'sizes'),
+    hangingTechniques: filterOptionsByProductLine<any>(allOptions.allHangingTechniques, productLine, 'hanging_techniques')
   };
 
   if (import.meta.env.DEV) console.log(`✓ Filtered options for ${productLine.name}:`, {
@@ -893,21 +922,31 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
     lightOutputs: filteredOptions.lightOutputs.length,
     drivers: filteredOptions.drivers.length,
     accessories: filteredOptions.accessories.length,
-    sizes: filteredOptions.sizes.length
+    sizes: filteredOptions.sizes.length,
+    hangingTechniques: filteredOptions.hangingTechniques.length
   });
 
   // Build dynamic option sets directly from product_line.default_options (data-driven)
   const dynamicSets: Record<string, any[]> = {};
   try {
     if (Array.isArray((productLine as any).default_options) && (productLine as any).default_options.length > 0) {
-      const groups = (productLine as any).default_options.reduce((acc: Record<string, number[]>, opt: any) => {
+      const groups = (productLine as any).default_options.reduce((acc: Record<string, (string | number)[]>, opt: any) => {
         const col = opt?.collection;
-        const idNum = parseInt(String(opt?.item), 10);
-        if (!col || !Number.isFinite(idNum)) return acc;
+        const raw = opt?.item;
+        if (!col || raw === undefined || raw === null) return acc;
+        const idVal: string | number = typeof raw === 'number' ? raw : String(raw);
         if (!acc[col]) acc[col] = [];
-        if (!acc[col].includes(idNum)) acc[col].push(idNum);
+        // Use string comparison for de-dupe across mixed types
+        const exists = acc[col].some((v) => String(v) === String(idVal));
+        if (!exists) acc[col].push(idVal);
         return acc;
-      }, {} as Record<string, number[]>);
+      }, {} as Record<string, (string | number)[]>);
+
+      // Prefer bulk-loaded collections (generic, no hardcoded dictionary)
+      let bulkData: any = null;
+      try {
+        bulkData = await fetchBulkData();
+      } catch {}
 
       // Fetch each referenced collection generically
       for (const [collection, ids] of Object.entries(groups)) {
@@ -915,22 +954,27 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
           dynamicSets[collection] = [];
           continue;
         }
-        try {
-          // Read minimal fields to avoid permission issues on extra columns/relations
-          const items = await directusClient.request<any[]>(
-            readItems(collection as any, {
-              fields: ['id', 'name', 'sku_code', 'description', 'sort', 'active'],
-              filter: { id: { _in: ids } },
-              sort: ['sort'],
-              limit: -1,
-            } as any)
-          );
-          // Preserve requested order (ids order)
-          const byId = new Map(items.map((i: any) => [i.id, i]));
-          dynamicSets[collection] = ids.map((id: number) => byId.get(id)).filter(Boolean);
-        } catch (err) {
-          console.warn(`⚠️ Failed to load dynamic set for ${collection}:`, err);
-          dynamicSets[collection] = [];
+        const fromBulk = bulkData && Array.isArray(bulkData[collection]) ? bulkData[collection] : null;
+        if (Array.isArray(fromBulk) && fromBulk.length > 0) {
+          // Use already-authorized, cached items
+          const byId = new Map(fromBulk.map((i: any) => [String(i.id), i]));
+          dynamicSets[collection] = (ids as (string | number)[]).map((id: any) => byId.get(String(id))).filter(Boolean);
+        } else {
+          // Unknown collection: fetch minimally
+          try {
+            // Request with minimal constraints to avoid field-level permission denials
+            const items = await directusClient.request<any[]>(
+              readItems(collection as any, {
+                filter: { id: { _in: ids } },
+                limit: -1,
+              } as any)
+            );
+            const byId = new Map((items || []).map((i: any) => [String(i.id), i]));
+            dynamicSets[collection] = (ids as (string | number)[]).map((id: any) => byId.get(String(id))).filter(Boolean);
+          } catch (err) {
+            console.warn(`⚠️ Failed to load dynamic set for ${collection}:`, err);
+            dynamicSets[collection] = [];
+          }
         }
       }
 

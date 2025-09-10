@@ -67,6 +67,13 @@ export const DynamicOptions: React.FC<DynamicOptionsProps> = ({ productLineDefau
     return filtered;
   }, [productLineDefaults, optionsByCollection, uiSortByCollection, mappings]);
 
+  // Identify collections present in defaults but with zero visible options (likely permissions / missing items)
+  const missingCollections = React.useMemo(() => {
+    const defs = Array.isArray(productLineDefaults) ? productLineDefaults : [];
+    const referenced = Array.from(new Set(defs.map(d => d.collection).filter(Boolean)));
+    return referenced.filter((coll) => !((optionsByCollection[coll] || []).length > 0));
+  }, [productLineDefaults, optionsByCollection]);
+
   const renderBlock = (coll: string, opts: Option[]) => {
     const mapping = mappings[coll];
     const ui = mapping?.uiType || uiByCollection[coll] || (coll === 'frame_colors' ? 'color-swatch' : (coll === 'sizes' ? 'size-grid' : 'grid-2'));
@@ -85,16 +92,39 @@ export const DynamicOptions: React.FC<DynamicOptionsProps> = ({ productLineDefau
       const configKey = mapping.configKey;
       return currentConfig?.[configKey] || (isMulti ? [] : '');
     })();
-    // Use collection name as availability key (with fallback to singular form)
-    const availKey = coll.endsWith('s') ? coll.slice(0, -1) : coll;
+    // Map collection -> availability key used by availableOptionIds (product field names)
+    const availabilityKeyForCollection = (collection: string): string => {
+      const special: Record<string, string> = {
+        // Common plural-to-field mappings
+        mirror_styles: 'mirror_style',
+        light_directions: 'light_direction',
+        frame_thicknesses: 'frame_thickness',
+        mounting_options: 'mounting',
+        color_temperatures: 'color_temperature',
+        light_outputs: 'light_output',
+        frame_colors: 'frame_color',
+        mirror_controls: 'mirror_control',
+        drivers: 'driver',
+        hanging_techniques: 'hanging_technique',
+        accessories: 'accessory',
+      };
+      if (special[collection]) return special[collection];
+      if (collection.endsWith('ies')) return collection.slice(0, -3) + 'y';
+      if (collection.endsWith('s')) return collection.slice(0, -1);
+      return collection;
+    };
+    const availKey = availabilityKeyForCollection(coll);
     const hasKey = Object.prototype.hasOwnProperty.call(availableOptionIds, availKey);
-    const allowed = hasKey ? (availableOptionIds[availKey] || []) : undefined;
+    const allowed = hasKey ? (availableOptionIds[availKey] as any) : undefined;
     const isDisabled = (id: any) => {
       // Mirror styles must remain selectable; they control other availability
       if (coll === 'mirror_styles') return false;
-      if (!allowed) return false;
-      const num = typeof id === 'number' ? id : parseInt(String(id), 10);
-      return Number.isFinite(num) ? !allowed.includes(num) : false;
+      if (!allowed || (Array.isArray(allowed) && allowed.length === 0)) return !!(Array.isArray(allowed) && allowed.length === 0);
+      const idStr = String(id);
+      const list: any[] = Array.isArray(allowed) ? allowed : [];
+      // Support both numeric and string ids
+      const ok = list.some(v => String(v) === idStr);
+      return !ok;
     };
 
     const isColor = coll === 'frame_colors' || opts.some(o => !!o.hex_code);
@@ -178,12 +208,19 @@ export const DynamicOptions: React.FC<DynamicOptionsProps> = ({ productLineDefau
                   const id = String(o.id);
                   const disabled = isDisabled(id);
                   const selected = String(value || '') === String(o[mapping?.valueField || 'id'] || o.id);
+                  const imgField = mapping?.imageField as string | undefined;
+                  const rawImg = imgField ? (o as any)[imgField] : undefined;
+                  const imgId = typeof rawImg === 'string' ? rawImg : (rawImg && typeof rawImg === 'object' && rawImg.id ? rawImg.id : undefined);
+                  const imgUrl = imgId ? `${(import.meta as any).env?.VITE_DIRECTUS_URL || 'https://pim.dude.digital'}/assets/${imgId}` : undefined;
                   return (
                     <button key={id} onClick={() => { if (disabled) return; if (onToggleCustomSize) onToggleCustomSize(false); handleSelect(String(o[mapping?.valueField || 'id'] || o.id)); }} disabled={disabled}
                       className={`p-4 rounded-lg border-2 transition-all text-left ${selected ? 'border-amber-500 bg-amber-50' : disabled ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          {imgUrl && (
+                            <img src={imgUrl} alt={o.name || o.sku_code || 'option'} className="w-12 h-12 rounded object-cover border border-gray-200" />
+                          )}
                           <div className="font-medium text-gray-900 mb-1">{o[mapping?.displayField || 'name'] || o.name}</div>
                           {o.width && o.height && (
                             <div className="text-sm text-gray-600">{o.width}" × {o.height}"</div>
@@ -209,17 +246,23 @@ export const DynamicOptions: React.FC<DynamicOptionsProps> = ({ productLineDefau
               const selected = isMulti
                 ? (Array.isArray(value) && value.includes(itemValue))
                 : (String(value || '') === itemValue);
+              const imgField = mapping?.imageField as string | undefined;
+              const rawImg = imgField ? (o as any)[imgField] : undefined;
+              const imgId = typeof rawImg === 'string' ? rawImg : (rawImg && typeof rawImg === 'object' && rawImg.id ? rawImg.id : undefined);
+              const imgUrl = imgId ? `${(import.meta as any).env?.VITE_DIRECTUS_URL || 'https://pim.dude.digital'}/assets/${imgId}` : undefined;
               return (
                 <button key={id}
                   onClick={() => !disabled && handleSelect(itemValue)}
                   disabled={disabled}
                   className={`w-full p-4 rounded-lg border-2 transition-all text-left ${selected ? 'border-amber-500 bg-amber-50' : disabled ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {isColor && (
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      {imgUrl ? (
+                        <img src={imgUrl} alt={o.name || o.sku_code || 'option'} className="w-12 h-12 rounded object-cover border border-gray-200" />
+                      ) : isColor ? (
                         <div className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0" style={{ backgroundColor: o.hex_code || '#000000' }} />
-                      )}
+                      ) : null}
                       <div>
                         <div className="font-medium text-gray-900 mb-0.5">{o[mapping?.displayField || 'name'] || o.name || o.sku_code}</div>
                         {o.description && (
@@ -241,6 +284,11 @@ export const DynamicOptions: React.FC<DynamicOptionsProps> = ({ productLineDefau
   return (
     <div className="space-y-10">
       {collections.map(coll => renderBlock(coll, optionsByCollection[coll] || []))}
+      {missingCollections.length > 0 && (
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+          Some option sets aren’t visible: {missingCollections.join(', ')}. Ensure your role can read these collections and that the referenced items exist.
+        </div>
+      )}
     </div>
   );
 };
