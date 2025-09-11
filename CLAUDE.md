@@ -1,317 +1,328 @@
-# CLAUDE.md
+# AGENTS.md (Draft)
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Purpose
 
-# MTX Product Configurator - Claude Code SOD Rules
+This configurator is **fully dynamic** and **Directus-driven**. Agents must read collections (not hard-code logic) to determine:
 
-## Project Overview
-React product configurator using Supabase GraphQL API integration. Features product configuration, quote generation, and customer data collection for mirror/lighting products. Successfully migrated from Directus to Supabase for improved performance and GraphQL capabilities.
+* Which option sets exist and how to render them
+* Which options are available for a given product
+* How rules set values/disable options
+* How to assemble the final SKU deterministically
 
-## Development Commands
-
-### Build & Development
-```bash
-npm run dev          # Start development server (port 5173) with direct API connection
-npm run build        # TypeScript compile + Vite build (UMD library)
-npm run preview      # Preview production build
-npm run lint         # ESLint with TypeScript support
-```
-
-### Testing & Validation
-```bash
-node test-phase3.js  # Run Phase 3 validation tests
-npm run lint         # MUST run before commits to ensure code quality
-```
-
-### Build Configuration
-- **Target**: UMD library for embedding in other applications
-- **Entry**: `src/main.tsx`
-- **Output**: Single bundle with CSS inlined
-- **Environment**: Production builds drop console logs and debugger statements
-
-## Core Development Rules
-
-### File Management Standards
-1. **Always use absolute paths** - Never use relative paths in tool calls
-2. **Read before editing** - Use Read tool before any Edit/Write operations
-3. **Prefer editing over creating** - Always edit existing files when possible
-4. **Atomic operations** - Complete one task fully before starting another
-
-### Task Management Protocol
-1. **Use TodoWrite for complex tasks** - Any task requiring 3+ steps needs todo tracking
-2. **Single task in-progress** - Only one todo should be "in_progress" at a time
-3. **Priority levels**: CRITICAL > HIGH > MEDIUM > LOW
-4. **Mark completed immediately** - Update todo status as soon as task finishes
-
-### Data Migration Standards
-1. **Incremental migration** - Replace static data sources one at a time
-2. **Preserve functionality** - Ensure all features work during migration
-3. **Type safety maintained** - Keep TypeScript interfaces consistent
-4. **Test before removing** - Verify API integration before deleting static files
-
-### API Integration Requirements
-1. **Connection testing** - Always test API connectivity before operations
-2. **Data validation** - Implement type guards for all API responses
-3. **Error handling** - Graceful degradation with fallback mechanisms
-4. **Caching strategy** - Use 5-minute cache with expired fallback
-5. **Comprehensive logging** - Log all API calls with performance metrics
-
-## Service Layer Architecture
-
-### Supabase GraphQL Functions
-```typescript
-// Core GraphQL fetcher
-getSupabaseGraphQLItems<T>(query: string): Promise<T[]>
-
-// Collection data retrieval
-getProductLines(): Promise<ProductLine[]>
-getActiveFrameColors(): Promise<FrameColor[]>
-getActiveFrameThicknesses(): Promise<FrameThickness[]>
-getActiveMountingOptions(): Promise<MountingOption[]>
-getActiveLightDirections(): Promise<LightDirection[]>
-getActiveMirrorStyles(): Promise<MirrorStyle[]>
-getActiveMirrorControls(): Promise<MirrorControl[]>
-getActiveLightOutputs(): Promise<LightOutput[]>
-getActiveColorTemperatures(): Promise<ColorTemperature[]>
-getActiveDrivers(): Promise<Driver[]>
-getActiveSizes(): Promise<Size[]>
-getAllConfigurationImages(): Promise<ConfigurationImage[]>
-
-// Storage and filtered data
-fetchDirectusSvg(fileId: string): Promise<string>
-getFilteredOptionsForProductLine(productLineId: string | number): Promise<Record<string, any[]>>
-```
-
-### GraphQL Query Pattern
-```typescript
-export const getActiveFrameColors = () => getSupabaseGraphQLItems(`
-  query {
-    frame_colorsCollection(filter: { active: { eq: true } }) {
-      edges {
-        node {
-          id
-          name
-          hex_code
-        }
-      }
-    }
-  }
-`);
-```
-
-## Quality Assurance Standards
-
-### Validation Requirements
-1. **Type guards** - Implement for all data structures
-2. **Field validation** - Check required fields exist and have correct types
-3. **Relationship integrity** - Validate foreign key relationships
-4. **Business logic validation** - Ensure data meets business requirements
-
-### Testing Checklist
-- [ ] API connection successful
-- [ ] All collections return data
-- [ ] Required relationships exist (Deco product line)
-- [ ] Data validation passes
-- [ ] Quote generation works
-- [ ] Configuration logic intact
-- [ ] Performance within limits
-
-### Performance Standards
-- Page load time < 3 seconds
-- API response time < 500ms
-- Cache hit ratio > 80%
-- Error rate < 1%
-
-## Architecture Overview
-
-### Application Architecture
-- **Framework**: React 18 with TypeScript and Vite
-- **Styling**: TailwindCSS + shadcn/ui component library
-- **State Management**: React useState hooks (no external state manager)
-- **API Layer**: Directus SDK with custom service layer abstraction
-- **Build Target**: UMD library for embedding in external websites
-
-### Key Design Patterns
-1. **Service Layer Pattern**: All API calls abstracted through `src/services/directus.ts`
-2. **Configuration State**: Single `ProductConfig` object manages entire form state
-3. **Validation Layer**: Type guards and data consistency checking for API responses
-4. **Fallback Strategy**: Graceful degradation with cached data when API fails
-5. **Real-time Updates**: Product images update dynamically based on configuration
-
-### Component Architecture
-- **App.tsx**: Main application container with state management
-- **UI Components**: Reusable shadcn/ui components with consistent styling
-- **ImageWithFallback**: Custom component for dynamic product image loading
-- **Configuration Sections**: Inline configuration forms within main component
-
-## Project Structure Standards
-
-### Directory Organization
-```
-src/
-  components/         # Reusable UI components
-    ui/              # shadcn/ui component library (30+ components)
-    figma/           # Design-specific components (ImageWithFallback)
-  services/          # API integration layer
-    directus.ts      # Main service with validation & caching
-  test/              # Testing utilities and data comparison
-  styles/            # Global styles and themes
-docs/                # Documentation and migration guides
-```
-
-### File Naming Conventions
-- **Components**: PascalCase (ProductCard.tsx)
-- **Services**: kebab-case (directus.ts)
-- **Documentation**: CAPS for status (MIGRATION_COMPLETE.md), kebab-case for guides (mcp-removal-guide.md)
-- **Configuration**: lowercase (vite.config.ts, tailwind.config.js)
-
-## Data Collections Reference
-
-### Core Collections (13 total)
-1. **product_lines** - Product line definitions with SKU codes
-2. **frame_colors** - Color options with hex codes and SKU mapping
-3. **mirror_controls** - Control types (Wall Switch, CCTSync, Touch Sensor)
-4. **mirror_styles** - Style configurations with SVG variants
-5. **mounting_options** - Orientation options (Portrait/Landscape)
-6. **light_directions** - Lighting options (Direct, Indirect, Both)
-7. **color_temperatures** - Temperature settings (2700K-6500K + adjustable)
-8. **light_outputs** - Output levels (Standard, High)
-9. **drivers** - Driver types (Non-dimming, 0-10V, ELV)
-10. **frame_thicknesses** - Thickness options (Wide, Thin)
-11. **sizes** - Dimensions with width/height in numeric format
-12. **accessories** - Available accessories (filter for Nightlight, Anti-Fog)
-13. **products** - Product catalog with relationships
-
-### Data Relationships
-- Product lines have default_options arrays (foreign keys)
-- Products belong to product_lines via sku_code matching
-- Accessories filtered by name patterns for specific types
-- Sizes include numeric width/height for calculations
-
-## Business Logic Rules
-
-### Product Configuration
-1. **Default initialization** - Use first available option for each field
-2. **Accessory filtering** - Only show Nightlight and Anti-Fog accessories
-3. **Size handling** - Support both preset and custom dimensions
-4. **SKU generation** - Product codes follow pattern (e.g., "T01D")
-
-### Quote Generation
-1. **Configuration validation** - Verify all options exist before quote
-2. **Customer data required** - Name, email, company, phone
-3. **Export format** - JSON with timestamp and configuration details
-4. **Quantity handling** - Support multiple quantities per configuration
-
-### Image Management
-1. **Dynamic URLs** - Construct as `https://pim.dude.digital/assets/${productId}`
-2. **Fallback images** - Use Unsplash placeholder for missing products
-3. **Product naming** - Generate from configuration options
-
-## Environment Configuration
-
-### Required Variables
-```env
-VITE_SUPABASE_URL=https://akwhptzlqgtlcpzvcnjl.supabase.co  # Supabase project URL
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...  # Supabase anon key
-```
-
-### Development Workflow
-1. **Local Development**: `npm run dev` - Vite dev server on port 5173 with Supabase GraphQL
-2. **API Connection**: Direct GraphQL connection to Supabase API
-3. **Data Filtering**: All collections use `active: true` boolean filtering
-4. **Build Process**: `npm run build` creates UMD library in dist/
-5. **Storage**: SVG assets stored in Supabase Storage bucket 'configuration-images'
-
-## Migration History
-
-### Phase 1: Directus Integration ✅
-- Service layer architecture established
-- Directus SDK integration completed
-- Caching mechanism implemented
-- Type interfaces aligned
-
-### Phase 2: Data Migration ✅
-- All 13 collections migrated from static files to API
-- Comprehensive data validation implemented
-- Enhanced relationship mapping added
-- Automated consistency checking deployed
-
-### Phase 3: Supabase Migration ✅
-- Migrated from Directus to Supabase GraphQL API
-- Updated all collection queries to use `active` boolean filtering
-- Fixed field mappings (hex_code, sku_code vs value)
-- Supabase Storage integration for SVG assets
-- Build and TypeScript validation completed
-
-## Troubleshooting Guide
-
-### Common Issues
-1. **API Connection Failed**
-   - Check DIRECTUS_URL environment variable
-   - Verify network connectivity to pim.dude.digital
-   - Test with curl: `curl -s "https://pim.dude.digital/items/frame_colors"`
-
-2. **Data Validation Failures**
-   - Check console for specific validation errors
-   - Run `checkDataConsistency()` function
-   - Verify required fields in Directus collections
-
-3. **Performance Issues**
-   - Clear cache with `clearCache()` function
-   - Check network latency to API
-   - Review console for slow queries
-
-4. **Configuration Errors**
-   - Validate product configuration with `validateProductConfiguration()`
-   - Check that all referenced IDs exist in collections
-   - Verify Deco product line (SKU: D) exists
-
-### Debug Commands
-```typescript
-// Test API connection
-await testConnection();
-
-// Check data consistency
-const report = await checkDataConsistency();
-
-// Validate specific configuration
-const validation = await validateProductConfiguration(config);
-
-// Clear cache for fresh data
-clearCache();
-```
-
-## Success Criteria
-- ✅ Zero functionality regression from original static data version
-- ✅ All 13 collections successfully integrated with API
-- ✅ Data validation and error handling comprehensive
-- ✅ Performance maintained or improved
-- ✅ Quote generation fully functional
-- ✅ Enhanced relationship mapping and validation
-
-## Development Best Practices
-
-### Code Quality Standards
-- TypeScript strict mode enabled with comprehensive type checking
-- ESLint configuration enforces React hooks rules and TypeScript standards
-- All API responses must have type guards and validation
-- Error boundaries and graceful fallbacks required for all external dependencies
-
-### Performance Considerations
-- Directus service layer implements 5-minute caching with stale-while-revalidate pattern
-- Product images load dynamically with fallback handling via ImageWithFallback component
-- Large form state managed efficiently through single configuration object
-- Build output optimized as single UMD bundle for easy embedding
-
-### Integration Points
-- **API**: Supabase GraphQL at akwhptzlqgtlcpzvcnjl.supabase.co with 14 product data collections
-- **Embedding**: UMD library designed for integration into external websites
-- **Storage**: Supabase Storage for SVG assets and configuration images
-- **Database**: PostgreSQL 15 with GraphQL auto-generated from schema
+> **Golden rule:** **No fallback logic.** If data is missing, surface it; do not guess.
 
 ---
 
-**Status**: Supabase Migration Complete ✅ - Production ready
-**Last Updated**: Supabase migration completion  
-**Next Milestone**: Performance optimization and enhanced filtering
-- remember to NEVER use fallback data when developing code for this project. It's important that we use the api data only so we can focus on getting it working correctly.
+## Data model (source of truth: Directus)
+
+### Settings (control behavior)
+
+* **`rules`**
+
+  * Fields: `id (uuid)`, `name (string)`, `priority (int|null)`, `if_this (json)`, `then_that (json)`
+  * Behavior: when `if_this` matches, apply `then_that`. Setting a value **disables all other options** in that collection (see Rules Behavior). Rules **do not** hide options; only overrides do.
+* **`configuration_ui`**
+
+  * Fields: `id (uuid)`, `collection (string)`, `ui_type (string enum)`, `sort (int)`.
+  * Defines **render order** and **widget type** for each option collection (e.g., `single`, `multi`, `grid-2`, `full-width`, `size-grid`, `color-swatch`).
+* **`sku_code_order`**
+
+  * Fields: `id (uuid)`, `sku_code_item (string)`, `order (int)`
+  * Defines **SKU segment order**. Always starts with `products` at `order:0`. If a collection doesn’t apply to a product, **skip it**.
+
+### Product taxonomy & options
+
+* **`product_lines`**
+
+  * Fields: `id`, `name`, `sku_code`, `active`, `default_options (m2a via junction)`
+  * Junction: **`product_lines_default_options`** → rows of `{ product_lines_id, collection, item }`.
+* **`products`**
+
+  * Core fields: `id`, `name`, `sku_code` (base), `product_line (m2o)`, `mirror_style (m2o)`, `light_direction (m2o)`, images (`vertical_image`, `horizontal_image`), `additional_images (files)`, `options_overrides (m2a)`
+  * **Overrides** via **`products_options_overrides`** → `{ products_id, collection, item }`
+  * Typed pointer example: `frame_thickness: { "key": 2, "collection": "frame_thicknesses" }`
+* **Option collections** (each item has `id`, `name`, `sku_code`, `active`, `sort`, plus collection-specific fields):
+
+  * `mirror_styles` (e.g., `svg_code.variants.vertical/horizontal`)
+  * `light_directions` (1=Direct `d`, 2=Indirect `i`, 3=Both `b`)
+  * `frame_thicknesses` (`sku_code` exists but **not appended**; see SKU rules)
+  * `frame_colors` (`hex_code`)
+  * `mounting_options`, `drivers`, `light_outputs`, `color_temperatures`,
+  * `accessories` (multi-select), `sizes` (`width`, `height`)
+
+> **Removed:** `mirror_controls` is deprecated and should not be referenced by agents or rules.
+
+---
+
+## Evaluation lifecycle (deterministic)
+
+1. **Select product**
+   Load the `products` record and its `product_line`.
+
+2. **Seed availability from product line defaults**
+   Resolve `product_lines.default_options` (through `product_lines_default_options`) into allowed options **per collection**.
+
+3. **Apply product option overrides**
+   If a product has overrides for a collection, those **replace** the allowed set for that collection (they don’t extend).
+
+   * If a previously selected value is not in the override set, **auto-clear** the selection.
+
+4. **Pre-applied product fields**
+   If the product sets a value (e.g., `light_direction: 2`), treat it as the current selection (UI should show it locked unless later set by rules).
+
+5. **Render UI from `configuration_ui`**
+   Sort by `sort` ascending and render each `collection` with the given `ui_type`.
+
+   * **Hidden vs disabled**:
+
+     * **Hidden** only when excluded by **overrides** (not visible in the list).
+     * **Disabled** happens when **rules** set a value; other options in that collection remain visible but disabled.
+
+6. **Rules processing**
+
+   * **Priority:** process all rules with **numeric `priority`** first (ascending). After that, process rules with **`priority: null`** (order not significant; if you need a tiebreaker, use `id` ASC for determinism).
+   * On match, `then_that` **sets** fields (e.g., `light_output = 2`) and **disables** all other options in that collection for the session state.
+   * Rules may also set **product images**; when they do, **rule images supersede** product images.
+
+7. **SKU assembly**
+
+   * Start with **product’s base `sku_code`** (e.g., `T03b`, `W01d`).
+   * Append option `sku_code`s in the order defined by **`sku_code_order`**.
+   * **Skip** collections that don’t apply to the current product.
+   * **Case matters**: preserve each option’s `sku_code` exactly as stored.
+   * **Multi-select**: currently only **Accessories** is multi-select, but it ultimately yields a **single** `sku_code` via rules:
+
+     * If no accessory selected → rules set `NA` (canonical “none”).
+     * If a special combo is selected (e.g., Night Light + Anti-Fog) → rules set a combined code (e.g., `AN`).
+     * If future multi-select collections are added without a bespoke rule, **default to order of selection** for concatenation.
+
+> **Note: `frame_thickness` is already encoded** into the product’s base `sku_code` and is **not appended** again.
+
+---
+
+## Rules behavior (contract)
+
+* **Condition operators**: `_eq`, `_neq`, `_in`, `_nin`, `_and`, `_or`, `_empty`.
+
+  * **Validation:** Disallow `_eq: null` (data error). Use `_empty: true` to test “no selection.”
+* **Actions** (`then_that`):
+
+  * **Set value**: e.g., `{ "light_output": { "_eq": 2 } }`
+
+    * Effect: select `light_output=2` and **disable all other** light outputs (visible but disabled).
+  * **Set images**: e.g.,
+
+    ```json
+    { "_and": [
+      { "product": { "vertical_image": { "_eq": "<file-id>" } } },
+      { "product": { "horizontal_image": { "_eq": "<file-id>" } } }
+    ]}
+    ```
+
+    Rule-driven images **override** product images for rendering.
+  * **Set SKU segment**: e.g.,
+
+    ```json
+    { "accessory": { "sku_code": { "_eq": "AN" } } }
+    ```
+* **Rules do not filter/hide** options from the UI; they **set** values and **disable** alternatives.
+* **Priority semantics**: lower number executes earlier; all numeric priorities run **before** any `null` priority rules.
+
+---
+
+## Option overrides (contract)
+
+* **Scope**: by product and collection.
+* **Semantics**: If overrides exist for a collection, they **become the only allowed options** for that collection on that product.
+* **UI**: Non-overridden options are **hidden**.
+* **Selections**: If a current selection becomes disallowed by overrides, **auto-clear and require re-selection**.
+
+---
+
+## SKU assembly (contract)
+
+1. Initialize: `sku = product.sku_code`
+2. For each `entry` in `sku_code_order` sorted by `order ASC` (skipping `order:0` which is the product):
+
+   * Resolve the **selected** option in the given `sku_code_item` collection.
+   * If no selection exists (and no rule forces one), **skip**.
+   * Concatenate its `sku_code` to `sku`.
+3. Preserve exact **case** of each segment.
+4. **Accessories**:
+
+   * If no selection: rule should set `NA`.
+   * If combo present: rule sets the combined code (single segment).
+   * Future generic multi-select: default to **order of selection** if no rule provided.
+
+---
+
+## Example snippets (from live data)
+
+### Option items
+
+* `mirror_styles/1` → `sku_code: "01"` (has `svg_code.variants`)
+* `light_directions/1` → `sku_code: "d"`
+* `frame_thicknesses/1` → `sku_code: "W"` (**not appended**)
+* `frame_colors/1` → `sku_code: "BF"`, `hex_code: "#000000"`
+* `mounting_options/1` → `sku_code: "W"`
+* `drivers/1` → `sku_code: "V"`
+* `light_outputs/1` → `sku_code: "S"`
+* `color_temperatures/1` → `sku_code: "27"`
+* `accessories/34` (Night Light) → `sku_code: "NL"`
+* `sizes/23` → `sku_code: "2436"`
+
+### Configuration UI
+
+* `configuration_ui/...` → `{ collection: "light_directions", ui_type: "full-width", sort: 8 }`
+
+### Rules
+
+* **Driver forces light output** (sets and disables others):
+
+  * If `driver ∈ {4,5}` → `light_output = 2`
+* **Accessories “none”**:
+
+  * If `accessory _empty: true` → set `accessory.sku_code = "NA"`
+* **Polished + Hanging technique sets images**:
+
+  * When conditions match, set **both** `vertical_image` and `horizontal_image` → rule images override product images.
+
+### Product overrides
+
+* A product with `options_overrides` restricting **sizes** to a subset (e.g., `{5,6}`) → all other sizes are **hidden** for that product.
+* **Auto-clear**: if user had size 7 selected previously, clear and force re-select from the allowed set.
+
+---
+
+## UI behavior (for agents)
+
+* Render collections in `configuration_ui.sort` order.
+* Respect `ui_type` to choose widgets.
+* **Hidden** only via overrides. **Disabled** via rules.
+* When a rule sets a field, keep the chosen item enabled and **disable the rest** (still visible).
+
+---
+
+## Validators & checks (agents should run)
+
+1. **Schema sanity**
+
+   * `product_lines_default_options`: **no rows** with `product_lines_id: null` (data issue).
+   * All collections referenced in `configuration_ui.collection` exist.
+2. **Rules hygiene**
+
+   * Disallow `_eq: null` in conditions or actions (use `_empty` for checks).
+   * File IDs referenced in image actions **exist**.
+   * If multiple rules target the **same field**, ensure consistent outcome (priority wins).
+3. **Overrides integrity**
+
+   * Each `products_options_overrides` item **exists** and `active: true`.
+   * If overrides exist for a collection, selection must be within the override set (else **auto-clear**).
+4. **SKU integrity**
+
+   * Every selected option used for SKU has a **non-empty `sku_code`**.
+   * `sku_code_order` starts with `products` at `order:0`; duplicates disallowed.
+   * `frame_thicknesses` present? ensure it’s **not appended** (documented exception).
+
+---
+
+## Do / Don’t for agents
+
+**Do**
+
+* Drive everything from Directus reads.
+* Apply lifecycle steps in order (defaults → overrides → pre-set product fields → UI → rules → SKU).
+* Disable (don’t hide) alternatives when rules set a value.
+* Preserve SKU segment case and ordering from `sku_code_order`.
+* Auto-clear invalid selections when overrides change availability.
+
+**Don’t**
+
+* Invent options or fall back when data is missing.
+* Append `frame_thickness` to SKU (it’s encoded in product base code).
+* Use rules to “filter/hide” options; use rules only to **set** or **set & disable**.
+
+---
+
+## Implementation notes (pseudo)
+
+```ts
+// 1) load product + line
+const product = getProduct(id)
+const line = getProductLine(product.product_line)
+
+// 2) allowed = line defaults per collection
+const allowed = deriveAllowedFromLine(line.default_options)
+
+// 3) apply product overrides (replace per collection)
+applyOverrides(allowed, product.options_overrides)
+
+// 4) seed state with product’s fixed fields (e.g., light_direction)
+const state = seedFromProduct(product)
+
+// 5) render UI from configuration_ui
+const ui = getConfigUI().sort(bySort)
+
+// 6) run rules: numeric priorities ASC, then nulls (id ASC as tie-breaker if needed)
+const rules = getRules()
+applyRules(state, rules)
+
+//   - rule “set” behavior: set value + disable all others in that collection
+//   - rule images override product images
+
+// 7) assemble SKU
+const order = getSkuCodeOrder().sort(byOrder)
+const sku = buildSku(product.sku_code, state, order, { skipFrameThickness: true })
+```
+
+---
+
+## Dynamic filtering (product-backed availability)
+
+**Goal:** reflect *actual inventory of products* within a product line when narrowing user choices, without hard-coding. Dynamic filtering is derived from the **`products`** table, per current selections.
+
+### Principles
+
+* **Mirror Style is the anchor.** It determines the set of *actual* product records available within the chosen `product_line`.
+
+  * Example: `B05` has two SKUs: `B05b` (Both) and `B05d` (Direct). Therefore, **both** light-direction values are dynamically available for that mirror style.
+  * Example: `T22` exists only as `T22i`. Therefore, **only Indirect** is available for that mirror style.
+* **Mirror Styles should not be disabled by dynamic filtering.** They can only be hidden via **product overrides** or disabled by **rules**. Dynamic filtering can disable other collections (e.g., light\_direction) based on available product combinations, but **mirror\_styles remain selectable** unless explicitly removed by overrides or rules.
+* **No hard-coded matrices.** Availability is computed **from `products` rows** that match the current `product_line` and whatever has already been chosen.
+
+### Algorithm (facet-style)
+
+1. **Start scope**: all `products` in the active `product_line` and `active=true`.
+2. **Facet counts** by key attributes that are M2O on `products` (e.g., `mirror_style`, `light_direction`, etc.).
+3. **When user selects `mirror_style = X`**:
+
+   * Filter the product scope to `mirror_style = X`.
+   * Recompute facet availability for **other** collections from that reduced scope (e.g., show only light directions that exist among remaining products).
+   * **Do not disable** other mirror styles at this step (unless rules/overrides say so); they remain available to switch.
+4. **When user selects additional facets** (e.g., `light_direction = Indirect`):
+
+   * Filter scope again and recompute availability for remaining collections.
+5. **No matching products**: if a choice combination leads to an empty scope, signal **no products available**, and guide user to adjust selections (do not fallback).
+
+### UI semantics
+
+* **Disabled vs hidden**:
+
+  * **Dynamic filtering** disables options that have **zero matching products** in the current scope.
+  * **Overrides** hide options (product-specific restriction).
+  * **Rules** set a value and disable alternatives.
+* **Switching mirror styles**: allowed any time; dynamic filtering immediately recomputes availability for dependent sets (e.g., `light_direction`).
+
+### Performance notes
+
+* Pre-compute per-`product_line` facet maps at load (products → counts by `{ mirror_style, light_direction, … }`).
+* Cache results in memory; invalidate when product list changes.
+
+---
+
+### Open items (defaults chosen if unspecified)
+
+* **Equal-priority tiebreaker**: after numeric priorities, process `null` priorities in `id ASC` order for determinism.
+* **Rule side-effects**: value set ⇒ disable others (don’t hide).
+* **Future multi-select collections**: If no special combo rule exists, concatenate in **order of selection**.
+* **Validation**: disallow `_eq: null`; use `_empty` for presence checks; flag any `product_lines_default_options` with `product_lines_id: null`.

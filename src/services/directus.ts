@@ -990,6 +990,17 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
   return { ...filteredOptions, dynamicSets };
 }
 
+// Get options by collection for a product line (used by ProductLineService)
+export async function getOptionsByCollectionForProductLine(productLine: ProductLine): Promise<Record<string, any[]>> {
+  if (import.meta.env.DEV) console.log(`🔧 Loading options by collection for ${productLine.name}...`);
+
+  // Get the filtered options data
+  const { dynamicSets } = await getFilteredOptionsForProductLine(productLine);
+  
+  // Return the dynamic sets as the collection-based options
+  return dynamicSets || {};
+}
+
 // Enhanced relationship mapping functions
 export async function getAccessoriesByType(type: 'nightlight' | 'anti-fog' | 'all'): Promise<Accessory[]> {
   const accessories = await getActiveAccessories();
