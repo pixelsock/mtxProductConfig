@@ -4,7 +4,6 @@
 import {
   getActiveFrameColors,
   getActiveProductLines,
-  getActiveMirrorControls,
   getActiveMirrorStyles,
   getActiveMountingOptions,
   getActiveLightDirections,
@@ -38,7 +37,6 @@ export class DataComparisonTester {
     // Test all collections
     await this.testFrameColors();
     await this.testProductLines();
-    await this.testMirrorControls();
     await this.testMirrorStyles();
     await this.testMountingOptions();
     await this.testLightDirections();
@@ -108,22 +106,6 @@ export class DataComparisonTester {
 
     } catch (error) {
       this.addResult('product_lines', 'FAIL', `Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  private async testMirrorControls(): Promise<void> {
-    try {
-      const controls = await getActiveMirrorControls();
-      
-      // Expected 3 controls from static data
-      if (controls.length >= 3) {
-        this.addResult('mirror_controls', 'PASS', `Found ${controls.length} mirror controls (matches/exceeds static 3)`);
-      } else {
-        this.addResult('mirror_controls', 'WARNING', `Only ${controls.length} mirror controls found, static had 3`);
-      }
-
-    } catch (error) {
-      this.addResult('mirror_controls', 'FAIL', `Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

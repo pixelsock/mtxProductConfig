@@ -5,7 +5,6 @@ import { createDirectus, rest, graphql, authentication, staticToken } from '@dir
 interface DirectusSchema {
   product_lines: ProductLine[];
   frame_colors: FrameColor[];
-  mirror_controls: MirrorControl[];
   mirror_styles: MirrorStyle[];
   mounting_options: MountingOption[];
   light_directions: LightDirection[];
@@ -18,6 +17,7 @@ interface DirectusSchema {
   configuration_images: ConfigurationImage[];
   products: DecoProduct[];
   rules: Rule[];
+  searchable_skus: SearchableSku[];
 }
 
 // Type definitions (matching existing interfaces)
@@ -60,15 +60,6 @@ export interface Accessory {
   description?: string;
   active: boolean;
   sort: number | null;
-}
-
-export interface MirrorControl {
-  id: number;
-  name: string;
-  sku_code: string;
-  description: string;
-  active: boolean;
-  sort: number;
 }
 
 export interface MirrorStyle {
@@ -186,6 +177,13 @@ export interface ConfigurationImage {
   sort?: number;
 }
 
+export interface SearchableSku {
+  id: number;
+  sku_code: string;
+  product_name: string;
+  configuration_json: string;
+}
+
 export interface Rule {
   id: string;
   name: string;
@@ -284,14 +282,6 @@ export const BULK_COLLECTIONS_QUERY = `
       sort
       sku_code
       webflow_id
-    }
-    mirror_controls(filter: { active: { _eq: true } }, sort: ["sort"]) {
-      id
-      name
-      sku_code
-      description
-      active
-      sort
     }
     mirror_styles(filter: { active: { _eq: true } }, sort: ["sort"]) {
       id

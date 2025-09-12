@@ -89,16 +89,6 @@
     "filter": { "active": { "_eq": true } },
     "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
   },
-  "mirror_control": {
-    "type": "integer",
-    "label": "Mirror Control",
-    "field": "id",
-    "template": "{{name}}",
-    "interface": "select-dropdown-m2o",
-    "collection": "mirror_controls",
-    "filter": { "active": { "_eq": true } },
-    "operators": ["eq", "in", "neq", "nin", "empty", "nempty"]
-  },
   "accessory": {
     "type": "integer",
     "label": "Accessory",

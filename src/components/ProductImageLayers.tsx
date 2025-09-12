@@ -41,7 +41,6 @@ function evaluateRule(rule: ConfigImageRule, config: Record<string, any>): boole
       mounting_options: parseInt(config.mounting) || config.mounting_options || null,
       light_directions: parseInt(config.lighting) || config.light_directions || null, // Map lighting to light_directions
       mirror_styles: parseInt(config.mirrorStyle) || config.mirror_styles || null,
-      mirror_controls: parseInt(config.mirrorControls) || parseInt(config.mirrorControl) || config.mirror_controls || null,
       // Add missing field mappings
       frame_colors: parseInt(config.frameColor) || config.frame_colors || null,
       color_temperatures: parseInt(config.colorTemperature) || config.color_temperatures || null,

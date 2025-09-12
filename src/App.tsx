@@ -225,7 +225,6 @@ const App: React.FC = () => {
           mirror_style: mirrorStyle.id,
           light_direction: lightDirection.id,
           // Add other relevant fields as numbers
-          mirror_control: parseInt(currentConfig.mirrorControls),
           frame_color: parseInt(currentConfig.frameColor),
           mounting: parseInt(currentConfig.mounting),
           driver: currentConfig.driver ? parseInt(currentConfig.driver) : undefined
@@ -631,7 +630,6 @@ const App: React.FC = () => {
         mirror_style_code: selectedMirrorStyle?.sku_code ? parseInt(selectedMirrorStyle.sku_code, 10) : undefined,
         light_direction: parseInt(config.lighting || '0', 10) || undefined,
         frame_thickness: parseInt(config.frameThickness || '0', 10) || undefined,
-        mirror_control: parseInt(config.mirrorControls || '0', 10) || undefined,
         frame_color: parseInt(config.frameColor || '0', 10) || undefined,
         mounting: parseInt(config.mounting || '0', 10) || undefined,
         driver: parseInt(config.driver || '0', 10) || undefined,
@@ -680,8 +678,6 @@ const App: React.FC = () => {
               return (opts?.frameThickness || []).map(o => o.id);
             case 'frame_color':
               return (opts?.frameColors || []).map(o => o.id);
-            case 'mirror_control':
-              return (opts?.mirrorControls || []).map(o => o.id);
             case 'mounting':
               return (opts?.mountingOptions || []).map(o => o.id);
             case 'driver':

@@ -4,6 +4,12 @@
 
 The MTX Product Configurator is a React-based web application that allows users to configure Matrix Engineering lighting products with real-time visualization and quote generation capabilities.
 
+### Key Features
+
+- Fully dynamic configuration sourced from Directus collections
+- Deterministic SKU assembly based on `sku_code_order`
+- Directus-backed full SKU search via `searchable_skus`
+
 ## Architecture
 
 - **Frontend**: React + TypeScript + Vite

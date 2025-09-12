@@ -250,7 +250,6 @@ export class ProductLineService extends EventEmittingService {
       'light_outputs': 'select',
       'drivers': 'select',
       'frame_thicknesses': 'radio-group',
-      'mirror_controls': 'radio-group',
       'sizes': 'select',
       'accessories': 'checkbox-group'
     };

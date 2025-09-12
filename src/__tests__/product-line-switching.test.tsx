@@ -70,9 +70,6 @@ vi.mock('../services/directus', () => ({
       frame_thicknesses: [
         { id: 1, name: 'Standard', sku_code: 'STD' }
       ],
-      mirror_controls: [
-        { id: 1, name: 'Standard', sku_code: 'STD' }
-      ]
     };
 
     // Reflection product line has different mirror styles
