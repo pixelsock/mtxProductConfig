@@ -85,8 +85,7 @@ export function DynamicCurrentConfiguration({
       'frame_colors': 'Frame Color',
       'mirror_styles': 'Mirror Style',
       'lighting_options': 'Lighting',
-      'frame_thickness': 'Frame Thickness',
-      'mirror_controls': 'Mirror Controls'
+      'frame_thickness': 'Frame Thickness'
     };
     
     return displayNames[optionSet] || optionSet.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -127,9 +126,6 @@ export function DynamicCurrentConfiguration({
         break;
       case 'frame_thickness':
         options = productOptions['frameThickness'] || productOptions['frame_thickness'] || [];
-        break;
-      case 'mirror_controls':
-        options = productOptions['mirrorControls'] || productOptions['mirror_controls'] || [];
         break;
       case 'mounting_options':
         options = productOptions['mountingOptions'] || productOptions['mounting_options'] || [];

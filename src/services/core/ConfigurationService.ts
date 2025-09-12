@@ -171,7 +171,6 @@ export class ConfigurationService extends EventEmittingService {
   ): void {
     // Map collection names to configuration fields
     const fieldMapping: Record<string, keyof ProductConfiguration> = {
-      'mirror_controls': 'mirrorControls',
       'frame_colors': 'frameColor',
       'frame_thicknesses': 'frameThickness',
       'mirror_styles': 'mirrorStyle',

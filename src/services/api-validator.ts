@@ -299,7 +299,7 @@ export class APIValidator {
   private isCollectionField(fieldName: string): boolean {
     const collectionFields = [
       'product_line', 'frame_thickness', 'mirror_style', 'light_direction',
-      'frame_color', 'mirror_control', 'mounting_option', 'color_temperature',
+      'frame_color', 'mounting_option', 'color_temperature',
       'light_output', 'driver', 'accessory'
     ];
     return collectionFields.includes(fieldName);
@@ -315,7 +315,6 @@ export class APIValidator {
       'mirror_style': 'mirror_styles',
       'light_direction': 'light_directions',
       'frame_color': 'frame_colors',
-      'mirror_control': 'mirror_controls',
       'mounting_option': 'mounting_options',
       'color_temperature': 'color_temperatures',
       'light_output': 'light_outputs',

@@ -15,7 +15,6 @@ export interface RuleContext {
   light_direction_sku_code?: string;
   frame_thickness?: number;
   frame_thickness_sku_code?: string;
-  mirror_control?: number;
   frame_color?: number;
   mounting?: number;
   driver?: number;
@@ -155,7 +154,6 @@ export class RulesEngineService extends EventEmittingService {
       mirror_style: toNum(config.mirrorStyle),
       light_direction: toNum(config.lighting),
       frame_thickness: toNum(config.frameThickness),
-      mirror_control: toNum(config.mirrorControls),
       frame_color: toNum(config.frameColor),
       mounting: toNum(config.mounting),
       driver: toNum(config.driver),

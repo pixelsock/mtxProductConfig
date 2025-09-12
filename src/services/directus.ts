@@ -9,7 +9,6 @@ import {
   ProductLine,
   FrameColor,
   Accessory,
-  MirrorControl,
   MirrorStyle,
   MountingOption,
   LightDirection,
@@ -22,6 +21,7 @@ import {
   ConfigImageRule,
   ConfigurationImage,
   Rule,
+  SearchableSku,
   BULK_COLLECTIONS_QUERY
 } from './directus-client';
 
@@ -34,7 +34,6 @@ export type {
   ProductLine,
   FrameColor,
   Accessory,
-  MirrorControl,
   MirrorStyle,
   MountingOption,
   LightDirection,
@@ -46,7 +45,8 @@ export type {
   DecoProduct,
   ConfigImageRule,
   ConfigurationImage,
-  Rule
+  Rule,
+  SearchableSku
 };
 
 // Cache for performance
@@ -140,7 +140,6 @@ function validateData<T>(data: any[], validator: (item: any) => boolean, collect
     console.warn(`⚠️ ${invalidCount} invalid items filtered from ${collectionName}`);
   }
 
-  console.log(`✓ Validated ${validItems.length} items in ${collectionName}`);
   return validItems as T[];
 }
 
@@ -270,7 +269,6 @@ async function fetchBulkData(): Promise<any> {
     const [
       product_lines,
       frame_colors,
-      mirror_controls,
       mirror_styles,
       mounting_options,
       light_directions,
@@ -283,7 +281,6 @@ async function fetchBulkData(): Promise<any> {
     ] = await Promise.all([
       directusClient.request(readItems('product_lines' as any, { sort: ['sort'] } as any)),
       directusClient.request(readItems('frame_colors' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
-      directusClient.request(readItems('mirror_controls' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
       directusClient.request(readItems('mirror_styles' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
       directusClient.request(readItems('mounting_options' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
       directusClient.request(readItems('light_directions' as any, { filter: { active: { _eq: true } }, sort: ['sort'] } as any)),
@@ -298,7 +295,6 @@ async function fetchBulkData(): Promise<any> {
     bulkDataCache = {
       product_lines: normalizeList(product_lines as any, ['id', 'sort']),
       frame_colors: normalizeList(frame_colors as any, ['id', 'sort']),
-      mirror_controls: normalizeList(mirror_controls as any, ['id', 'sort']),
       mirror_styles: normalizeList(mirror_styles as any, ['id', 'sort']),
       mounting_options: normalizeList(mounting_options as any, ['id', 'sort']),
       light_directions: normalizeList(light_directions as any, ['id', 'sort']),
@@ -513,18 +509,6 @@ export async function getActiveAccessories(): Promise<Accessory[]> {
       return await getBulkDataCollection<Accessory>('accessories', validateAccessory);
     } catch (error) {
       console.error('Failed to fetch accessories from API:', error);
-      throw error;
-    }
-  });
-}
-
-// Mirror Controls
-export async function getActiveMirrorControls(): Promise<MirrorControl[]> {
-  return getCachedData('mirror_controls', async () => {
-    try {
-      return await getBulkDataCollection<MirrorControl>('mirror_controls', validateBasicItem);
-    } catch (error) {
-      console.error('Failed to fetch mirror_controls from API:', error);
       throw error;
     }
   });
@@ -776,16 +760,28 @@ export async function getProductBySKU(
     targetSKU = `${productLineSKU}${mirrorStyleSKU}${lightDirectionSKU}`;
   }
   
-  console.log(`🔍 Looking for product with SKU: ${targetSKU}`);
   const product = products.find(p => p.name === targetSKU);
-  
-  if (product) {
-    console.log(`✓ Found product: ${product.name} (ID: ${product.id})`);
-  } else {
+  if (!product) {
     console.warn(`⚠️ No product found for SKU: ${targetSKU}`);
   }
-  
+
   return product;
+}
+
+// Search full SKU in searchable_skus collection
+export async function searchFullSku(sku: string): Promise<SearchableSku | null> {
+  try {
+    const result = await directusClient.request(
+      readItems('searchable_skus' as any, {
+        filter: { sku_code: { _eq: sku } },
+        limit: 1
+      } as any)
+    );
+    return (result as SearchableSku[])[0] || null;
+  } catch (error) {
+    console.error('Failed to search SKU:', error);
+    return null;
+  }
 }
 
 // Filter options based on product line default options
@@ -828,7 +824,6 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
     // Check if bulk data is available and has the expected structure
     if (bulkData && typeof bulkData === 'object') {
       allOptions = {
-        allMirrorControls: validateData<MirrorControl>(bulkData.mirror_controls || [], validateBasicItem, 'mirror_controls'),
         allFrameColors: validateData<FrameColor>(bulkData.frame_colors || [], validateFrameColor, 'frame_colors'),
         allFrameThicknesses: validateData<FrameThickness>(bulkData.frame_thicknesses || [], validateBasicItem, 'frame_thicknesses'),
         allMirrorStyles: validateData<MirrorStyle>(bulkData.mirror_styles || [], validateBasicItem, 'mirror_styles'),
@@ -851,7 +846,6 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
     
     // Use individual API calls
     const [
-      allMirrorControls,
       allFrameColors,
       allFrameThicknesses,
       allMirrorStyles,
@@ -864,7 +858,6 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
       allSizes,
       allHangingTechniques
     ] = await Promise.all([
-      getActiveMirrorControls(),
       getActiveFrameColors(),
       getActiveFrameThicknesses(),
       getActiveMirrorStyles(),
@@ -879,7 +872,6 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
     ]);
     
     allOptions = {
-      allMirrorControls,
       allFrameColors,
       allFrameThicknesses,
       allMirrorStyles,
@@ -897,7 +889,6 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
 
   // Filter based on product line default options
   const filteredOptions = {
-    mirrorControls: filterOptionsByProductLine<MirrorControl>(allOptions.allMirrorControls, productLine, 'mirror_controls'),
     frameColors: filterOptionsByProductLine<FrameColor>(allOptions.allFrameColors, productLine, 'frame_colors'),
     frameThickness: filterOptionsByProductLine<FrameThickness>(allOptions.allFrameThicknesses, productLine, 'frame_thicknesses'),
     mirrorStyles: filterOptionsByProductLine<MirrorStyle>(allOptions.allMirrorStyles, productLine, 'mirror_styles'),
@@ -1091,7 +1082,6 @@ export async function checkDataConsistency(): Promise<{ isValid: boolean; report
     const collections = [
       { name: 'product_lines', fn: getActiveProductLines },
       { name: 'frame_colors', fn: getActiveFrameColors },
-      { name: 'mirror_controls', fn: getActiveMirrorControls },
       { name: 'mirror_styles', fn: getActiveMirrorStyles },
       { name: 'mounting_options', fn: getActiveMountingOptions },
       { name: 'light_directions', fn: getActiveLightDirections },
@@ -1214,12 +1204,10 @@ export async function initializeDirectusService(): Promise<void> {
     
   // Warm up cache using bulk REST loader for better performance
   const startTime = Date.now();
-  console.log('Loading collections with bulk REST loader...');
   
   try {
     // Load all collections via REST in parallel
     await fetchBulkData();
-    console.log('✓ Bulk data loaded successfully');
   } catch (error) {
     console.warn('Bulk data loading failed, using individual calls:', error);
       
@@ -1227,7 +1215,6 @@ export async function initializeDirectusService(): Promise<void> {
       await Promise.all([
         getActiveProductLines(),
         getActiveFrameColors(),
-        getActiveMirrorControls(),
         getActiveMirrorStyles(),
         getActiveMountingOptions(),
         getActiveLightDirections(),

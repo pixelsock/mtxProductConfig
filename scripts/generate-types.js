@@ -55,7 +55,6 @@ const PRODUCT_COLLECTIONS = [
   'frame_thicknesses',
   'light_directions',
   'light_outputs',
-  'mirror_controls',
   'mirror_styles',
   'mounting_options',
   'product_lines',

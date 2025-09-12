@@ -27,7 +27,6 @@ export const SkuDisplay: React.FC<SkuDisplayProps> = ({ config, options, product
     mirror_style: mirrorStyleId,
     light_direction: lightDirectionId,
     frame_thickness: frameThicknessId,
-    mirror_control: toNum(config.mirrorControls),
     frame_color: frameColorId,
     mounting: mountingId,
     driver: driverId,

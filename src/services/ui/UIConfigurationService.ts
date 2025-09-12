@@ -378,7 +378,6 @@ export class UIConfigurationService extends EventEmittingService {
       'color_temperatures': 'Color Temperature',
       'light_outputs': 'Light Output',
       'drivers': 'Driver',
-      'mirror_controls': 'Controls',
       'sizes': 'Size',
       'accessories': 'Accessories'
     };
@@ -391,7 +390,6 @@ export class UIConfigurationService extends EventEmittingService {
       'frame_colors': 'Frame',
       'frame_thicknesses': 'Frame',
       'mirror_styles': 'Mirror',
-      'mirror_controls': 'Mirror',
       'mounting_options': 'Installation',
       'sizes': 'Dimensions',
       'light_directions': 'Lighting',
@@ -414,7 +412,6 @@ export class UIConfigurationService extends EventEmittingService {
       'color_temperatures': 'colorTemperature',
       'light_outputs': 'lightOutput',
       'drivers': 'driver',
-      'mirror_controls': 'mirrorControls',
       'sizes': 'size',
       'accessories': 'accessories'
     };

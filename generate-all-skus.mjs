@@ -59,7 +59,6 @@ async function fetchAllCollections() {
         const collections = await Promise.all([
             fetchData('/items/product_lines?filter[active][_eq]=true&sort=sort'),
             fetchData('/items/frame_colors?filter[active][_eq]=true&sort=sort'),
-            fetchData('/items/mirror_controls?filter[active][_eq]=true&sort=sort'),
             fetchData('/items/mirror_styles?filter[active][_eq]=true&sort=sort'),
             fetchData('/items/mounting_options?filter[active][_eq]=true&sort=sort'),
             fetchData('/items/light_directions?filter[active][_eq]=true&sort=sort'),
@@ -74,7 +73,6 @@ async function fetchAllCollections() {
         const [
             productLines,
             frameColors,
-            mirrorControls,
             mirrorStyles,
             mountingOptions,
             lightDirections,
@@ -89,7 +87,6 @@ async function fetchAllCollections() {
         return {
             productLines,
             frameColors,
-            mirrorControls,
             mirrorStyles,
             mountingOptions,
             lightDirections,

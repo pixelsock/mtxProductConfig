@@ -167,21 +167,6 @@ export interface LightOutputs {
 export type LightOutputsCollection = GraphQLCollectionResponse<LightOutputs>;
 export type LightOutputsConnection = GraphQLConnection<LightOutputs>;
 
-// mirror_controls collection types
-export interface MirrorControls {
-  nodeId: string;
-  id: number;
-  name: string;
-  description?: string;
-  active: boolean;
-  sort?: number;
-  sku_code?: string;
-  webflow_id?: string;
-}
-
-export type MirrorControlsCollection = GraphQLCollectionResponse<MirrorControls>;
-export type MirrorControlsConnection = GraphQLConnection<MirrorControls>;
-
 // mirror_styles collection types
 export interface MirrorStyles {
   nodeId: string;

@@ -103,7 +103,6 @@ export const DynamicOptions: React.FC<DynamicOptionsProps> = ({ productLineDefau
         color_temperatures: 'color_temperature',
         light_outputs: 'light_output',
         frame_colors: 'frame_color',
-        mirror_controls: 'mirror_control',
         drivers: 'driver',
         hanging_techniques: 'hanging_technique',
         accessories: 'accessory',

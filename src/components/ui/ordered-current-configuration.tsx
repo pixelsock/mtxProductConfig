@@ -167,8 +167,7 @@ export function OrderedCurrentConfiguration({
       'frame_colors': 'Frame Color',
       'mirror_styles': 'Mirror Style',
       'lighting_options': 'Lighting',
-      'frame_thickness': 'Frame Thickness',
-      'mirror_controls': 'Mirror Controls'
+      'frame_thickness': 'Frame Thickness'
     };
     
     return displayNames[optionSet] || optionSet.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
