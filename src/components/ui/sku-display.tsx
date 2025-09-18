@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProductLine } from '../../services/directus';
+import { ProductLine } from '../../services/supabase';
 import { buildFullSku, CurrentConfigLike, SimpleOptions } from '../../utils/sku-builder';
 import { processRules } from '../../services/rules-engine';
 

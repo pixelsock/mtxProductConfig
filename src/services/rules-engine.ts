@@ -1,5 +1,5 @@
 // Rules Processing Engine for Product Configuration
-import { Rule, getRules } from './directus';
+import { Rule, getRules } from './supabase';
 
 // Accessor for rule actions – expects `then_that` (no legacy fallback)
 function getRuleActions(rule: any): any {

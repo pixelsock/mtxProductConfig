@@ -30,25 +30,31 @@ import {
   RotateCcw,
 } from "lucide-react";
 
-// Import Directus service layer
+// Import Dynamic Supabase service layer
 import {
-  initializeDirectusService,
-  getActiveProductLines,
-  getProductLineWithOptions,
-  getFilteredOptionsForProductLine,
-  getAvailableOptionIdsForSelections,
-  getAllProducts,
-  getRules,
-  ProductLine,
-  DecoProduct,
-  FrameThickness,
-  MirrorStyle,
-  LightDirection,
-  MountingOption
-} from "./services/directus";
+  initializeDynamicService,
+  getDynamicProductLines,
+  getSchemaInfo,
+  ProductLine
+} from "./services/dynamic-supabase";
+
+// Import filtering functionality
+import {
+  initializeFiltering,
+  getFilteredOptions
+} from "./services/dynamic-filtering";
+// Import types from database type definitions
+import type { Database } from "../supabase";
+
+// Type aliases for convenience
+type DecoProduct = Database['public']['Tables']['products']['Row'];
+type FrameThickness = Database['public']['Tables']['frame_thicknesses']['Row'];
+type MirrorStyle = Database['public']['Tables']['mirror_styles']['Row'];
+type LightDirection = Database['public']['Tables']['light_directions']['Row'];
+type MountingOption = Database['public']['Tables']['mounting_options']['Row'];
 
 // Import rules and product matching services
-import { processRules, evaluateRuleConditions, buildRuleConstraints, applyConstraintsToIds } from "./services/rules-engine";
+import { processRules } from "./services/rules-engine";
 import { generateProductSKU } from "./services/sku-generator";
 import { findBestMatchingProduct } from "./services/product-matcher";
 import { selectProductImage, constructDirectusAssetUrl } from "./services/image-selector";
@@ -125,8 +131,8 @@ const App: React.FC = () => {
   const [currentProductLine, setCurrentProductLine] = useState<ProductLine | null>(null);
   const [availableProductLines, setAvailableProductLines] = useState<ProductLine[]>([]);
   
-  // Generic availability state (option-agnostic)
-  const [availableOptionIds, setAvailableOptionIds] = useState<Record<string, number[]>>({});
+  // Advanced filtering state
+  const [disabledOptionIds, setDisabledOptionIds] = useState<Record<string, number[]>>({});
   const [isComputingAvailability, setIsComputingAvailability] = useState(false);
 
   // Loading states
@@ -345,11 +351,18 @@ const App: React.FC = () => {
       // clearCache();
       // console.log('✓ Cache cleared for fresh data');
 
-      // Initialize Directus service first
-      await initializeDirectusService();
+      // Initialize Dynamic Supabase service first
+      await initializeDynamicService();
+
+      // Initialize filtering system
+      await initializeFiltering();
+
+      // Show schema information
+      const schemaInfo = getSchemaInfo();
+      console.log('📊 Database Schema Info:', schemaInfo);
 
       // Load all product lines
-      const productLines = await getActiveProductLines();
+      const productLines = await getDynamicProductLines();
       setAvailableProductLines(productLines);
 
       // Get first product line as default, or look for one named "Deco" if available
@@ -368,16 +381,11 @@ const App: React.FC = () => {
         throw new Error('No product lines available');
       }
 
-      // Get the product line with its options
-      const productLineWithOptions = await getProductLineWithOptions(defaultProductLine.sku_code);
-      if (!productLineWithOptions) {
-        throw new Error(`Failed to load product line: ${defaultProductLine.name}`);
-      }
-
-      setCurrentProductLine(productLineWithOptions);
+      // Set the default product line
+      setCurrentProductLine(defaultProductLine);
 
       // Load filtered options for the default product line
-      await loadProductLineOptions(productLineWithOptions);
+      await loadProductLineOptions(defaultProductLine);
 
     } catch (err) {
       console.error("Failed to load product data:", err);
@@ -387,38 +395,118 @@ const App: React.FC = () => {
     }
   };
 
-  // Load options for a specific product line
+  // Load options for a specific product line using proper database-driven filtering
   const loadProductLineOptions = async (productLine: ProductLine) => {
     try {
-      if (import.meta.env.DEV) console.log(`🔄 Loading options for ${productLine.name}...`);
+      if (import.meta.env.DEV) console.log(`🔄 Loading options for ${productLine.name} using database-driven filtering...`);
 
-      // Get filtered options for this product line
-      const filteredOptions = await getFilteredOptionsForProductLine(productLine);
+      // Get the properly filtered options using our two-level approach
+      const initialFilteringResult = getFilteredOptions({}, productLine.id);
+
+      // Load the actual option data from Supabase for the available IDs only
+      const { supabase } = await import('./services/supabase');
+
+      const loadOptionsForCollection = async (collectionName: string, availableIds: string[]) => {
+        if (availableIds.length === 0) return [];
+
+        try {
+          // Use type assertion since we're working with dynamic collection names
+          const { data, error } = await supabase
+            .from(collectionName as any)
+            .select('*')
+            .in('id', availableIds.map(id => parseInt(id)))
+            .eq('active', true);
+
+          if (error) {
+            console.warn(`⚠️ Failed to load ${collectionName}:`, error);
+            return [];
+          }
+
+          return data || [];
+        } catch (error) {
+          console.warn(`⚠️ Error loading ${collectionName}:`, error);
+          return [];
+        }
+      };
+
+      // Load only the options that are actually available for this product line
+      const [
+        frameColorsData,
+        frameThicknessData,
+        mirrorStylesData,
+        mountingOptionsData,
+        lightingOptionsData,
+        colorTemperaturesData,
+        lightOutputsData,
+        driversData,
+        sizesData,
+        accessoriesData
+      ] = await Promise.all([
+        loadOptionsForCollection('frame_colors', initialFilteringResult.available.frame_colors || []),
+        loadOptionsForCollection('frame_thicknesses', initialFilteringResult.available.frame_thicknesses || []),
+        loadOptionsForCollection('mirror_styles', initialFilteringResult.available.mirror_styles || []),
+        loadOptionsForCollection('mounting_options', initialFilteringResult.available.mounting_options || []),
+        loadOptionsForCollection('light_directions', initialFilteringResult.available.light_directions || []),
+        loadOptionsForCollection('color_temperatures', initialFilteringResult.available.color_temperatures || []),
+        loadOptionsForCollection('light_outputs', initialFilteringResult.available.light_outputs || []),
+        loadOptionsForCollection('drivers', initialFilteringResult.available.drivers || []),
+        loadOptionsForCollection('sizes', initialFilteringResult.available.sizes || []),
+        loadOptionsForCollection('accessories', initialFilteringResult.available.accessories || [])
+      ]);
+
+      // Initialize disabled state (Level 1 = no disabled options)
+      const initialDisabledOptions = {
+        mirror_styles: [],
+        light_directions: [],
+        frame_thicknesses: [],
+        frame_colors: [],
+        mounting_options: [],
+        drivers: [],
+        color_temperatures: [],
+        light_outputs: [],
+        sizes: [],
+        accessories: []
+      };
+
+      setDisabledOptionIds(initialDisabledOptions);
+
+      console.log('🔍 Database-driven filtering initialized:', {
+        productLine: productLine.name,
+        available: initialFilteringResult.available,
+        level: 1,
+        loadedCollections: {
+          frameColors: frameColorsData.length,
+          frameThickness: frameThicknessData.length,
+          mirrorStyles: mirrorStylesData.length,
+          mountingOptions: mountingOptionsData.length,
+          lightingOptions: lightingOptionsData.length,
+          colorTemperatures: colorTemperaturesData.length,
+          lightOutputs: lightOutputsData.length,
+          drivers: driversData.length,
+          sizes: sizesData.length,
+          accessories: accessoriesData.length
+        }
+      });
 
       const options: ProductOptions = {
-        mirrorControls: filteredOptions.mirrorControls.map(item => ({
-          id: item.id,
-          name: item.name,
-          sku_code: item.sku_code,
-          description: item.description
+        mirrorControls: [], // Table doesn't exist in database
+        frameColors: frameColorsData.map(item => ({
+          id: item.id as number,
+          name: item.name as string,
+          sku_code: item.sku_code as string,
+          hex_code: (item.hex_code || "#000000") as string
         })),
-        frameColors: filteredOptions.frameColors.map(item => ({
-          id: item.id,
-          name: item.name,
-          sku_code: item.sku_code,
-          hex_code: item.hex_code
+        frameThickness: frameThicknessData.map(item => ({
+          id: item.id as number,
+          name: item.name as string,
+          sku_code: item.sku_code as string
         })),
-        frameThickness: filteredOptions.frameThickness.map(item => ({
-          id: item.id,
-          name: item.name,
-          sku_code: item.sku_code
-        })),
-        mirrorStyles: filteredOptions.mirrorStyles
+        mirrorStyles: mirrorStylesData
           .map(item => ({
-            id: item.id,
-            name: item.name,
-            sku_code: item.sku_code,
-            description: item.description
+            id: item.id as number,
+            name: item.name as string,
+            sku_code: item.sku_code as string,
+            description: item.description as string
           }))
           .sort((a, b) => {
             const aa = a.sku_code ? parseInt(a.sku_code, 10) : Number.MAX_SAFE_INTEGER;
@@ -428,51 +516,51 @@ const App: React.FC = () => {
             if (Number.isNaN(bb)) return -1;
             return aa - bb;
           }),
-        mountingOptions: filteredOptions.mountingOptions.map(item => ({
-          id: item.id,
-          name: item.name,
-          sku_code: item.sku_code,
-          description: item.description
+        mountingOptions: mountingOptionsData.map(item => ({
+          id: item.id as number,
+          name: item.name as string,
+          sku_code: item.sku_code as string,
+          description: item.description as string
         })),
-        lightingOptions: filteredOptions.lightingOptions.map(item => ({
-          id: item.id,
-          name: item.name,
-          sku_code: item.sku_code,
-          description: item.description
+        lightingOptions: lightingOptionsData.map(item => ({
+          id: item.id as number,
+          name: item.name as string,
+          sku_code: item.sku_code as string,
+          description: item.description as string
         })),
-        colorTemperatures: filteredOptions.colorTemperatures.map(item => ({
-          id: item.id,
-          name: item.name,
-          sku_code: item.sku_code
+        colorTemperatures: colorTemperaturesData.map(item => ({
+          id: item.id as number,
+          name: item.name as string,
+          sku_code: item.sku_code as string
         })),
-        lightOutputs: filteredOptions.lightOutputs.map(item => ({
-          id: item.id,
-          name: item.name,
-          sku_code: item.sku_code
+        lightOutputs: lightOutputsData.map(item => ({
+          id: item.id as number,
+          name: item.name as string,
+          sku_code: item.sku_code as string
         })),
-        drivers: filteredOptions.drivers.map(item => ({
-          id: item.id,
-          name: item.name,
-          sku_code: item.sku_code,
-          description: item.description
+        drivers: driversData.map(item => ({
+          id: item.id as number,
+          name: item.name as string,
+          sku_code: item.sku_code as string,
+          description: item.description as string
         })),
         // Use filtered accessories (already filtered by product line)
-        accessoryOptions: filteredOptions.accessories.map(item => ({
-          id: item.id,
-          name: item.name,
-          sku_code: item.sku_code,
-          description: item.description || undefined
+        accessoryOptions: accessoriesData.map(item => ({
+          id: item.id as number,
+          name: item.name as string,
+          sku_code: item.sku_code as string,
+          description: (item.description || undefined) as string | undefined
         })),
-        sizes: filteredOptions.sizes.map(item => {
+        sizes: sizesData.map(item => {
           // Extract dimensions directly instead of using the removed getNumericDimensions function
           const dimensions = {
             width: item.width ? Number(item.width) : undefined,
             height: item.height ? Number(item.height) : undefined
           };
           return {
-            id: item.id,
-            name: item.name,
-            sku_code: item.sku_code,
+            id: item.id as number,
+            name: item.name as string,
+            sku_code: item.sku_code as string,
             width: dimensions.width,
             height: dimensions.height
           };
@@ -547,16 +635,10 @@ const App: React.FC = () => {
     try {
       console.log(`🔄 Switching to product line: ${newProductLine.name}`);
 
-      // Get product line with expanded default options
-      const productLineWithOptions = await getProductLineWithOptions(newProductLine.sku_code);
-      if (!productLineWithOptions) {
-        throw new Error(`Failed to load product line ${newProductLine.name}`);
-      }
-
       // Update current product line first to align IDs for downstream effects
-      setCurrentProductLine(productLineWithOptions);
-      // Then load filtered options for the new product line
-      await loadProductLineOptions(productLineWithOptions);
+      setCurrentProductLine(newProductLine);
+      // Then load filtered options for the new product line using dynamic service
+      await loadProductLineOptions(newProductLine);
 
       console.log(`✅ Successfully switched to ${newProductLine.name}`);
     } catch (error) {
@@ -579,9 +661,57 @@ const App: React.FC = () => {
     const newConfig = { ...currentConfig, [field]: value };
     setCurrentConfig(newConfig);
 
-    // Recompute generic availability after any relevant change
+    // Recompute advanced filtering after any relevant change
     if (currentProductLine) {
-      await computeAvailableOptions(currentProductLine.id, newConfig);
+      await recomputeAdvancedFiltering(currentProductLine, newConfig);
+    }
+  };
+
+  // Recompute filtering based on current selections using new two-level approach
+  const recomputeAdvancedFiltering = async (productLine: ProductLine, config: ProductConfig) => {
+    try {
+      setIsComputingAvailability(true);
+
+      // Build current selections for two-level filtering
+      const currentSelection: Record<string, any> = {};
+
+      // Only add mirror_styles if explicitly selected (not just from defaults)
+      if (config.mirrorStyle) {
+        currentSelection.mirror_styles = config.mirrorStyle;
+      }
+
+      console.log('🔄 Recomputing two-level filtering with selection:', currentSelection);
+
+      // Get filtered options using our new two-level approach
+      const filteringResult = getFilteredOptions(currentSelection, productLine.id);
+
+      // Convert filtering result to the format expected by UI components
+      const disabledOptions = {
+        mirror_styles: filteringResult.disabled.mirror_styles?.map(id => parseInt(id)) || [],
+        light_directions: filteringResult.disabled.light_directions?.map(id => parseInt(id)) || [],
+        frame_thicknesses: filteringResult.disabled.frame_thicknesses?.map(id => parseInt(id)) || [],
+        frame_colors: filteringResult.disabled.frame_colors?.map(id => parseInt(id)) || [],
+        mounting_options: filteringResult.disabled.mounting_options?.map(id => parseInt(id)) || [],
+        drivers: filteringResult.disabled.drivers?.map(id => parseInt(id)) || [],
+        color_temperatures: filteringResult.disabled.color_temperatures?.map(id => parseInt(id)) || [],
+        light_outputs: filteringResult.disabled.light_outputs?.map(id => parseInt(id)) || [],
+        sizes: filteringResult.disabled.sizes?.map(id => parseInt(id)) || [],
+        accessories: filteringResult.disabled.accessories?.map(id => parseInt(id)) || []
+      };
+
+      // Store disabled options for UI components to use
+      setDisabledOptionIds(disabledOptions);
+
+      console.log('✅ Two-level filtering updated:', {
+        available: filteringResult.available,
+        disabled: filteringResult.disabled,
+        level: config.mirrorStyle ? 2 : 1
+      });
+
+    } catch (error) {
+      console.error('❌ Failed to recompute two-level filtering:', error);
+    } finally {
+      setIsComputingAvailability(false);
     }
   };
 
@@ -616,58 +746,39 @@ const App: React.FC = () => {
       // Apply rules before product-based filtering
       const processed = await processRules(context);
 
-      // Use the explicit current selections for availability (mirror_style must be present)
-      const availabilitySelections: Record<string, any> = {
-        product_line: productLineId,
-        mirror_style: selectedMirrorStyle ? selectedMirrorStyle.id : undefined,
-        mirror_style_sku_code: selectedMirrorStyle?.sku_code,
-        light_direction: parseInt(config.lighting || '0', 10) || undefined,
-      };
-      let ids = await getAvailableOptionIdsForSelections(productLineId, availabilitySelections);
+      // Use the new two-level filtering approach
+      const currentSelection: Record<string, any> = {};
 
-      // Apply post-rule pruning: intersect availability with rule-imposed constraints
-      try {
-        const rules = await getRules();
-        const constraints = buildRuleConstraints(rules, processed);
-        if (import.meta.env.DEV) {
-          const debugConstraints: any = {};
-          for (const [k, v] of Object.entries(constraints)) {
-            debugConstraints[k] = {
-              allow: (v as any).allow ? Array.from((v as any).allow as any) : undefined,
-              deny: (v as any).deny ? Array.from((v as any).deny as any) : undefined
-            };
-          }
-          console.log('🧩 Rule constraints:', debugConstraints);
-        }
-        const getAllIdsForField = (field: string): number[] => {
-          switch (field) {
-            case 'mirror_style':
-              return (opts?.mirrorStyles || []).map(o => o.id);
-            case 'light_direction':
-              return (opts?.lightingOptions || []).map(o => o.id);
-            case 'frame_thickness':
-              return (opts?.frameThickness || []).map(o => o.id);
-            case 'frame_color':
-              return (opts?.frameColors || []).map(o => o.id);
-            case 'mirror_control':
-              return (opts?.mirrorControls || []).map(o => o.id);
-            case 'mounting':
-              return (opts?.mountingOptions || []).map(o => o.id);
-            case 'driver':
-              return (opts?.drivers || []).map(o => o.id);
-            case 'light_output':
-              return (opts?.lightOutputs || []).map(o => o.id);
-            case 'color_temperature':
-              return (opts?.colorTemperatures || []).map(o => o.id);
-            default:
-              return [];
-          }
-        };
-        ids = applyConstraintsToIds(ids, constraints, getAllIdsForField);
-      } catch (e) {
-        if (import.meta.env.DEV) console.warn('Post-rule pruning skipped:', e);
+      // Only add mirror_styles if explicitly selected (not just from defaults)
+      if (selectedMirrorStyle && config.mirrorStyle) {
+        currentSelection.mirror_styles = config.mirrorStyle;
       }
-      setAvailableOptionIds(ids);
+
+      // Get filtered options using our new two-level approach
+      const filteringResult = getFilteredOptions(currentSelection, productLineId);
+
+      // Convert filtering result to the format expected by UI components
+      const disabledOptions = {
+        mirror_styles: filteringResult.disabled.mirror_styles?.map(id => parseInt(id)) || [],
+        light_directions: filteringResult.disabled.light_directions?.map(id => parseInt(id)) || [],
+        frame_thicknesses: filteringResult.disabled.frame_thicknesses?.map(id => parseInt(id)) || [],
+        frame_colors: filteringResult.disabled.frame_colors?.map(id => parseInt(id)) || [],
+        mounting_options: filteringResult.disabled.mounting_options?.map(id => parseInt(id)) || [],
+        drivers: filteringResult.disabled.drivers?.map(id => parseInt(id)) || [],
+        color_temperatures: filteringResult.disabled.color_temperatures?.map(id => parseInt(id)) || [],
+        light_outputs: filteringResult.disabled.light_outputs?.map(id => parseInt(id)) || [],
+        sizes: filteringResult.disabled.sizes?.map(id => parseInt(id)) || [],
+        accessories: filteringResult.disabled.accessories?.map(id => parseInt(id)) || []
+      };
+
+      console.log('🎯 New filtering result:', {
+        available: filteringResult.available,
+        disabled: filteringResult.disabled,
+        disabledOptions
+      });
+
+      // Store disabled options for UI components to use
+      setDisabledOptionIds(disabledOptions);
 
       // Enforce defaults for any invalid selections across constrained sets
       if (opts) {
@@ -677,65 +788,34 @@ const App: React.FC = () => {
           configKey: keyof ProductConfig,
           options: ProductOption[]
         ) => {
-          const idList = ids[fieldKey];
-          if (!Array.isArray(idList)) return;
-          // If there are zero valid IDs for this field, clear the selection to avoid stale/invalid values
-          if (idList.length === 0) {
+          // Get available IDs from filtering result
+          const availableIds = filteringResult.available[fieldKey]?.map(id => parseInt(id)) || [];
+          if (availableIds.length === 0) {
             const currentVal = (config as any)[configKey] as string | undefined;
             if (currentVal) (updated as any)[configKey] = '';
             return;
           }
           const currentVal = (config as any)[configKey] as string | undefined;
           const currentNum = currentVal ? parseInt(currentVal, 10) : NaN;
-          if (!currentVal || !idList.includes(currentNum)) {
-            const first = options.find(o => idList.includes(o.id));
+          if (!currentVal || !availableIds.includes(currentNum)) {
+            const first = options.find(o => availableIds.includes(o.id));
             if (first) (updated as any)[configKey] = first.id.toString();
           }
         };
 
         // Enforce for light direction, mounting (circle styles), and rule-constrained outputs
-        ensureValid('light_direction', 'lighting', opts.lightingOptions);
+        ensureValid('light_directions', 'lighting', opts.lightingOptions);
         // Mounting: also derive from available images for this style/line
-        ensureValid('mounting', 'mounting', opts.mountingOptions);
-        ensureValid('light_output', 'lightOutput', opts.lightOutputs);
-        ensureValid('color_temperature', 'colorTemperature', opts.colorTemperatures);
+        ensureValid('mounting_options', 'mounting', opts.mountingOptions);
+        ensureValid('light_outputs', 'lightOutput', opts.lightOutputs);
+        ensureValid('color_temperatures', 'colorTemperature', opts.colorTemperatures);
 
         const hasUpdates = Object.keys(updated).length > 0;
         if (hasUpdates) setCurrentConfig(prev => prev ? { ...prev, ...updated } : null);
       }
 
-      // Derive mounting availability from product images (vertical/horizontal)
-      try {
-        if (opts) {
-          const all = await getAllProducts();
-          const selStyle = opts.mirrorStyles.find(ms => ms.id.toString() === (config.mirrorStyle || ''));
-          const styleId = selStyle?.id;
-          const styleCode = selStyle?.sku_code ? parseInt(selStyle.sku_code, 10) : undefined;
-          const ld = parseInt(config.lighting || '0', 10) || undefined;
-          const candidates = all.filter(p =>
-            p.product_line === productLineId &&
-            (styleId === undefined && styleCode === undefined ? true : ((p.mirror_style === styleId) || (p.mirror_style === styleCode))) &&
-            (ld === undefined ? true : p.light_direction === ld)
-          );
-          const allowV = candidates.some(p => !!p.vertical_image);
-          const allowH = candidates.some(p => !!p.horizontal_image);
-          const verticalOpt = opts.mountingOptions.find(o => o.name.toLowerCase().includes('vertical'));
-          const horizontalOpt = opts.mountingOptions.find(o => o.name.toLowerCase().includes('horizontal'));
-          const mountIds: number[] = [];
-          if (allowV && verticalOpt) mountIds.push(verticalOpt.id);
-          if (allowH && horizontalOpt) mountIds.push(horizontalOpt.id);
-          if (mountIds.length > 0) {
-            setAvailableOptionIds(prev => ({ ...prev, mounting: mountIds }));
-            const currentMount = parseInt(config.mounting || '0', 10);
-            if (!mountIds.includes(currentMount)) {
-              const first = mountIds[0].toString();
-              setCurrentConfig(prev => prev ? { ...prev, mounting: first } : null);
-            }
-          }
-        }
-      } catch (e) {
-        if (import.meta.env.DEV) console.warn('Mounting derivation skipped:', e);
-      }
+      // The two-level filtering already handles mounting options based on actual products
+      if (import.meta.env.DEV) console.log('✅ Two-level filtering applied successfully');
     } catch (e) {
       console.error('Failed to compute available options:', e);
     } finally {
@@ -1405,25 +1485,34 @@ const App: React.FC = () => {
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-6">Mirror Style</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {productOptions.mirrorStyles.map((style) => (
-                    <button
-                      key={style.id}
-                      onClick={() => handleConfigChange("mirrorStyle", style.id.toString())}
-                      className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                        currentConfig.mirrorStyle === style.id.toString()
-                          ? "border-amber-500 bg-amber-50"
-                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-gray-900 mb-1">{style.name}</div>
-                          <div className="text-sm text-gray-600">{style.description}</div>
+                  {productOptions.mirrorStyles.map((style) => {
+                    const isDisabled = disabledOptionIds.mirror_styles?.includes(style.id) || false;
+                    return (
+                      <button
+                        key={style.id}
+                        onClick={() => !isDisabled && handleConfigChange("mirrorStyle", style.id.toString())}
+                        disabled={isDisabled}
+                        className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                          currentConfig.mirrorStyle === style.id.toString()
+                            ? "border-amber-500 bg-amber-50"
+                            : isDisabled
+                              ? "border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
+                              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className={`font-medium mb-1 ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>
+                              {style.name}
+                              {isDisabled && <span className="text-xs ml-2">(Not available)</span>}
+                            </div>
+                            <div className="text-sm text-gray-600">{style.description}</div>
+                          </div>
+                          <Badge variant="outline">{style.sku_code}</Badge>
                         </div>
-                        <Badge variant="outline">{style.sku_code}</Badge>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               )}
@@ -1435,9 +1524,7 @@ const App: React.FC = () => {
                 <div className="space-y-3">
                   {productOptions.lightingOptions.map((option) => {
                     const Icon = iconMapping[option.name.toLowerCase()] || Zap;
-                    const ids = availableOptionIds["light_direction"];
-                    const noAvailability = Array.isArray(ids) && ids.length === 0 && !!currentConfig.mirrorStyle;
-                    const isDisabled = (Array.isArray(ids) && ids.length > 0 && !ids.includes(option.id)) || noAvailability;
+                    const isDisabled = disabledOptionIds.light_directions?.includes(option.id) || false;
                     return (
                       <button
                         key={option.id}
@@ -1452,9 +1539,12 @@ const App: React.FC = () => {
                         }`}
                       >
                         <div className="flex items-center space-x-3">
-                          <Icon className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                          <Icon className={`w-5 h-5 flex-shrink-0 ${isDisabled ? 'text-gray-400' : 'text-gray-600'}`} />
                           <div className="flex-1">
-                            <div className="font-medium text-gray-900 mb-1">{option.name}</div>
+                            <div className={`font-medium mb-1 ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>
+                              {option.name}
+                              {isDisabled && <span className="text-xs ml-2">(Not available)</span>}
+                            </div>
                             <div className="text-sm text-gray-600">{option.description}</div>
                           </div>
                           <Badge variant="outline">{option.sku_code}</Badge>
@@ -1473,8 +1563,7 @@ const App: React.FC = () => {
                 <div className="space-y-3">
                   {productOptions.mountingOptions.map((option) => {
                     const Icon = iconMapping[option.name.toLowerCase()] || RotateCcw;
-                    const ids = availableOptionIds["mounting"];
-                    const isDisabled = Array.isArray(ids) && ids.length > 0 && !ids.includes(option.id);
+                    const isDisabled = disabledOptionIds.mounting_options?.includes(option.id) || false;
                     return (
                       <button
                         key={option.id}
@@ -1630,8 +1719,7 @@ const App: React.FC = () => {
                 <h3 className="text-xl font-semibold text-gray-900 mb-6">Color Temperature</h3>
                 <div className="space-y-3">
                   {productOptions.colorTemperatures.map((temp) => {
-                    const ids = availableOptionIds["color_temperature"];
-                    const isDisabled = Array.isArray(ids) && ids.length > 0 && !ids.includes(temp.id);
+                    const isDisabled = disabledOptionIds.color_temperatures?.includes(temp.id) || false;
                     return (
                       <button
                         key={temp.id}
@@ -1667,8 +1755,7 @@ const App: React.FC = () => {
                 <h3 className="text-xl font-semibold text-gray-900 mb-6">Light Output</h3>
                 <div className="space-y-3">
                   {productOptions.lightOutputs.map((output) => {
-                    const ids = availableOptionIds["light_output"];
-                    const isDisabled = Array.isArray(ids) && ids.length > 0 && !ids.includes(output.id);
+                    const isDisabled = disabledOptionIds.light_outputs?.includes(output.id) || false;
                     return (
                       <button
                         key={output.id}

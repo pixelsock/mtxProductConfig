@@ -1,10 +1,13 @@
 // Product Matching Logic for Configuration
 import { 
-  DecoProduct,
-  getAllProducts,
-  ProductLine,
-  LightDirection
-} from './directus';
+  getProducts,
+} from './supabase';
+import { Database } from '../../supabase';
+
+// Define types based on the new Supabase schema
+type DecoProduct = Database['public']['Tables']['products']['Row'];
+type ProductLine = Database['public']['Tables']['product_lines']['Row'];
+type LightDirection = Database['public']['Tables']['light_directions']['Row'];
 import { generateSKUVariations } from './sku-generator';
 
 export interface ProductMatchCriteria {
@@ -23,7 +26,7 @@ export interface ProductMatchCriteria {
  */
 export async function findProductsBySKU(sku: string): Promise<DecoProduct[]> {
   try {
-    const allProducts = await getAllProducts();
+    const allProducts = await getProducts();
     const skuUpper = (sku || '').toUpperCase();
     return allProducts.filter(p => (p.name || '').toUpperCase() === skuUpper);
   } catch (error) {
@@ -39,7 +42,7 @@ export async function findProductsBySKU(sku: string): Promise<DecoProduct[]> {
  */
 export async function findBestMatchingProduct(criteria: ProductMatchCriteria): Promise<DecoProduct | null> {
   try {
-    const allProducts = await getAllProducts();
+    const allProducts = await getProducts();
 
     // 1) Exact SKU match (preferable) within product line if provided
     if (criteria.sku) {
@@ -91,7 +94,7 @@ export async function findProductsByLineAndDirection(
   lightDirection: LightDirection
 ): Promise<DecoProduct[]> {
   try {
-    const allProducts = await getAllProducts();
+    const allProducts = await getProducts();
     
     return allProducts.filter(product => 
       product.product_line === productLine.id &&

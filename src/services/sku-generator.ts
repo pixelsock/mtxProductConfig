@@ -1,10 +1,10 @@
 // SKU Generation System for Product Configuration
-import { 
-  ProductLine, 
-  MirrorStyle, 
+import {
+  ProductLine,
+  MirrorStyle,
   LightDirection,
-  FrameThickness 
-} from './directus';
+  FrameThickness
+} from './supabase';
 import { getSKUOverride } from './rules-engine';
 
 export interface SKUGenerationConfig {

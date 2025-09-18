@@ -432,17 +432,6 @@ export async function getActiveAccessories(): Promise<Accessory[]> {
   });
 }
 
-// Mirror Controls
-export async function getActiveMirrorControls(): Promise<MirrorControl[]> {
-  return getCachedData('mirror_controls', async () => {
-    try {
-      return await getBulkDataCollection<MirrorControl>('mirror_controls', validateBasicItem);
-    } catch (error) {
-      console.error('Failed to fetch mirror_controls from API:', error);
-      throw error;
-    }
-  });
-}
 
 // Mirror Styles
 export async function getActiveMirrorStyles(): Promise<MirrorStyle[]> {
@@ -738,7 +727,6 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
     
     // Use individual API calls
     const [
-      allMirrorControls,
       allFrameColors,
       allFrameThicknesses,
       allMirrorStyles,
@@ -750,7 +738,6 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
       allAccessories,
       allSizes
     ] = await Promise.all([
-      getActiveMirrorControls(),
       getActiveFrameColors(),
       getActiveFrameThicknesses(),
       getActiveMirrorStyles(),
@@ -764,7 +751,6 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
     ]);
     
     allOptions = {
-      allMirrorControls,
       allFrameColors,
       allFrameThicknesses,
       allMirrorStyles,
@@ -901,7 +887,6 @@ export async function checkDataConsistency(): Promise<{ isValid: boolean; report
     const collections = [
       { name: 'product_lines', fn: getActiveProductLines },
       { name: 'frame_colors', fn: getActiveFrameColors },
-      { name: 'mirror_controls', fn: getActiveMirrorControls },
       { name: 'mirror_styles', fn: getActiveMirrorStyles },
       { name: 'mounting_options', fn: getActiveMountingOptions },
       { name: 'light_directions', fn: getActiveLightDirections },
@@ -1037,7 +1022,6 @@ export async function initializeDirectusService(): Promise<void> {
       await Promise.all([
         getActiveProductLines(),
         getActiveFrameColors(),
-        getActiveMirrorControls(),
         getActiveMirrorStyles(),
         getActiveMountingOptions(),
         getActiveLightDirections(),

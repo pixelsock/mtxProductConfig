@@ -1,4 +1,4 @@
-import { ProductLine } from '../services/directus';
+import { ProductLine } from '../services/supabase';
 
 // Minimal shape we need from App's types
 export interface SimpleOption { id: number; name: string; sku_code: string; width?: number; height?: number }

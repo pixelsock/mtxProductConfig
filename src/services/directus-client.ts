@@ -2,23 +2,7 @@
 import { createDirectus, rest, graphql, authentication, staticToken } from '@directus/sdk';
 
 // Define the schema for type safety
-interface DirectusSchema {
-  product_lines: ProductLine[];
-  frame_colors: FrameColor[];
-  mirror_controls: MirrorControl[];
-  mirror_styles: MirrorStyle[];
-  mounting_options: MountingOption[];
-  light_directions: LightDirection[];
-  color_temperatures: ColorTemperature[];
-  light_outputs: LightOutput[];
-  drivers: Driver[];
-  frame_thicknesses: FrameThickness[];
-  sizes: Size[];
-  accessories: Accessory[];
-  configuration_images: ConfigurationImage[];
-  products: DecoProduct[];
-  rules: Rule[];
-}
+
 
 // Type definitions (matching existing interfaces)
 export interface ProductLineImage {
@@ -62,14 +46,7 @@ export interface Accessory {
   sort: number | null;
 }
 
-export interface MirrorControl {
-  id: number;
-  name: string;
-  sku_code: string;
-  description: string;
-  active: boolean;
-  sort: number;
-}
+
 
 export interface MirrorStyle {
   id: number;
@@ -166,24 +143,7 @@ export interface DecoProduct {
   frame_thickness?: number;
 }
 
-export interface ConfigImageRule {
-  [key: string]: any;
-  _and?: ConfigImageRule[];
-  _or?: ConfigImageRule[];
-  _eq?: any;
-  _in?: any[];
-  _contains?: string;
-}
 
-export interface ConfigurationImage {
-  id: string;
-  name: string;
-  image: string;
-  z_index: number | string;
-  image_rules: ConfigImageRule;
-  active?: boolean;
-  sort?: number;
-}
 
 export interface Rule {
   id: string;
@@ -200,11 +160,11 @@ const API_KEY = import.meta.env.VITE_DIRECTUS_API_KEY || 'SatmtC2cTo-k-V17usWeYp
 // Create the Directus client with proper configuration
 // Try API key first, then fall back to authentication
 export const directusClient = API_KEY 
-  ? createDirectus<DirectusSchema>(DIRECTUS_URL)
+  ? createDirectus(DIRECTUS_URL)
       .with(rest())
       .with(graphql())
       .with(staticToken(API_KEY))
-  : createDirectus<DirectusSchema>(DIRECTUS_URL)
+  : createDirectus(DIRECTUS_URL)
       .with(rest())
       .with(graphql())
       .with(authentication('json', {
@@ -288,14 +248,7 @@ export const BULK_COLLECTIONS_QUERY = `
       sku_code
       webflow_id
     }
-    mirror_controls(filter: { active: { _eq: true } }, sort: ["sort"]) {
-      id
-      name
-      sku_code
-      description
-      active
-      sort
-    }
+
     mirror_styles(filter: { active: { _eq: true } }, sort: ["sort"]) {
       id
       name
@@ -370,19 +323,7 @@ export const BULK_COLLECTIONS_QUERY = `
   }
 `;
 
-export const CONFIGURATION_IMAGES_QUERY = `
-  query ConfigurationImages($filter: configuration_images_filter) {
-    configuration_images(filter: $filter, sort: ["z_index", "name"], limit: -1) {
-      id
-      name
-      image
-      z_index
-      image_rules
-      active
-      sort
-    }
-  }
-`;
+
 
 export const DECO_PRODUCTS_QUERY = `
   query DecoProducts {
@@ -395,4 +336,4 @@ export const DECO_PRODUCTS_QUERY = `
 `;
 
 // Export types for use in other files
-export type { DirectusSchema };
+
