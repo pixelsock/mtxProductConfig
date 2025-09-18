@@ -95,7 +95,6 @@ async function getAllBaseOptions(): Promise<DynamicConfigOptions> {
     productLines: [],
     frameColors: [],
     accessories: [],
-    mirrorControls: [],
     mirrorStyles: [],
     mountingOptions: [],
     lightingOptions: [],
@@ -111,7 +110,6 @@ async function getAllBaseOptions(): Promise<DynamicConfigOptions> {
     { key: 'productLines', table: 'product_lines' },
     { key: 'frameColors', table: 'frame_colors' },
     { key: 'accessories', table: 'accessories' },
-    { key: 'mirrorControls', table: 'mirror_controls' },
     { key: 'mirrorStyles', table: 'mirror_styles' },
     { key: 'mountingOptions', table: 'mounting_options' },
     { key: 'lightingOptions', table: 'light_directions' },
@@ -174,7 +172,6 @@ function filterByProductLine(options: DynamicConfigOptions, productLine: Generic
     productLines: options.productLines.filter(pl => pl.id === productLine.id),
     frameColors: filterOptionsByProductLineDefaults(options.frameColors, productLine, 'frame_colors'),
     accessories: filterOptionsByProductLineDefaults(options.accessories, productLine, 'accessories'),
-    mirrorControls: filterOptionsByProductLineDefaults(options.mirrorControls, productLine, 'mirror_controls'),
     mirrorStyles: filterOptionsByProductLineDefaults(options.mirrorStyles, productLine, 'mirror_styles'),
     mountingOptions: filterOptionsByProductLineDefaults(options.mountingOptions, productLine, 'mounting_options'),
     lightingOptions: filterOptionsByProductLineDefaults(options.lightingOptions, productLine, 'light_directions'),
@@ -236,15 +233,14 @@ function applyVisibilityFiltering(options: DynamicConfigOptions, includeHidden =
 
   const filtered: DynamicConfigOptions = {
     productLines: options.productLines, // Product lines are always visible
-    frameColors: options.frameColors.filter(opt => !opt.hide_in_configurator),
-    accessories: options.accessories.filter(opt => !opt.hide_in_configurator),
-    mirrorControls: options.mirrorControls.filter(opt => !opt.hide_in_configurator),
-    mirrorStyles: options.mirrorStyles.filter(opt => !opt.hide_in_configurator),
-    mountingOptions: options.mountingOptions.filter(opt => !opt.hide_in_configurator),
-    lightingOptions: options.lightingOptions.filter(opt => !opt.hide_in_configurator),
-    colorTemperatures: options.colorTemperatures.filter(opt => !opt.hide_in_configurator),
-    lightOutputs: options.lightOutputs.filter(opt => !opt.hide_in_configurator),
-    drivers: options.drivers.filter(opt => !opt.hide_in_configurator),
+    frameColors: options.frameColors.filter((opt: any) => !opt.hide_in_configurator),
+    accessories: options.accessories.filter((opt: any) => !opt.hide_in_configurator),
+    mirrorStyles: options.mirrorStyles.filter((opt: any) => !opt.hide_in_configurator),
+    mountingOptions: options.mountingOptions.filter((opt: any) => !opt.hide_in_configurator),
+    lightingOptions: options.lightingOptions.filter((opt: any) => !opt.hide_in_configurator),
+    colorTemperatures: options.colorTemperatures.filter((opt: any) => !opt.hide_in_configurator),
+    lightOutputs: options.lightOutputs.filter((opt: any) => !opt.hide_in_configurator),
+    drivers: options.drivers.filter((opt: any) => !opt.hide_in_configurator),
     frameThickness: options.frameThickness.filter(opt => !opt.hide_in_configurator),
     sizes: options.sizes.filter(opt => !opt.hide_in_configurator)
   };

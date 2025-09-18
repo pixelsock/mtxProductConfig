@@ -315,7 +315,6 @@ export class BrowserAPIValidator {
       'mirror_style': 'mirror_styles',
       'light_direction': 'light_directions',
       'frame_color': 'frame_colors',
-      'mirror_control': 'mirror_controls',
       'mounting_option': 'mounting_options',
       'color_temperature': 'color_temperatures',
       'light_output': 'light_outputs',

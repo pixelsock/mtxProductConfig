@@ -23,7 +23,6 @@ const EXPECTED_TABLES = [
   'product_lines',
   'frame_colors',
   'accessories',
-  'mirror_controls', // May not exist - handled gracefully
   'mirror_styles',
   'mounting_options',
   'light_directions',
@@ -33,8 +32,7 @@ const EXPECTED_TABLES = [
   'frame_thicknesses',
   'sizes',
   'products',
-  'rules',
-  'configuration_images' // May not exist - handled gracefully
+  'rules'
 ];
 
 // Critical tables that must exist for basic functionality

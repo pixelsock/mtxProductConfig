@@ -308,20 +308,18 @@ export class APIValidator {
    * Get collection name from field name
    */
   private getCollectionFromField(fieldName: string): string | null {
-    const fieldToCollection: Record<string, string> = {
+    const fieldToTableMap: Record<string, string> = {
       'product_line': 'product_lines',
-      'frame_thickness': 'frame_thicknesses',
       'mirror_style': 'mirror_styles',
       'light_direction': 'light_directions',
       'frame_color': 'frame_colors',
-      'mirror_control': 'mirror_controls',
       'mounting_option': 'mounting_options',
       'color_temperature': 'color_temperatures',
       'light_output': 'light_outputs',
       'driver': 'drivers',
       'accessory': 'accessories'
     };
-    return fieldToCollection[fieldName] || null;
+    return fieldToTableMap[fieldName] || null;
   }
 
   /**

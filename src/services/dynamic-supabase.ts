@@ -1,5 +1,4 @@
 // Dynamic Supabase Service - Adapts to Available Schema
-import { supabase } from './supabase';
 import {
   introspectSchema,
   tableExists,
@@ -7,20 +6,6 @@ import {
   getExistingTables,
   getMissingTables
 } from './schema-introspector';
-
-// Re-export types from original supabase service
-export type {
-  ProductLine,
-  FrameColor,
-  Accessory,
-  MirrorControl,
-  MirrorStyle,
-  MountingOption,
-  LightDirection,
-  ColorTemperature,
-  LightOutput,
-  Driver
-} from './supabase';
 
 // Generic option interface for dynamic handling
 export interface GenericOption {
@@ -43,7 +28,6 @@ export interface DynamicConfigOptions {
   productLines: GenericOption[];
   frameColors: GenericOption[];
   accessories: GenericOption[];
-  mirrorControls: GenericOption[];
   mirrorStyles: GenericOption[];
   mountingOptions: GenericOption[];
   lightingOptions: GenericOption[];
@@ -59,7 +43,6 @@ const TABLE_MAPPINGS = {
   productLines: 'product_lines',
   frameColors: 'frame_colors',
   accessories: 'accessories',
-  mirrorControls: 'mirror_controls',
   mirrorStyles: 'mirror_styles',
   mountingOptions: 'mounting_options',
   lightingOptions: 'light_directions',
@@ -74,25 +57,16 @@ const TABLE_MAPPINGS = {
  * Initialize the dynamic service by introspecting the schema
  */
 export async function initializeDynamicService(): Promise<void> {
-  console.log('🚀 Initializing Dynamic Supabase Service...');
-
   try {
-    const schema = await introspectSchema();
-
-    const existingTables = getExistingTables();
+    await introspectSchema();
     const missingTables = getMissingTables();
-
-    console.log(`✅ Dynamic service initialized:`);
-    console.log(`  - Available tables: ${existingTables.length}`);
-    console.log(`  - Missing tables: ${missingTables.length}`);
-
+    
     if (missingTables.length > 0) {
-      console.log(`⚠️ The following tables are missing and will be skipped:`);
-      missingTables.forEach(table => console.log(`    - ${table}`));
+      console.warn(`[Dynamic Supabase] Missing tables: ${missingTables.join(', ')}`);
     }
 
   } catch (error) {
-    console.error('❌ Failed to initialize dynamic service:', error);
+    console.error('[Dynamic Supabase] Initialization failed:', error);
     throw error;
   }
 }
@@ -113,13 +87,10 @@ async function fetchTableData(tableName: string): Promise<GenericOption[]> {
  * Get all available configuration options dynamically
  */
 export async function getDynamicConfigOptions(): Promise<DynamicConfigOptions> {
-  console.log('🔄 Fetching dynamic configuration options...');
-
   const options: DynamicConfigOptions = {
     productLines: [],
     frameColors: [],
     accessories: [],
-    mirrorControls: [],
     mirrorStyles: [],
     mountingOptions: [],
     lightingOptions: [],
@@ -135,18 +106,12 @@ export async function getDynamicConfigOptions(): Promise<DynamicConfigOptions> {
     const data = await fetchTableData(tableName);
     (options as any)[optionKey] = data;
 
-    if (data.length > 0) {
-      console.log(`✅ Loaded ${data.length} items from ${tableName}`);
-    } else if (tableExists(tableName)) {
-      console.log(`⚠️ Table ${tableName} exists but contains no active items`);
+    if (data.length === 0 && tableExists(tableName)) {
+      console.warn(`[Dynamic Supabase] Table ${tableName} is empty`);
     }
   });
 
   await Promise.all(fetchPromises);
-
-  // Log summary
-  const totalOptions = Object.values(options).reduce((sum, arr) => sum + arr.length, 0);
-  console.log(`✅ Dynamic options loaded: ${totalOptions} total items across ${Object.keys(options).length} categories`);
 
   return options;
 }
@@ -169,8 +134,6 @@ export async function getDynamicFilteredOptions(
   productLineSku: string,
   currentSelections?: any
 ): Promise<DynamicConfigOptions> {
-  console.log(`🔄 Loading filtered options for product line: ${productLineSku}`);
-
   // Find the product line by SKU
   const productLines = await getDynamicProductLines();
   const productLine = productLines.find(pl => pl.sku_code === productLineSku);
@@ -195,7 +158,6 @@ export async function getDynamicFilteredOptions(
     productLines: [productLine],
     frameColors: filteredOptions.frameColors,
     accessories: filteredOptions.accessories,
-    mirrorControls: filteredOptions.mirrorControls,
     mirrorStyles: filteredOptions.mirrorStyles,
     mountingOptions: filteredOptions.mountingOptions,
     lightingOptions: filteredOptions.lightingOptions,

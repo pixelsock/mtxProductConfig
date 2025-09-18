@@ -9,7 +9,6 @@ import {
   ProductLine,
   FrameColor,
   Accessory,
-  MirrorControl,
   MirrorStyle,
   MountingOption,
   LightDirection,
@@ -19,8 +18,6 @@ import {
   FrameThickness,
   Size,
   DecoProduct,
-  ConfigImageRule,
-  ConfigurationImage,
   Rule
 } from './directus-client';
 
@@ -33,7 +30,6 @@ export type {
   ProductLine,
   FrameColor,
   Accessory,
-  MirrorControl,
   MirrorStyle,
   MountingOption,
   LightDirection,
@@ -43,8 +39,6 @@ export type {
   FrameThickness,
   Size,
   DecoProduct,
-  ConfigImageRule,
-  ConfigurationImage,
   Rule
 };
 
@@ -705,7 +699,6 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
     // Check if bulk data is available and has the expected structure
     if (bulkData && typeof bulkData === 'object') {
       allOptions = {
-        allMirrorControls: validateData<MirrorControl>(bulkData.mirror_controls || [], validateBasicItem, 'mirror_controls'),
         allFrameColors: validateData<FrameColor>(bulkData.frame_colors || [], validateFrameColor, 'frame_colors'),
         allFrameThicknesses: validateData<FrameThickness>(bulkData.frame_thicknesses || [], validateBasicItem, 'frame_thicknesses'),
         allMirrorStyles: validateData<MirrorStyle>(bulkData.mirror_styles || [], validateBasicItem, 'mirror_styles'),
@@ -767,7 +760,6 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
 
   // Filter based on product line default options
   const filteredOptions = {
-    mirrorControls: filterOptionsByProductLine<MirrorControl>(allOptions.allMirrorControls, productLine, 'mirror_controls'),
     frameColors: filterOptionsByProductLine<FrameColor>(allOptions.allFrameColors, productLine, 'frame_colors'),
     frameThickness: filterOptionsByProductLine<FrameThickness>(allOptions.allFrameThicknesses, productLine, 'frame_thicknesses'),
     mirrorStyles: filterOptionsByProductLine<MirrorStyle>(allOptions.allMirrorStyles, productLine, 'mirror_styles'),
@@ -781,7 +773,6 @@ export async function getFilteredOptionsForProductLine(productLine: ProductLine)
   };
 
   if (import.meta.env.DEV) console.log(`✓ Filtered options for ${productLine.name}:`, {
-    mirrorControls: filteredOptions.mirrorControls.length,
     frameColors: filteredOptions.frameColors.length,
     frameThickness: filteredOptions.frameThickness.length,
     mirrorStyles: filteredOptions.mirrorStyles.length,
@@ -1087,7 +1078,6 @@ export async function debugDefaultOptions(): Promise<void> {
     console.log('\n📌 Since default_options are not configured, showing ALL available options:');
     const allOptions = await getFilteredOptionsForProductLine(decoLine);
     console.log('📊 All available options:', {
-      mirrorControls: allOptions.mirrorControls.length,
       frameColors: allOptions.frameColors.length,
       frameThickness: allOptions.frameThickness.length,
       mirrorStyles: allOptions.mirrorStyles.length,
