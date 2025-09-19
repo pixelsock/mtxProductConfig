@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zustand Store Test</title>
+</head>
+<body>
+    <div id="zustand-test"></div>
+    <script type="module">
+        import { ZustandStoreTest } from '/src/test-zustand-store.tsx';
+        import React from 'react';
+        import { createRoot } from 'react-dom/client';
+
+        const container = document.getElementById('zustand-test');
+        const root = createRoot(container);
+        root.render(React.createElement(ZustandStoreTest));
+    </script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+# Spec Summary (Lite)
+
+Migrate MTX Product Configurator from React useState to Zustand state management while preserving the fully dynamic, Supabase-driven architecture. The migration will implement slice-based stores for configuration, UI, API, and cache management with TypeScript integration, performance optimizations through selective subscriptions, and enhanced developer experience with DevTools. All existing Supabase integration patterns, rules engine processing, and deterministic evaluation lifecycle must remain unchanged.
