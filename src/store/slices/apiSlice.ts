@@ -238,11 +238,16 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
 
       setProductOptions(options);
 
+      // Initialize configuration with default values from loaded options
+      const { resetConfiguration } = get();
+      resetConfiguration();
+
       if (import.meta.env.DEV) {
         console.log("✓ Real product data loaded successfully");
         console.log(`✓ Loaded ${options.frameColors.length} frame colors`);
         console.log(`✓ Loaded ${options.mirrorStyles.length} mirror styles`);
         console.log(`✓ Loaded ${options.sizes.length} size options`);
+        console.log("✓ Configuration initialized with default values");
       }
 
     } catch (error) {
