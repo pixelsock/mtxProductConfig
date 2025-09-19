@@ -3,25 +3,25 @@
 ## Core Technologies
 
 ### Application Framework
-Payload CMS 3.x with Next.js 15 (unified backend + frontend)
+React 18.2.0 with Vite 4.4.5
 
 ### Database System
-PostgreSQL 15 (managed by Payload)
+Supabase (PostgreSQL)
 
 ### Frontend Framework
-Next.js App Router with React 18.2.0
+React 18.2.0 with TypeScript
 
 ### Backend Framework
-Payload CMS with Local API access
+Supabase REST API + Edge Functions
 
 ### Import Strategy
-node
+ESM (ES Modules)
 
 ### CSS Framework
 TailwindCSS 3.3.3
 
 ### UI Component Library
-shadcn/ui (custom Radix UI components)
+Radix UI primitives with custom components
 
 ### Fonts Provider
 System fonts
@@ -30,16 +30,16 @@ System fonts
 Lucide React 0.263.1
 
 ### Application Hosting
-Vercel / Railway / Render (full-stack Next.js)
+Vercel / Netlify / Cloudflare Pages (static build)
 
 ### Database Hosting
-PostgreSQL (managed service)
+Supabase (managed PostgreSQL)
 
 ### Asset Hosting
-Payload Media Library (integrated file management)
+Supabase Storage
 
 ### Deployment Solution
-Next.js production build with Payload
+Vite production build
 
 ### Code Repository URL
 (Private repository)
@@ -61,47 +61,49 @@ Vite dev server (port 5173)
 ## API Architecture
 
 ### Primary API
-Payload Local API (no network calls)
+Supabase REST API with TypeScript client
 
 ### API Access Pattern
-Direct database access via getPayload() in server components
+@supabase/supabase-js client library
 
 ### Authentication
-Payload Admin Authentication system
+Supabase Auth (when needed)
 
 ### Data Access Pattern
-Payload REST/GraphQL API with Local API optimizations
+Direct Supabase queries with real-time subscriptions
 
 ## Data Management
 
-### Collections (13 total)
-- product_lines
-- frame_colors
-- frame_thicknesses
-- mirror_controls
-- mirror_styles
-- mounting_options
-- light_directions
-- color_temperatures
-- light_outputs
-- drivers
-- sizes
-- accessories
+### Core Tables (Supabase)
 - products
+- product_lines
+- mirror_styles
+- light_directions
+- frame_thicknesses
+- frame_colors
+- mounting_options
+- drivers
+- light_outputs
+- color_temperatures
+- accessories
+- sizes
+- rules
+- configuration_ui
+- sku_code_order
 
 ### Caching Strategy
-5-minute cache with stale-while-revalidate
+Browser-level caching with Supabase real-time updates
 
 ### State Management
-React useState hooks (no external state library)
+Zustand 5.0.8 for application state
 
 ## Deployment Configuration
 
 ### Build Output
-Next.js production build with Payload CMS
+Static assets compiled by Vite
 
 ### Target Environment
-Full-stack Next.js application with public frontend and admin panel
+Static hosting with API calls to Supabase
 
 ### Production Build
 ```bash
@@ -109,9 +111,8 @@ npm run build
 ```
 
 ### Environment Variables
-- PAYLOAD_SECRET
-- DATABASE_URI
-- NEXT_PUBLIC_SERVER_URL
+- VITE_SUPABASE_URL
+- VITE_SUPABASE_ANON_KEY
 
 ## Performance Targets
 
@@ -133,13 +134,13 @@ npm run build
 TypeScript strict mode
 
 ### Runtime Validation
-Type guards for all API responses
+Zod 3.25.76 for schema validation
 
 ### Integration Testing
-Phase validation scripts (test-phase3.js)
+Phase validation scripts
 
 ### Schema Validation
-GraphQL introspection and validation tools
+Supabase introspection and validation tools
 
 ## Documentation Tools
 
@@ -154,13 +155,13 @@ Context7 for library documentation
 ## Future Technology Considerations
 
 ### Planned Additions
-- Supabase Edge Functions for business logic
-- Enhanced GraphQL subscriptions for real-time updates
-- Local Supabase for development environment
-- Product SKU management system
+- Enhanced real-time features with Supabase subscriptions
+- Edge Functions for complex business logic
+- Progressive Web App capabilities
+- Advanced caching strategies
 
 ### Migration Path
 - Complete transition from Directus to Supabase ✅
-- Implement local Supabase development environment
+- Implement Zustand for complex state management ✅
 - Add Edge Functions for complex calculations
 - Integrate advanced caching strategies

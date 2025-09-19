@@ -1,5 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
+
+// Import Zustand store hooks
+import {
+  useConfigurationState,
+  useUIState,
+  useAPIState,
+  useQuoteState,
+  useConfigurationActions,
+  useUIActions,
+  useAPIActions,
+  useQuoteActions,
+  useComputedValues,
+} from "./store";
+import type { ProductLine } from "./store/types";
 import { Button } from "./components/ui/button";
 import { Card } from "./components/ui/card";
 import { Input } from "./components/ui/input";
@@ -34,8 +48,7 @@ import {
 import {
   initializeDynamicService,
   getDynamicProductLines,
-  getSchemaInfo,
-  ProductLine
+  getSchemaInfo
 } from "./services/dynamic-supabase";
 
 // Import filtering functionality
@@ -67,49 +80,7 @@ import { ProductLineSelector } from "./components/ui/product-line-selector";
 import { CurrentConfiguration } from "./components/ui/current-configuration";
 import { EnvironmentIndicator } from "./components/ui/environment-indicator";
 
-interface ProductConfig {
-  id: string;
-  productLineId: number;
-  productLineName: string;
-  mirrorControls: string;
-  frameColor: string;
-  frameThickness: string;
-  mirrorStyle: string;
-  width: string;
-  height: string;
-  mounting: string;
-  lighting: string;
-  colorTemperature: string;
-  lightOutput: string;
-  driver: string;
-  accessories: string[];
-  quantity: number;
-}
-
-interface ProductOption {
-  id: number;
-  name: string;
-  sku_code: string;
-  description?: string;
-  hex_code?: string;
-  width?: number;
-  height?: number;
-  value?: string;
-}
-
-interface ProductOptions {
-  mirrorControls: ProductOption[];
-  frameColors: ProductOption[];
-  frameThickness: ProductOption[];
-  mirrorStyles: ProductOption[];
-  mountingOptions: ProductOption[];
-  lightingOptions: ProductOption[];
-  colorTemperatures: ProductOption[];
-  lightOutputs: ProductOption[];
-  drivers: ProductOption[];
-  accessoryOptions: ProductOption[];
-  sizes: ProductOption[];
-}
+// Interfaces moved to store/types.ts
 
 // Icon mapping for different option types
 const iconMapping: { [key: string]: any } = {
@@ -125,43 +96,74 @@ const iconMapping: { [key: string]: any } = {
 };
 
 const App: React.FC = () => {
-  // App state
-  const [productOptions, setProductOptions] = useState<ProductOptions | null>(null);
-  const [currentProduct, setCurrentProduct] = useState<DecoProduct | null>(null);
-  const [currentProductLine, setCurrentProductLine] = useState<ProductLine | null>(null);
-  const [availableProductLines, setAvailableProductLines] = useState<ProductLine[]>([]);
-  
-  // Advanced filtering state
-  const [disabledOptionIds, setDisabledOptionIds] = useState<Record<string, number[]>>({});
-  const [isComputingAvailability, setIsComputingAvailability] = useState(false);
+  // Zustand store state
+  const { currentConfig, currentProduct, currentProductLine } = useConfigurationState();
+  const {
+    showQuoteForm,
+    showFloatingBar,
+    isLightboxOpen,
+    lightboxIndex,
+    useCustomSize,
+    canScrollLeft,
+    canScrollRight
+  } = useUIState();
+  const {
+    productOptions,
+    availableProductLines,
+    disabledOptionIds,
+    isLoadingApp,
+    isLoadingProductLine,
+    isComputingAvailability,
+    error
+  } = useAPIState();
+  const { quoteItems, customerInfo } = useQuoteState();
 
-  // Loading states
-  const [isLoadingApp, setIsLoadingApp] = useState(true);
-  const [isLoadingProductLine, setIsLoadingProductLine] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Zustand store actions
+  const {
+    updateConfiguration,
+    setCurrentProduct,
+    setCurrentProductLine,
+    resetConfiguration,
+    incrementQuantity,
+    decrementQuantity,
+    handleSizePresetSelect,
+    handleAccessoryToggle,
+  } = useConfigurationActions();
 
-  const [currentConfig, setCurrentConfig] = useState<ProductConfig | null>(null);
-  const [quoteItems, setQuoteItems] = useState<ProductConfig[]>([]);
-  const [customerInfo, setCustomerInfo] = useState({
-    name: "",
-    email: "",
-    company: "",
-    phone: "",
-  });
+  const {
+    setQuoteFormVisible,
+    setFloatingBarVisible,
+    openLightbox,
+    closeLightbox,
+    setScrollState,
+    setCustomSizeEnabled,
+  } = useUIActions();
 
-  const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const {
+    setProductOptions,
+    setAvailableProductLines,
+    setDisabledOptions,
+    setLoadingApp,
+    setLoadingProductLine,
+    setComputingAvailability,
+    setError,
+    loadProductLineOptions,
+    recomputeFiltering,
+  } = useAPIActions();
 
-  // Custom size toggle state
-  const [useCustomSize, setUseCustomSize] = useState(false);
+  const {
+    addToQuote,
+    removeFromQuote,
+    clearQuote,
+    updateCustomerInfo,
+    setCustomerInfo,
+    resetCustomerInfo,
+  } = useQuoteActions();
 
-  // Floating configuration bar state
-  const [showFloatingBar, setShowFloatingBar] = useState(false);
-  // Lightbox / gallery state
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const { generateProductName } = useComputedValues();
+
+  // Keep refs for DOM manipulation
   const thumbnailsRef = React.useRef<HTMLDivElement | null>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
 
   // Initialize app on component mount
   useEffect(() => {
@@ -262,9 +264,9 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!isLightboxOpen) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsLightboxOpen(false);
-      if (e.key === 'ArrowRight') setLightboxIndex(prev => prev + 1);
-      if (e.key === 'ArrowLeft') setLightboxIndex(prev => Math.max(prev - 1, 0));
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') openLightbox(lightboxIndex + 1);
+      if (e.key === 'ArrowLeft') openLightbox(Math.max(lightboxIndex - 1, 0));
     };
     window.addEventListener('keydown', handler);
     // Disable body scroll while lightbox is open
@@ -274,7 +276,7 @@ const App: React.FC = () => {
       window.removeEventListener('keydown', handler);
       document.body.style.overflow = prevOverflow;
     };
-  }, [isLightboxOpen]);
+  }, [isLightboxOpen, lightboxIndex]);
 
   // Build thumbnail URLs from product images + additional_images
   const getProductThumbnails = (product: DecoProduct | null): string[] => {
@@ -300,8 +302,7 @@ const App: React.FC = () => {
     const el = thumbnailsRef.current;
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
-    setCanScrollLeft(scrollLeft > 0);
-    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+    setScrollState(scrollLeft > 0, scrollLeft + clientWidth < scrollWidth - 1);
   };
   useEffect(() => {
     const el = thumbnailsRef.current;
@@ -332,7 +333,7 @@ const App: React.FC = () => {
       if (currentConfig) {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         const showBar = scrollTop > 400;
-        setShowFloatingBar(showBar);
+        setFloatingBarVisible(showBar);
       }
     };
 
@@ -342,14 +343,10 @@ const App: React.FC = () => {
 
   const initializeApp = async () => {
     try {
-      setIsLoadingApp(true);
+      setLoadingApp(true);
       setError(null);
 
       console.log('Loading real product data...');
-      
-      // Clear cache only if needed for debugging
-      // clearCache();
-      // console.log('✓ Cache cleared for fresh data');
 
       // Initialize Dynamic Supabase service first
       await initializeDynamicService();
@@ -367,16 +364,16 @@ const App: React.FC = () => {
 
       // Get first product line as default, or look for one named "Deco" if available
       let defaultProductLine = productLines[0];
-      
+
       // Try to find a product line named "Deco" (case-insensitive)
-      const decoProductLine = productLines.find(pl => 
+      const decoProductLine = productLines.find(pl =>
         pl.name.toLowerCase().includes('deco')
       );
-      
+
       if (decoProductLine) {
         defaultProductLine = decoProductLine;
       }
-      
+
       if (!defaultProductLine) {
         throw new Error('No product lines available');
       }
@@ -391,253 +388,31 @@ const App: React.FC = () => {
       console.error("Failed to load product data:", err);
       setError(err instanceof Error ? err.message : "Failed to load product data");
     } finally {
-      setIsLoadingApp(false);
-    }
-  };
-
-  // Load options for a specific product line using proper database-driven filtering
-  const loadProductLineOptions = async (productLine: ProductLine) => {
-    try {
-      if (import.meta.env.DEV) console.log(`🔄 Loading options for ${productLine.name} using database-driven filtering...`);
-
-      // Get the properly filtered options using our two-level approach
-      const initialFilteringResult = getFilteredOptions({}, productLine.id);
-
-      // Load the actual option data from Supabase for the available IDs only
-      const { supabase } = await import('./services/supabase');
-
-      const loadOptionsForCollection = async (collectionName: string, availableIds: string[]) => {
-        if (availableIds.length === 0) return [];
-
-        try {
-          // Use type assertion since we're working with dynamic collection names
-          const { data, error } = await supabase
-            .from(collectionName as any)
-            .select('*')
-            .in('id', availableIds.map(id => parseInt(id)))
-            .eq('active', true);
-
-          if (error) {
-            console.warn(`⚠️ Failed to load ${collectionName}:`, error);
-            return [];
-          }
-
-          return data || [];
-        } catch (error) {
-          console.warn(`⚠️ Error loading ${collectionName}:`, error);
-          return [];
-        }
-      };
-
-      // Load only the options that are actually available for this product line
-      const [
-        frameColorsData,
-        frameThicknessData,
-        mirrorStylesData,
-        mountingOptionsData,
-        lightingOptionsData,
-        colorTemperaturesData,
-        lightOutputsData,
-        driversData,
-        sizesData,
-        accessoriesData
-      ] = await Promise.all([
-        loadOptionsForCollection('frame_colors', initialFilteringResult.available.frame_colors || []),
-        loadOptionsForCollection('frame_thicknesses', initialFilteringResult.available.frame_thicknesses || []),
-        loadOptionsForCollection('mirror_styles', initialFilteringResult.available.mirror_styles || []),
-        loadOptionsForCollection('mounting_options', initialFilteringResult.available.mounting_options || []),
-        loadOptionsForCollection('light_directions', initialFilteringResult.available.light_directions || []),
-        loadOptionsForCollection('color_temperatures', initialFilteringResult.available.color_temperatures || []),
-        loadOptionsForCollection('light_outputs', initialFilteringResult.available.light_outputs || []),
-        loadOptionsForCollection('drivers', initialFilteringResult.available.drivers || []),
-        loadOptionsForCollection('sizes', initialFilteringResult.available.sizes || []),
-        loadOptionsForCollection('accessories', initialFilteringResult.available.accessories || [])
-      ]);
-
-      // Initialize disabled state (Level 1 = no disabled options)
-      const initialDisabledOptions = {
-        mirror_styles: [],
-        light_directions: [],
-        frame_thicknesses: [],
-        frame_colors: [],
-        mounting_options: [],
-        drivers: [],
-        color_temperatures: [],
-        light_outputs: [],
-        sizes: [],
-        accessories: []
-      };
-
-      setDisabledOptionIds(initialDisabledOptions);
-
-      console.log('🔍 Database-driven filtering initialized:', {
-        productLine: productLine.name,
-        available: initialFilteringResult.available,
-        level: 1,
-        loadedCollections: {
-          frameColors: frameColorsData.length,
-          frameThickness: frameThicknessData.length,
-          mirrorStyles: mirrorStylesData.length,
-          mountingOptions: mountingOptionsData.length,
-          lightingOptions: lightingOptionsData.length,
-          colorTemperatures: colorTemperaturesData.length,
-          lightOutputs: lightOutputsData.length,
-          drivers: driversData.length,
-          sizes: sizesData.length,
-          accessories: accessoriesData.length
-        }
-      });
-
-      const options: ProductOptions = {
-        mirrorControls: [], // Table doesn't exist in database
-        frameColors: frameColorsData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string,
-          hex_code: (item.hex_code || "#000000") as string
-        })),
-        frameThickness: frameThicknessData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string
-        })),
-        mirrorStyles: mirrorStylesData
-          .map(item => ({
-            id: item.id as number,
-            name: item.name as string,
-            sku_code: item.sku_code as string,
-            description: item.description as string
-          }))
-          .sort((a, b) => {
-            const aa = a.sku_code ? parseInt(a.sku_code, 10) : Number.MAX_SAFE_INTEGER;
-            const bb = b.sku_code ? parseInt(b.sku_code, 10) : Number.MAX_SAFE_INTEGER;
-            if (Number.isNaN(aa) && Number.isNaN(bb)) return (a.sku_code || '').localeCompare(b.sku_code || '');
-            if (Number.isNaN(aa)) return 1;
-            if (Number.isNaN(bb)) return -1;
-            return aa - bb;
-          }),
-        mountingOptions: mountingOptionsData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string,
-          description: item.description as string
-        })),
-        lightingOptions: lightingOptionsData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string,
-          description: item.description as string
-        })),
-        colorTemperatures: colorTemperaturesData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string
-        })),
-        lightOutputs: lightOutputsData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string
-        })),
-        drivers: driversData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string,
-          description: item.description as string
-        })),
-        // Use filtered accessories (already filtered by product line)
-        accessoryOptions: accessoriesData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string,
-          description: (item.description || undefined) as string | undefined
-        })),
-        sizes: sizesData.map(item => {
-          // Extract dimensions directly instead of using the removed getNumericDimensions function
-          const dimensions = {
-            width: item.width ? Number(item.width) : undefined,
-            height: item.height ? Number(item.height) : undefined
-          };
-          return {
-            id: item.id as number,
-            name: item.name as string,
-            sku_code: item.sku_code as string,
-            width: dimensions.width,
-            height: dimensions.height
-          };
-        }),
-      };
-
-      setProductOptions(options);
-
-      // Initialize current configuration with first available options and default size
-      const defaultSize = options.sizes[0]; // First size preset
-
-      // Only set configuration if we have at least some options available
-      if (options.mirrorControls.length > 0 || options.frameColors.length > 0 || options.sizes.length > 0) {
-        const initialConfig: ProductConfig = {
-          id: `config-${Date.now()}`,
-          productLineId: productLine.id,
-          productLineName: productLine.name,
-          mirrorControls: options.mirrorControls[0]?.id.toString() || "",
-          frameColor: options.frameColors[0]?.id.toString() || "",
-          frameThickness: options.frameThickness[0]?.id.toString() || "",
-          mirrorStyle: options.mirrorStyles[0]?.id.toString() || "",
-          width: defaultSize?.width?.toString() || "24",
-          height: defaultSize?.height?.toString() || "36",
-          mounting: options.mountingOptions[0]?.id.toString() || "",
-          lighting: options.lightingOptions[0]?.id.toString() || "",
-          colorTemperature: options.colorTemperatures[0]?.id.toString() || "",
-          lightOutput: options.lightOutputs[0]?.id.toString() || "",
-          driver: options.drivers[0]?.id.toString() || "",
-          accessories: [],
-          quantity: 1,
-        };
-        setCurrentConfig(initialConfig);
-
-        // Compute initial availability based on defaults using freshly loaded options
-        await computeAvailableOptions(productLine.id, initialConfig, options);
-      } else {
-        console.log(`⚠️ No options available for ${productLine.name}, configuration not initialized`);
-        setCurrentConfig(null);
-      }
-
-      if (import.meta.env.DEV) {
-        console.log("✓ Real product data loaded successfully");
-        console.log(`✓ Loaded ${options.mirrorControls.length} mirror controls`);
-        console.log(`✓ Loaded ${options.frameColors.length} frame colors`);
-        console.log(`✓ Loaded ${options.mirrorStyles.length} mirror styles`);
-        console.log(`✓ Loaded ${options.sizes.length} size options`);
-        console.log(`✓ Loaded ${options.mountingOptions.length} mounting orientations`);
-        console.log(`✓ Loaded ${options.accessoryOptions.length} filtered accessories (Nightlight & Anti-Fog only)`);
-      }
-      
-    } catch (error) {
-      console.error(`❌ Error loading options for ${productLine.name}:`, error);
-      throw error;
+      setLoadingApp(false);
     }
   };
 
   // Handle product line change
-  const handleProductLineChange = async (newProductLine: ProductLine) => {
+  const handleProductLineChange = async (newProductLine: any) => {
     console.log(`handleProductLineChange called with:`, newProductLine);
     console.log(`Current isLoadingProductLine state:`, isLoadingProductLine);
-    
+
     if (newProductLine.sku_code === currentProductLine?.sku_code) {
       console.log(`Same product line selected, skipping`);
       return; // No change needed
     }
 
     console.log(`Setting loading state to true`);
-    setIsLoadingProductLine(true);
+    setLoadingProductLine(true);
     // Clear current product to avoid showing stale image while switching
     setCurrentProduct(null);
-    
+
     try {
       console.log(`🔄 Switching to product line: ${newProductLine.name}`);
 
       // Update current product line first to align IDs for downstream effects
       setCurrentProductLine(newProductLine);
-      // Then load filtered options for the new product line using dynamic service
+      // Then load filtered options for the new product line using store action
       await loadProductLineOptions(newProductLine);
 
       console.log(`✅ Successfully switched to ${newProductLine.name}`);
@@ -646,191 +421,27 @@ const App: React.FC = () => {
       setError(error instanceof Error ? error.message : "Failed to switch product line");
     } finally {
       console.log(`Setting loading state to false`);
-      setIsLoadingProductLine(false);
-      // Force an immediate check of the state
-      setTimeout(() => {
-        console.log(`After setIsLoadingProductLine(false), state is now:`, isLoadingProductLine);
-      }, 0);
+      setLoadingProductLine(false);
     }
   };
 
 
-  const handleConfigChange = async (field: keyof ProductConfig, value: any) => {
+  const handleConfigChange = async (field: any, value: any) => {
     if (!currentConfig) return;
 
-    const newConfig = { ...currentConfig, [field]: value };
-    setCurrentConfig(newConfig);
+    updateConfiguration(field, value);
 
     // Recompute advanced filtering after any relevant change
     if (currentProductLine) {
-      await recomputeAdvancedFiltering(currentProductLine, newConfig);
+      const newConfig = { ...currentConfig, [field]: value };
+      await recomputeFiltering(currentProductLine, newConfig);
     }
   };
 
-  // Recompute filtering based on current selections using new two-level approach
-  const recomputeAdvancedFiltering = async (productLine: ProductLine, config: ProductConfig) => {
-    try {
-      setIsComputingAvailability(true);
+  // computeAvailableOptions function moved to store/slices/apiSlice.ts as recomputeFiltering
 
-      // Build current selections for two-level filtering
-      const currentSelection: Record<string, any> = {};
-
-      // Only add mirror_styles if explicitly selected (not just from defaults)
-      if (config.mirrorStyle) {
-        currentSelection.mirror_styles = config.mirrorStyle;
-      }
-
-      console.log('🔄 Recomputing two-level filtering with selection:', currentSelection);
-
-      // Get filtered options using our new two-level approach
-      const filteringResult = getFilteredOptions(currentSelection, productLine.id);
-
-      // Convert filtering result to the format expected by UI components
-      const disabledOptions = {
-        mirror_styles: filteringResult.disabled.mirror_styles?.map(id => parseInt(id)) || [],
-        light_directions: filteringResult.disabled.light_directions?.map(id => parseInt(id)) || [],
-        frame_thicknesses: filteringResult.disabled.frame_thicknesses?.map(id => parseInt(id)) || [],
-        frame_colors: filteringResult.disabled.frame_colors?.map(id => parseInt(id)) || [],
-        mounting_options: filteringResult.disabled.mounting_options?.map(id => parseInt(id)) || [],
-        drivers: filteringResult.disabled.drivers?.map(id => parseInt(id)) || [],
-        color_temperatures: filteringResult.disabled.color_temperatures?.map(id => parseInt(id)) || [],
-        light_outputs: filteringResult.disabled.light_outputs?.map(id => parseInt(id)) || [],
-        sizes: filteringResult.disabled.sizes?.map(id => parseInt(id)) || [],
-        accessories: filteringResult.disabled.accessories?.map(id => parseInt(id)) || []
-      };
-
-      // Store disabled options for UI components to use
-      setDisabledOptionIds(disabledOptions);
-
-      console.log('✅ Two-level filtering updated:', {
-        available: filteringResult.available,
-        disabled: filteringResult.disabled,
-        level: config.mirrorStyle ? 2 : 1
-      });
-
-    } catch (error) {
-      console.error('❌ Failed to recompute two-level filtering:', error);
-    } finally {
-      setIsComputingAvailability(false);
-    }
-  };
-
-  // Compute generic available options (IDs per product field) from Products
-  const computeAvailableOptions = async (productLineId: number, config: ProductConfig, optionsOverride?: ProductOptions) => {
-    try {
-      setIsComputingAvailability(true);
-      // Build rules context with numeric IDs and flattened sku_code fields
-      const opts = optionsOverride || productOptions;
-      const selectedMirrorStyle = opts?.mirrorStyles?.find(ms => ms.id.toString() === config.mirrorStyle);
-      const selectedLightDirection = opts?.lightingOptions?.find(ld => ld.id.toString() === config.lighting);
-      const selectedFrameThickness = opts?.frameThickness?.find(ft => ft.id.toString() === config.frameThickness);
-      const context = {
-        product_line: productLineId,
-        mirror_style: selectedMirrorStyle ? selectedMirrorStyle.id : undefined,
-        mirror_style_code: selectedMirrorStyle?.sku_code ? parseInt(selectedMirrorStyle.sku_code, 10) : undefined,
-        light_direction: parseInt(config.lighting || '0', 10) || undefined,
-        frame_thickness: parseInt(config.frameThickness || '0', 10) || undefined,
-        mirror_control: parseInt(config.mirrorControls || '0', 10) || undefined,
-        frame_color: parseInt(config.frameColor || '0', 10) || undefined,
-        mounting: parseInt(config.mounting || '0', 10) || undefined,
-        driver: parseInt(config.driver || '0', 10) || undefined,
-        light_output: parseInt(config.lightOutput || '0', 10) || undefined,
-        color_temperature: parseInt(config.colorTemperature || '0', 10) || undefined,
-        // flattened keys for nested rule comparisons like product_line.sku_code, mirror_style.sku_code
-        product_line_sku_code: currentProductLine?.sku_code,
-        mirror_style_sku_code: selectedMirrorStyle?.sku_code,
-        light_direction_sku_code: selectedLightDirection?.sku_code,
-        frame_thickness_sku_code: selectedFrameThickness?.sku_code,
-      } as any;
-
-      // Apply rules before product-based filtering
-      const processed = await processRules(context);
-
-      // Use the new two-level filtering approach
-      const currentSelection: Record<string, any> = {};
-
-      // Only add mirror_styles if explicitly selected (not just from defaults)
-      if (selectedMirrorStyle && config.mirrorStyle) {
-        currentSelection.mirror_styles = config.mirrorStyle;
-      }
-
-      // Get filtered options using our new two-level approach
-      const filteringResult = getFilteredOptions(currentSelection, productLineId);
-
-      // Convert filtering result to the format expected by UI components
-      const disabledOptions = {
-        mirror_styles: filteringResult.disabled.mirror_styles?.map(id => parseInt(id)) || [],
-        light_directions: filteringResult.disabled.light_directions?.map(id => parseInt(id)) || [],
-        frame_thicknesses: filteringResult.disabled.frame_thicknesses?.map(id => parseInt(id)) || [],
-        frame_colors: filteringResult.disabled.frame_colors?.map(id => parseInt(id)) || [],
-        mounting_options: filteringResult.disabled.mounting_options?.map(id => parseInt(id)) || [],
-        drivers: filteringResult.disabled.drivers?.map(id => parseInt(id)) || [],
-        color_temperatures: filteringResult.disabled.color_temperatures?.map(id => parseInt(id)) || [],
-        light_outputs: filteringResult.disabled.light_outputs?.map(id => parseInt(id)) || [],
-        sizes: filteringResult.disabled.sizes?.map(id => parseInt(id)) || [],
-        accessories: filteringResult.disabled.accessories?.map(id => parseInt(id)) || []
-      };
-
-      console.log('🎯 New filtering result:', {
-        available: filteringResult.available,
-        disabled: filteringResult.disabled,
-        disabledOptions
-      });
-
-      // Store disabled options for UI components to use
-      setDisabledOptionIds(disabledOptions);
-
-      // Enforce defaults for any invalid selections across constrained sets
-      if (opts) {
-        let updated: Partial<ProductConfig> = {};
-        const ensureValid = (
-          fieldKey: string,
-          configKey: keyof ProductConfig,
-          options: ProductOption[]
-        ) => {
-          // Get available IDs from filtering result
-          const availableIds = filteringResult.available[fieldKey]?.map(id => parseInt(id)) || [];
-          if (availableIds.length === 0) {
-            const currentVal = (config as any)[configKey] as string | undefined;
-            if (currentVal) (updated as any)[configKey] = '';
-            return;
-          }
-          const currentVal = (config as any)[configKey] as string | undefined;
-          const currentNum = currentVal ? parseInt(currentVal, 10) : NaN;
-          if (!currentVal || !availableIds.includes(currentNum)) {
-            const first = options.find(o => availableIds.includes(o.id));
-            if (first) (updated as any)[configKey] = first.id.toString();
-          }
-        };
-
-        // Enforce for light direction, mounting (circle styles), and rule-constrained outputs
-        ensureValid('light_directions', 'lighting', opts.lightingOptions);
-        // Mounting: also derive from available images for this style/line
-        ensureValid('mounting_options', 'mounting', opts.mountingOptions);
-        ensureValid('light_outputs', 'lightOutput', opts.lightOutputs);
-        ensureValid('color_temperatures', 'colorTemperature', opts.colorTemperatures);
-
-        const hasUpdates = Object.keys(updated).length > 0;
-        if (hasUpdates) setCurrentConfig(prev => prev ? { ...prev, ...updated } : null);
-      }
-
-      // The two-level filtering already handles mounting options based on actual products
-      if (import.meta.env.DEV) console.log('✅ Two-level filtering applied successfully');
-    } catch (e) {
-      console.error('Failed to compute available options:', e);
-    } finally {
-      setIsComputingAvailability(false);
-    }
-  };
-
-  const handleSizePresetSelect = (size: ProductOption) => {
-    if (!currentConfig) return;
-
-    setCurrentConfig((prev) => prev ? {
-      ...prev,
-      width: size.width?.toString() || "",
-      height: size.height?.toString() || "",
-    } : null);
+  const handleSizePresetSelectLocal = (size: ProductOption) => {
+    handleSizePresetSelect(size);
   };
 
   const getCurrentSizeId = () => {
@@ -845,89 +456,36 @@ const App: React.FC = () => {
     return matchingSize ? (matchingSize.sku_code || matchingSize.id.toString()) : "";
   };
 
-  const handleAccessoryToggle = (accessoryId: string) => {
+  const handleAccessoryToggleLocal = (accessoryId: string) => {
+    handleAccessoryToggle(accessoryId);
+  };
+
+  const incrementQuantityLocal = () => {
+    incrementQuantity();
+  };
+
+  const decrementQuantityLocal = () => {
+    decrementQuantity();
+  };
+
+  const addToQuoteLocal = () => {
     if (!currentConfig) return;
 
-    setCurrentConfig((prev) => {
-      if (!prev) return null;
-      
-      const accessories = [...(prev.accessories || [])];
-      const index = accessories.indexOf(accessoryId);
-
-      if (index > -1) {
-        accessories.splice(index, 1);
-      } else {
-        accessories.push(accessoryId);
-      }
-
-      return {
-        ...prev,
-        accessories,
-      };
-    });
-  };
-
-  const incrementQuantity = () => {
-    if (!currentConfig) return;
-    setCurrentConfig((prev) => {
-      if (!prev) return null;
-      
-      return {
-        ...prev,
-        quantity: (prev.quantity || 1) + 1,
-      };
-    });
-  };
-
-  const decrementQuantity = () => {
-    if (!currentConfig) return;
-
-    setCurrentConfig((prev) => {
-      if (!prev) return null;
-      
-      return {
-        ...prev,
-        quantity: Math.max(1, (prev.quantity || 1) - 1),
-      };
-    });
-  };
-
-  const addToQuote = () => {
-    if (!currentConfig || !productOptions || !currentProductLine) return;
-
-    setQuoteItems((prev) => [
-      ...prev,
-      {
-        ...currentConfig,
-        id: generateProductName(),
-      },
-    ]);
-
-    // Reset configuration to default for this product line
-    setCurrentConfig({
-      id: `config-${Date.now()}`,
-      productLineId: currentProductLine.id,
-      productLineName: currentProductLine.name,
-      frameThickness: productOptions.frameThickness[0]?.id.toString() || "",
-      frameColor: productOptions.frameColors[0]?.id.toString() || "",
-      mirrorControls: productOptions.mirrorControls[0]?.id.toString() || "",
-      mirrorStyle: productOptions.mirrorStyles[0]?.id.toString() || "",
-      mounting: productOptions.mountingOptions[0]?.id.toString() || "",
-      width: productOptions.sizes[0]?.width?.toString() || "",
-      height: productOptions.sizes[0]?.height?.toString() || "",
-      lighting: productOptions.lightingOptions[0]?.id.toString() || "",
-      colorTemperature: productOptions.colorTemperatures[0]?.id.toString() || "",
-      lightOutput: productOptions.lightOutputs[0]?.id.toString() || "",
-      driver: productOptions.drivers[0]?.id.toString() || "",
-      accessories: [],
-      quantity: 1,
+    // Add to quote using store action
+    addToQuote({
+      ...currentConfig,
+      id: generateProductName(),
     });
 
-    setUseCustomSize(false);
+    // Reset configuration using store action
+    resetConfiguration();
+
+    // Reset custom size using store action
+    setCustomSizeEnabled(false);
   };
 
-  const removeFromQuote = (configId: string) => {
-    setQuoteItems((prev) => prev.filter((item) => item.id !== configId));
+  const removeFromQuoteLocal = (configId: string) => {
+    removeFromQuote(configId);
   };
 
   const downloadConfiguration = () => {
@@ -965,14 +523,10 @@ const App: React.FC = () => {
       productLine: currentProductLine?.name,
     };
 
-    setQuoteItems([]);
-    setCustomerInfo({
-      name: "",
-      email: "",
-      company: "",
-      phone: "",
-    });
-    setShowQuoteForm(false);
+    // Clear quote and customer info using store actions
+    clearQuote();
+    resetCustomerInfo();
+    setQuoteFormVisible(false);
 
     console.log("Quote submitted:", quoteData);
     alert("Your quote request has been submitted!");
@@ -995,17 +549,7 @@ const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const generateProductName = (): string => {
-    if (!currentConfig) return `quote-item-${Date.now()}`;
-
-    const { productLineName, frameThickness, mirrorStyle, width, height } = currentConfig;
-
-    // Generate codes for specific options
-    const mirrorStyleCode = mirrorStyle === "Rectangle" ? "R" : "O";
-    const lightingCode = currentConfig.lightOutput ? "L" : "";
-
-    return `${productLineName}-${frameThickness}-${mirrorStyleCode}${lightingCode}-${width}x${height}`;
-  };
+  // generateProductName moved to store computed values
 
   // Loading state for initial app load
 
@@ -1063,7 +607,7 @@ const App: React.FC = () => {
             </div>
             <div className="flex items-center space-x-4">
               <Button
-                onClick={() => setShowQuoteForm(true)}
+                onClick={() => setQuoteFormVisible(true)}
                 disabled={quoteItems.length === 0}
                 className={`${
                   quoteItems.length === 0
@@ -1169,7 +713,7 @@ const App: React.FC = () => {
                                 <button
                                   key={url}
                                   type="button"
-                                  onClick={() => { setIsLightboxOpen(true); setLightboxIndex(i); }}
+                                  onClick={() => { openLightbox(i); }}
                                   className="shrink-0 w-20 h-20 rounded-lg bg-white border border-gray-200 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 overflow-hidden"
                                   title="View image"
                                 >
@@ -1207,14 +751,14 @@ const App: React.FC = () => {
                 const count = imgs.length;
                 const safeIndex = ((lightboxIndex % count) + count) % count;
                 const currentUrl = imgs[safeIndex];
-                const goPrev = () => setLightboxIndex(i => i - 1);
-                const goNext = () => setLightboxIndex(i => i + 1);
+                const goPrev = () => openLightbox(Math.max(lightboxIndex - 1, 0));
+                const goNext = () => openLightbox(lightboxIndex + 1);
                 return (
-                  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-3" role="dialog" aria-modal="true" onClick={() => setIsLightboxOpen(false)}>
+                  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-3" role="dialog" aria-modal="true" onClick={() => closeLightbox()}>
                     <button
                       aria-label="Close gallery"
                       className="absolute top-4 right-4 text-white/90 hover:text-white"
-                      onClick={(e) => { e.stopPropagation(); setIsLightboxOpen(false); }}
+                      onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
                     >
                       ✕
                     </button>
@@ -1308,7 +852,7 @@ const App: React.FC = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeFromQuote(item.id)}
+                        onClick={() => removeFromQuoteLocal(item.id)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-4"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1330,7 +874,7 @@ const App: React.FC = () => {
                   </Button>
                   <Button
                     size="sm"
-                    onClick={() => setShowQuoteForm(true)}
+                    onClick={() => setQuoteFormVisible(true)}
                     className="bg-amber-500 hover:bg-amber-600 text-white flex items-center space-x-2"
                   >
                     <Send className="w-4 h-4" />
@@ -1604,7 +1148,7 @@ const App: React.FC = () => {
                     <Switch
                       id="custom-size-toggle"
                       checked={useCustomSize}
-                      onCheckedChange={setUseCustomSize}
+                      onCheckedChange={setCustomSizeEnabled}
                     />
                   </div>
                 </div>
@@ -1651,7 +1195,7 @@ const App: React.FC = () => {
                     {productOptions.sizes.map((size) => (
                       <button
                         key={size.id}
-                        onClick={() => handleSizePresetSelect(size)}
+                        onClick={() => handleSizePresetSelectLocal(size)}
                         className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
                           getCurrentSizeId() === size.sku_code
                             ? "border-amber-500 bg-amber-50"
@@ -1863,7 +1407,7 @@ const App: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={decrementQuantity}
+                      onClick={decrementQuantityLocal}
                       disabled={currentConfig.quantity <= 1}
                       className="h-8 w-8 p-0"
                     >
@@ -1875,7 +1419,7 @@ const App: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={incrementQuantity}
+                      onClick={incrementQuantityLocal}
                       disabled={currentConfig.quantity >= 100}
                       className="h-8 w-8 p-0"
                     >
@@ -1884,7 +1428,7 @@ const App: React.FC = () => {
                   </div>
 
                   <Button
-                    onClick={addToQuote}
+                    onClick={addToQuoteLocal}
                     className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 h-10"
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -1909,7 +1453,7 @@ const App: React.FC = () => {
                   <p className="text-gray-600 mb-6">
                     No items in quote. Please add some configurations first.
                   </p>
-                  <Button onClick={() => setShowQuoteForm(false)} variant="outline">
+                  <Button onClick={() => setQuoteFormVisible(false)} variant="outline">
                     Close
                   </Button>
                 </div>
@@ -1950,10 +1494,7 @@ const App: React.FC = () => {
                           id="customerName"
                           value={customerInfo.name}
                           onChange={(e) =>
-                            setCustomerInfo((prev) => ({
-                              ...prev,
-                              name: e.target.value,
-                            }))
+                            updateCustomerInfo('name', e.target.value)
                           }
                           className="bg-gray-50 border-gray-200"
                           required
@@ -1968,10 +1509,7 @@ const App: React.FC = () => {
                           type="email"
                           value={customerInfo.email}
                           onChange={(e) =>
-                            setCustomerInfo((prev) => ({
-                              ...prev,
-                              email: e.target.value,
-                            }))
+                            updateCustomerInfo('email', e.target.value)
                           }
                           className="bg-gray-50 border-gray-200"
                           required
@@ -1985,10 +1523,7 @@ const App: React.FC = () => {
                           id="customerCompany"
                           value={customerInfo.company}
                           onChange={(e) =>
-                            setCustomerInfo((prev) => ({
-                              ...prev,
-                              company: e.target.value,
-                            }))
+                            updateCustomerInfo('company', e.target.value)
                           }
                           className="bg-gray-50 border-gray-200"
                         />
@@ -2001,10 +1536,7 @@ const App: React.FC = () => {
                           id="customerPhone"
                           value={customerInfo.phone}
                           onChange={(e) =>
-                            setCustomerInfo((prev) => ({
-                              ...prev,
-                              phone: e.target.value,
-                            }))
+                            updateCustomerInfo('phone', e.target.value)
                           }
                           className="bg-gray-50 border-gray-200"
                         />
@@ -2013,7 +1545,7 @@ const App: React.FC = () => {
                   </div>
 
                   <div className="flex justify-end space-x-4 mt-8">
-                    <Button variant="outline" onClick={() => setShowQuoteForm(false)}>
+                    <Button variant="outline" onClick={() => setQuoteFormVisible(false)}>
                       Cancel
                     </Button>
                     <Button
