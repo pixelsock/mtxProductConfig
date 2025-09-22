@@ -14,6 +14,7 @@ import {
   StoreSet,
   StoreGet,
   DecoProduct,
+  AdjustmentNotification,
 } from '../types';
 
 export const createConfigurationSlice = (
@@ -24,6 +25,8 @@ export const createConfigurationSlice = (
   currentConfig: null,
   currentProduct: null,
   currentProductLine: null,
+  isAdjustingSelections: false,
+  adjustmentNotifications: [],
 
   // Actions
   updateConfiguration: (field: keyof ProductConfig, value: any) => {
@@ -190,5 +193,101 @@ export const createConfigurationSlice = (
     const lightingCode = currentConfig.lightOutput ? "L" : "";
 
     return `${productLineName}-${frameThickness}-${mirrorStyleCode}${lightingCode}-${width}x${height}`;
+  },
+
+  validateAndAdjustSelections: async () => {
+    const {
+      currentConfig,
+      currentProductLine,
+      disabledOptionIds,
+      isAdjustingSelections,
+      addAdjustmentNotification
+    } = get();
+
+    // Prevent cascading adjustments
+    if (isAdjustingSelections || !currentConfig || !currentProductLine) {
+      return false;
+    }
+
+    try {
+      // Set adjustment in progress
+      set((state) => ({
+        ...state,
+        isAdjustingSelections: true,
+      }));
+
+      // Import validation service
+      const { validateCurrentSelections } = await import('../../services/selection-validator');
+
+      // Validate current selections
+      const validationResult = validateCurrentSelections(
+        currentConfig,
+        currentProductLine,
+        disabledOptionIds
+      );
+
+      // If adjustments needed, apply them
+      if (!validationResult.isValid && validationResult.adjustedConfig) {
+        const adjustments = validationResult.invalidSelections;
+
+        // Apply the adjusted configuration
+        set((state) => ({
+          ...state,
+          currentConfig: validationResult.adjustedConfig,
+        }));
+
+        // Add notifications for each adjustment
+        adjustments.forEach(adjustment => {
+          if (adjustment.suggestedValue) {
+            addAdjustmentNotification({
+              field: adjustment.field,
+              oldValue: adjustment.currentValue,
+              newValue: adjustment.suggestedValue,
+              reason: `Selection became ${adjustment.reason} due to dynamic filtering`,
+              timestamp: Date.now()
+            });
+          }
+        });
+
+        if (import.meta.env.DEV) {
+          console.log('🔄 Auto-adjusted selections:', {
+            adjustments: adjustments.length,
+            fields: adjustments.map(a => a.field),
+          });
+        }
+
+        return true; // Adjustments were made
+      }
+
+      return false; // No adjustments needed
+
+    } catch (error) {
+      console.error('❌ Failed to validate and adjust selections:', error);
+      return false;
+
+    } finally {
+      // Clear adjustment flag
+      set((state) => ({
+        ...state,
+        isAdjustingSelections: false,
+      }));
+    }
+  },
+
+  addAdjustmentNotification: (notification: AdjustmentNotification) => {
+    set((state) => ({
+      ...state,
+      adjustmentNotifications: [
+        ...state.adjustmentNotifications,
+        notification
+      ].slice(-5), // Keep only last 5 notifications
+    }));
+  },
+
+  clearAdjustmentNotifications: () => {
+    set((state) => ({
+      ...state,
+      adjustmentNotifications: [],
+    }));
   },
 });

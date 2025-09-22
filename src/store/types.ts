@@ -75,12 +75,23 @@ export type MirrorStyle = Database['public']['Tables']['mirror_styles']['Row'];
 export type LightDirection = Database['public']['Tables']['light_directions']['Row'];
 export type MountingOption = Database['public']['Tables']['mounting_options']['Row'];
 
+// Selection Adjustment Types
+export interface AdjustmentNotification {
+  field: keyof ProductConfig;
+  oldValue: string;
+  newValue: string;
+  reason: string;
+  timestamp: number;
+}
+
 // Configuration Slice Types
 export interface ConfigurationSlice {
   // State
   currentConfig: ProductConfig | null;
   currentProduct: DecoProduct | null;
   currentProductLine: ProductLine | null;
+  isAdjustingSelections: boolean;
+  adjustmentNotifications: AdjustmentNotification[];
 
   // Actions
   updateConfiguration: (field: keyof ProductConfig, value: any) => void;
@@ -91,6 +102,9 @@ export interface ConfigurationSlice {
   decrementQuantity: () => void;
   handleSizePresetSelect: (size: ProductOption) => void;
   handleAccessoryToggle: (accessoryId: string) => void;
+  validateAndAdjustSelections: () => Promise<boolean>;
+  addAdjustmentNotification: (notification: AdjustmentNotification) => void;
+  clearAdjustmentNotifications: () => void;
 
   // Computed (implemented as functions that can access get())
   isConfigurationValid: () => boolean;

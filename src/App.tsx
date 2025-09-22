@@ -23,6 +23,7 @@ import { Badge } from "./components/ui/badge";
 import { Skeleton } from "./components/ui/skeleton";
 import { Alert, AlertDescription } from "./components/ui/alert";
 import { Switch } from "./components/ui/switch";
+import AdjustmentNotificationBar from "./components/AdjustmentNotificationBar";
 import {
   Trash2,
   Plus,
@@ -1563,9 +1564,12 @@ const App: React.FC = () => {
           </Card>
         </div>
       )}
-      
+
       {/* Environment Indicator */}
       <EnvironmentIndicator />
+
+      {/* Adjustment Notifications */}
+      <AdjustmentNotificationBar />
     </div>
   );
 }

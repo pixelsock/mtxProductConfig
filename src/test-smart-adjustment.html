@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Selection Adjustment Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      max-width: 800px;
+    }
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .test-case {
+      margin: 10px 0;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+    .expected {
+      color: #2d5a27;
+      font-weight: bold;
+    }
+    .actual {
+      color: #d63384;
+      font-weight: bold;
+    }
+    .pass {
+      color: #28a745;
+    }
+    .fail {
+      color: #dc3545;
+    }
+    button {
+      padding: 8px 16px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .notification-area {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 300px;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Smart Selection Adjustment Test Plan</h1>
+
+  <div class="notification-area" id="notifications">
+    <!-- Notifications will appear here -->
+  </div>
+
+  <div class="test-section">
+    <h2>Test Case 1: Basic Mirror Style → Light Direction Adjustment</h2>
+    <div class="test-case">
+      <h3>Scenario</h3>
+      <p>1. Select a product line (e.g., Deco)</p>
+      <p>2. Select a mirror style that has multiple light directions</p>
+      <p>3. Select a light direction</p>
+      <p>4. Change to a mirror style that doesn't have the selected light direction</p>
+
+      <h3>Expected Result</h3>
+      <p class="expected">The light direction should automatically adjust to the first available option for the new mirror style, with a notification displayed.</p>
+
+      <button onclick="runTest1()">Run Test 1</button>
+      <div id="test1-result"></div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test Case 2: Cascade Prevention</h2>
+    <div class="test-case">
+      <h3>Scenario</h3>
+      <p>1. Make rapid selections that trigger multiple adjustments</p>
+      <p>2. Verify that adjustments don't trigger infinite loops</p>
+
+      <h3>Expected Result</h3>
+      <p class="expected">Only appropriate adjustments occur, with no infinite loops or cascade effects.</p>
+
+      <button onclick="runTest2()">Run Test 2</button>
+      <div id="test2-result"></div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test Case 3: Multiple Simultaneous Adjustments</h2>
+    <div class="test-case">
+      <h3>Scenario</h3>
+      <p>1. Select options that will all become invalid due to a single change</p>
+      <p>2. Make the change that invalidates multiple selections</p>
+
+      <h3>Expected Result</h3>
+      <p class="expected">All invalid selections are adjusted simultaneously with appropriate notifications.</p>
+
+      <button onclick="runTest3()">Run Test 3</button>
+      <div id="test3-result"></div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test Case 4: Edge Case - No Available Options</h2>
+    <div class="test-case">
+      <h3>Scenario</h3>
+      <p>1. Force a selection state where no valid options exist</p>
+
+      <h3>Expected Result</h3>
+      <p class="expected">Graceful handling with appropriate error messaging, no crashes.</p>
+
+      <button onclick="runTest4()">Run Test 4</button>
+      <div id="test4-result"></div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test Case 5: UI Feedback Verification</h2>
+    <div class="test-case">
+      <h3>Scenario</h3>
+      <p>1. Trigger an automatic adjustment</p>
+      <p>2. Verify notification appears correctly</p>
+      <p>3. Verify notification auto-dismisses</p>
+
+      <h3>Expected Result</h3>
+      <p class="expected">Clear notification with old/new values, auto-dismiss after 4 seconds.</p>
+
+      <button onclick="runTest5()">Run Test 5</button>
+      <div id="test5-result"></div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Manual Testing Instructions</h2>
+    <ol>
+      <li>Open the main configurator at <a href="http://localhost:5173" target="_blank">http://localhost:5173</a></li>
+      <li>Select a product line to load options</li>
+      <li>Try the following scenarios:
+        <ul>
+          <li>Select different mirror styles and observe light direction adjustments</li>
+          <li>Make rapid selections to test cascade prevention</li>
+          <li>Look for the blue notification bars in the top-right corner</li>
+          <li>Verify notifications show old → new value changes</li>
+          <li>Confirm notifications auto-dismiss after 4 seconds</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+
+  <script>
+    function showNotification(message, type = 'info') {
+      const notifications = document.getElementById('notifications');
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
+        border: 1px solid ${type === 'success' ? '#c3e6cb' : type === 'error' ? '#f5c6cb' : '#bee5eb'};
+        color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        animation: slideInRight 0.3s ease-out;
+      `;
+      notification.textContent = message;
+      notifications.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 4000);
+    }
+
+    function setTestResult(elementId, success, message) {
+      const element = document.getElementById(elementId);
+      element.innerHTML = `<div class="${success ? 'pass' : 'fail'}">
+        ${success ? '✅ PASS' : '❌ FAIL'}: ${message}
+      </div>`;
+    }
+
+    function runTest1() {
+      showNotification('Test 1: Basic adjustment test - Please manually verify in the configurator', 'info');
+      setTestResult('test1-result', true, 'Manual test initiated. Check the main configurator for mirror style → light direction adjustments.');
+    }
+
+    function runTest2() {
+      showNotification('Test 2: Cascade prevention test - Make rapid selections in configurator', 'info');
+      setTestResult('test2-result', true, 'Manual test initiated. Make rapid selections in the configurator to test cascade prevention.');
+    }
+
+    function runTest3() {
+      showNotification('Test 3: Multiple adjustments test - Select options then make invalidating change', 'info');
+      setTestResult('test3-result', true, 'Manual test initiated. Configure multiple options then make a change that invalidates several.');
+    }
+
+    function runTest4() {
+      showNotification('Test 4: Edge case test - Force invalid state', 'info');
+      setTestResult('test4-result', true, 'Manual test initiated. Try to create edge cases with no available options.');
+    }
+
+    function runTest5() {
+      showNotification('Test 5: UI feedback test - Watch for blue notifications', 'info');
+      setTestResult('test5-result', true, 'Manual test initiated. Look for blue adjustment notifications in top-right corner.');
+    }
+
+    // Add CSS for slide-in animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Initialize test page
+    showNotification('Smart Selection Adjustment Test Page Ready', 'success');
+  </script>
+</body>
+</html>

@@ -302,6 +302,17 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
         level: config.mirrorStyle ? 2 : 1
       });
 
+      // After updating filtering, check if selections need adjustment
+      const { validateAndAdjustSelections } = get();
+      try {
+        const adjustmentsMade = await validateAndAdjustSelections();
+        if (adjustmentsMade) {
+          console.log('✅ Automatic selection adjustments applied');
+        }
+      } catch (error) {
+        console.warn('⚠️ Selection validation failed:', error);
+      }
+
     } catch (error) {
       console.error('❌ Failed to recompute two-level filtering:', error);
     } finally {
