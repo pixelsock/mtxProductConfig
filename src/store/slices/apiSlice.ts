@@ -240,7 +240,7 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
 
       // Initialize configuration with default values from loaded options
       const { resetConfiguration } = get();
-      resetConfiguration();
+      await resetConfiguration();
 
       if (import.meta.env.DEV) {
         console.log("✓ Real product data loaded successfully");
@@ -304,10 +304,13 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
 
       // After updating filtering, check if selections need adjustment
       const { validateAndAdjustSelections } = get();
+      console.log('🔍 Checking if selections need adjustment after filtering update');
       try {
         const adjustmentsMade = await validateAndAdjustSelections();
         if (adjustmentsMade) {
           console.log('✅ Automatic selection adjustments applied');
+        } else {
+          console.log('ℹ️ No adjustments needed');
         }
       } catch (error) {
         console.warn('⚠️ Selection validation failed:', error);

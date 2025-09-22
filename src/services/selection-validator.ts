@@ -75,12 +75,11 @@ export async function validateCurrentSelections(
   let adjustedConfig: ProductConfig | null = null;
 
   // Build current selection object for dynamic filtering
+  // IMPORTANT: Only include mirror_styles to match the main filtering logic
+  // We should NOT include light_directions because we're checking if it needs adjustment
   const currentSelection: Record<string, any> = {};
   if (config.mirrorStyle) {
     currentSelection.mirror_styles = config.mirrorStyle;
-  }
-  if (config.lighting) {
-    currentSelection.light_directions = config.lighting;
   }
 
   // Get filtered options based on current selections
@@ -161,12 +160,10 @@ export async function getFirstAvailableOption(
 ): Promise<string | null> {
   await initializeFiltering();
   // Build current selection for filtering
+  // IMPORTANT: Only include mirror_styles to match the main filtering logic
   const currentSelection: Record<string, any> = {};
   if (config.mirrorStyle) {
     currentSelection.mirror_styles = config.mirrorStyle;
-  }
-  if (config.lighting) {
-    currentSelection.light_directions = config.lighting;
   }
 
   const filteredOptions = getFilteredOptions(currentSelection, productLine.id);

@@ -66,9 +66,9 @@ const AdjustmentNotificationBar: React.FC = () => {
 
   return (
     <div className="fixed top-4 right-4 z-50 space-y-2">
-      {visibleNotifications.map((notification) => (
+      {visibleNotifications.map((notification, index) => (
         <div
-          key={`${notification.field}-${notification.timestamp}`}
+          key={`adjustment-${notification.timestamp}-${index}`}
           className="bg-blue-50 border border-blue-200 rounded-lg p-3 shadow-lg max-w-sm animate-slide-in-right"
         >
           <div className="flex items-start">

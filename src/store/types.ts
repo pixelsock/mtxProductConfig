@@ -97,7 +97,7 @@ export interface ConfigurationSlice {
   updateConfiguration: (field: keyof ProductConfig, value: any) => void;
   setCurrentProduct: (product: DecoProduct | null) => void;
   setCurrentProductLine: (productLine: ProductLine) => void;
-  resetConfiguration: () => void;
+  resetConfiguration: () => Promise<void>;
   incrementQuantity: () => void;
   decrementQuantity: () => void;
   handleSizePresetSelect: (size: ProductOption) => void;
