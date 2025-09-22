@@ -1,7 +1,7 @@
 {
   "name": "mtx-product-configurator",
   "version": "1.0.0",
-  "description": "Embeddable React product configurator with Directus integration",
+  "description": "Embeddable React product configurator with Supabase integration",
   "type": "module",
   "scripts": {
     "dev": "vite",

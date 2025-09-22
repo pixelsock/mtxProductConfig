@@ -2,7 +2,7 @@
 
 ## Pitch
 
-MTX Product Configurator is a web-based configuration tool that helps contractors, designers, and consumers easily configure and quote custom-made mirror and lighting products by providing real-time visualization and seamless product customization.
+MTX Product Configurator is a fully dynamic, API-driven configuration tool that helps contractors, designers, and consumers easily configure and quote custom-made mirror and lighting products by providing real-time visualization and seamless product customization that adapts instantly to backend data changes without requiring code updates.
 
 ## Users
 
@@ -34,52 +34,66 @@ MTX Product Configurator is a web-based configuration tool that helps contractor
 
 ## The Problem
 
+### Rigid Configuration Systems
+
+Traditional product configurators hard-code product options and business rules, requiring expensive development cycles for every product change. This results in inflexible systems that can't adapt to new products or rule changes.
+
+**Our Solution:** Fully API-driven architecture where ALL configuration options, product lines, and business rules are dynamically loaded from the Supabase backend, enabling instant updates without code deployment.
+
 ### Complex Product Configuration
 
-Custom mirror and lighting products have dozens of configuration options across 13 different attributes. Manual configuration leads to errors, missed options, and frustrated customers.
+Custom mirror and lighting products have dozens of configuration options across multiple categories that change based on product lines and compatibility rules. Manual configuration leads to errors, missed options, and frustrated customers.
 
-**Our Solution:** Intuitive interface that guides users through each configuration step with real-time visual feedback.
+**Our Solution:** Intelligent, rules-based configuration interface that dynamically presents only valid options based on backend-defined compatibility rules and product line specifications.
 
 ### Inefficient Quoting Process
 
 Traditional quoting requires back-and-forth communication, manual calculations, and delays that can lose sales. This results in 40% longer sales cycles and increased administrative costs.
 
-**Our Solution:** Instant quote generation with all specifications documented and exportable.
+**Our Solution:** Instant quote generation with all specifications documented and exportable, powered by real-time API data.
 
 ### Visualization Challenges
 
 Customers struggle to envision how different options will look together. Static catalogs and sample photos don't show the exact configuration being considered.
 
-**Our Solution:** Dynamic SVG-based rendering that updates in real-time as options are selected.
+**Our Solution:** Dynamic SVG-based rendering that updates in real-time as options are selected, with images and styling controlled by backend rules.
 
 ## Differentiators
 
+### Fully Dynamic, Data-Driven Architecture
+
+Unlike competitors with hard-coded product catalogs, our configurator is 100% API-driven. Product Lines (Deco, Thin, Tech), configuration categories, and business rules are all loaded dynamically from Supabase. Backend administrators can add new products, modify options, or change business rules without touching code or requiring deployments.
+
 ### Real-Time Visual Configuration
 
-Unlike traditional catalog-based systems, we provide instant visual feedback using dynamic SVG layers. This results in 60% fewer revision requests and higher customer satisfaction.
+Unlike traditional catalog-based systems, we provide instant visual feedback using dynamic SVG layers controlled by backend rules. This results in 60% fewer revision requests and higher customer satisfaction.
 
-### Comprehensive Option Coverage
+### Backend-Agnostic Flexibility
 
-Unlike competitors who limit options to simplify their tools, we support all 13 configuration categories with intelligent filtering. This enables us to serve both simple and complex custom requirements.
-
-### Cloud-Native Architecture
-
-Unlike legacy desktop configurators, our Supabase-powered solution provides anywhere access with automatic updates. This enables teams to collaborate in real-time and access quotes from any device.
+Unlike monolithic configurators, our presentation layer is completely separated from business logic. All product definitions, compatibility rules, and pricing logic live in the Supabase backend, enabling rapid business changes and A/B testing without frontend modifications.
 
 ## Key Features
 
 ### Core Features
 
-- **Product Line Selection:** Choose from Deco, Thin, and Tech mirror lines with line-specific options
-- **Visual Configuration:** Real-time SVG rendering showing exact product appearance
-- **Smart Filtering:** Options automatically filter based on product line compatibility
-- **Custom Dimensions:** Support for both preset and custom width/height specifications
-- **Instant Quoting:** Generate detailed quotes with full specifications and pricing
+- **Dynamic Product Line Loading:** Product Lines (Deco, Thin, Tech) and their available options are loaded directly from the Supabase API in real-time
+- **API-Driven Configuration Categories:** All 13+ configuration categories are dynamically determined by backend data, not hard-coded in the frontend
+- **Rules Engine Integration:** Compatibility rules, pricing logic, and option filtering are processed from backend-defined rules stored in Supabase
+- **Real-Time Visual Rendering:** Dynamic SVG generation based on API-provided styling rules and product images
+- **Instant Quote Generation:** Generate detailed quotes with specifications dynamically assembled from API data
+
+### Dynamic Architecture Features
+
+- **Zero-Deployment Product Updates:** Backend administrators can add new product lines, modify options, or change rules without requiring code changes
+- **API-Driven Business Logic:** All product compatibility, pricing calculations, and SKU generation rules are defined in Supabase tables
+- **Dynamic Option Filtering:** Available options automatically adjust based on backend-defined product relationships and rules
+- **Flexible Product Taxonomy:** Product hierarchies, option categories, and relationships are entirely data-driven from the API
+- **Runtime Configuration:** The configurator adapts its interface and behavior based on real-time API responses
 
 ### Collaboration Features
 
-- **Quote Export:** Share configurations as JSON for team review
-- **Multi-Product Cart:** Configure multiple products in a single session
-- **Customer Data Collection:** Capture contact information for follow-up
-- **SKU Generation:** Automatic product code creation for ordering
-- **Accessibility Options:** Include anti-fog, night lights, and other accessories
+- **Quote Export:** Share configurations as JSON with all data sourced from live API
+- **Multi-Product Cart:** Configure multiple products with dynamic cross-product compatibility checking
+- **Customer Data Collection:** Capture contact information with backend-configurable form fields
+- **Dynamic SKU Generation:** Automatic product code creation based on API-defined rules and hierarchies
+- **Backend-Controlled Accessibility:** Include accessories and options dynamically loaded from product line definitions

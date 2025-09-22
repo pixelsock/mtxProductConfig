@@ -6,10 +6,10 @@
 React 18.2.0 with Vite 4.4.5
 
 ### Database System
-Supabase (PostgreSQL)
+Supabase 2.50.0 (PostgreSQL)
 
 ### Frontend Framework
-React 18.2.0 with TypeScript
+React 18.2.0 with TypeScript 5.0.2
 
 ### Backend Framework
 Supabase REST API + Edge Functions

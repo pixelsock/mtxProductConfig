@@ -1,5 +1,5 @@
 # Product Mission (Lite)
 
-MTX Product Configurator is a web-based configuration tool that helps contractors, designers, and consumers easily configure and quote custom-made mirror and lighting products by providing real-time visualization and seamless product customization.
+MTX Product Configurator is a fully dynamic, API-driven configuration tool that helps contractors, designers, and consumers easily configure and quote custom-made mirror and lighting products with all business logic, product options, and rules controlled by the Supabase backend for zero-deployment updates.
 
-The configurator serves building professionals and designers who need efficient custom product specification with accurate quoting. Unlike traditional catalog systems, MTX provides instant visual feedback through dynamic SVG rendering and comprehensive option coverage across 13 configuration categories, reducing revision requests by 60% while enabling both simple and complex customizations.
+The configurator serves building professionals and designers who need efficient custom product specification with accurate quoting. Unlike traditional hard-coded catalog systems, MTX provides a completely dynamic architecture where Product Lines (Deco, Thin, Tech), configuration categories, and business rules are loaded in real-time from the API, enabling instant backend updates without code deployment while delivering real-time visual feedback and comprehensive option coverage.

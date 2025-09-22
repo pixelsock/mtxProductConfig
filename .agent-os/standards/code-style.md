@@ -19,6 +19,13 @@ ELSE:
 - Align nested structures for readability
 
 ### Naming Conventions
+
+**For TypeScript/JavaScript Projects** (like MTX Product Configurator):
+- **Methods and Variables**: Use camelCase (e.g., `currentConfig`, `updateConfiguration`)
+- **Types and Interfaces**: Use PascalCase (e.g., `ProductConfiguration`, `APIResponse`)
+- **Constants**: Use UPPER_SNAKE_CASE (e.g., `MAX_RETRY_COUNT`)
+
+**For Ruby/Rails Projects**:
 - **Methods and Variables**: Use snake_case (e.g., `user_profile`, `calculate_total`)
 - **Classes and Modules**: Use PascalCase (e.g., `UserProfile`, `PaymentProcessor`)
 - **Constants**: Use UPPER_SNAKE_CASE (e.g., `MAX_RETRY_COUNT`)
