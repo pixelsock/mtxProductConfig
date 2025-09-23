@@ -1,0 +1,3 @@
+# Spec Summary (Lite)
+
+Fix the product override filtering bug where selecting products with option overrides incorrectly removes or filters other option sets that should remain unaffected. Product overrides should only affect their specifically targeted option collections, while other collections like Light Direction should maintain full availability when Circle products filter sizes from 9 to 2 options.
