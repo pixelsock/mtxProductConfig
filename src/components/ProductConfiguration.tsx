@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
@@ -11,6 +11,8 @@ import { Skeleton } from './ui/skeleton';
 import { PaginationControls } from './ui/pagination-controls';
 import { Plus, Loader2, Database, AlertCircle, Trash2, BarChart3 } from 'lucide-react';
 import { emptyConfigurationOptions } from '../hooks/useConfigurationData';
+import { buildOrderedComponentConfigs, validateComponentMappings } from '../utils/componentMapping';
+import type { ConfigurationUI, ProductOptions } from '../store/types';
 
 interface PaginationState {
   currentPage: number;
@@ -25,6 +27,7 @@ interface ProductConfigurationProps {
   onUpdateConfiguration: (key: string, value: any) => void;
   onAddToQuote: () => void;
   configurationOptions?: any;
+  configurationUI?: ConfigurationUI[];
   matchingSKUs?: any[];
   isLoadingOptions?: boolean;
   optionsError?: string | null;
@@ -46,6 +49,7 @@ export function ProductConfiguration({
   onUpdateConfiguration,
   onAddToQuote,
   configurationOptions,
+  configurationUI = [],
   matchingSKUs = [],
   isLoadingOptions = false,
   optionsError = null,
@@ -62,6 +66,56 @@ export function ProductConfiguration({
   const [showCacheStats, setShowCacheStats] = useState(false);
   // Use only dynamic options from database - no fallback data
   const options = configurationOptions || emptyConfigurationOptions;
+
+  // Build dynamic component configurations based on configuration_ui data
+  const dynamicComponentConfigs = useMemo(() => {
+    if (!configurationUI || configurationUI.length === 0) {
+      console.warn('⚠️ No configuration_ui data available - using fallback component order');
+      return [];
+    }
+
+    // Validate configuration_ui data integrity
+    const validation = validateComponentMappings(configurationUI);
+    if (!validation.isValid) {
+      console.error('❌ Configuration UI data inconsistencies detected:', validation.errors);
+      if (debugMode) {
+        validation.errors.forEach(error => console.error(`   - ${error}`));
+      }
+    }
+
+    if (!options || Object.values(options).every(opt => !opt || !Array.isArray(opt) || opt.length === 0)) {
+      console.warn('⚠️ No product options available - cannot build component configs');
+      return [];
+    }
+
+    try {
+      // Convert legacy options format to ProductOptions format
+      const productOptions: ProductOptions = {
+        mirrorControls: options.mirrorControls || [],
+        frameColors: options.frameColors || [],
+        frameThickness: options.frameThickness || [],
+        mirrorStyles: options.mirrorStyles || [],
+        mountingOptions: options.mountingOptions || [],
+        lightingOptions: options.lightingOptions || [],
+        colorTemperatures: options.colorTemperatures || [],
+        lightOutputs: options.lightOutputs || [],
+        drivers: options.drivers || [],
+        accessoryOptions: options.accessories || [],
+        sizes: options.sizes || [],
+      };
+
+      const configs = buildOrderedComponentConfigs(configurationUI, productOptions);
+
+      if (debugMode) {
+        console.log('🎛️ Dynamic component configurations built:', configs);
+      }
+
+      return configs;
+    } catch (error) {
+      console.error('❌ Failed to build dynamic component configurations:', error);
+      return [];
+    }
+  }, [configurationUI, options, debugMode]);
   
   const getSelectedOptionLabel = (fieldName: string, value: string) => {
     if (!value || !options) return 'Not selected';
@@ -204,150 +258,65 @@ export function ProductConfiguration({
         </div>
       ) : (
         <>
-          {/* Frame Colors */}
-          {options.frameColors && options.frameColors.length > 0 && (
-            <ConfigurationOption
-              title="Frame Color"
-              description={`Choose from ${options.frameColors.length} available frame colors`}
-              type="grid"
-              options={options.frameColors.map(opt => ({
-                id: opt.id,
-                name: opt.label,
-                sku: `${opt.count} SKUs`,
-                value: opt.value || opt.id,
-                count: opt.count,
-                description: opt.description,
-                sampleSkus: opt.sampleSkus
-              }))}
-              selected={configuration.frameColor}
-              onSelect={(value) => onUpdateConfiguration('frameColor', value)}
-              columns={2}
-              debugMode={debugMode}
-            />
-          )}
+          {/* Dynamic Configuration Options Rendered from Database */}
+          {dynamicComponentConfigs.length > 0 ? (
+            dynamicComponentConfigs.map((componentConfig) => {
+              const optionsData = options[componentConfig.optionsKey];
 
-          {/* Sizes */}
-          {options.sizes && options.sizes.length > 0 && (
-            <ConfigurationOption
-              title="Size"
-              description={`Choose from ${options.sizes.length} available sizes`}
-              type="grid"
-              options={options.sizes.map(opt => ({
-                id: opt.id,
-                name: opt.label,
-                sku: `${opt.count} SKUs`,
-                value: opt.value || opt.id,
-                count: opt.count,
-                description: opt.description,
-                sampleSkus: opt.sampleSkus
-              }))}
-              selected={configuration.size}
-              onSelect={(value) => onUpdateConfiguration('size', value)}
-              columns={2}
-              debugMode={debugMode}
-            />
-          )}
+              if (!optionsData || !Array.isArray(optionsData) || optionsData.length === 0) {
+                if (debugMode) {
+                  console.warn(`⚠️ No options data for ${componentConfig.collection} (${componentConfig.optionsKey})`);
+                }
+                return null;
+              }
 
-          {/* Light Outputs */}
-          {options.lightOutputs && options.lightOutputs.length > 0 && (
-            <ConfigurationOption
-              title="Light Output"
-              description={`Choose from ${options.lightOutputs.length} available light output options`}
-              type="single"
-              options={options.lightOutputs.map(opt => ({
-                id: opt.id,
-                name: opt.label,
-                sku: `${opt.count} SKUs`,
-                value: opt.value
-              }))}
-              selected={configuration.lightOutput}
-              onSelect={(value) => onUpdateConfiguration('lightOutput', value)}
-            />
-          )}
-
-          {/* Color Temperatures */}
-          {options.colorTemperatures && options.colorTemperatures.length > 0 && (
-            <ConfigurationOption
-              title="Color Temperature"
-              description={`Choose from ${options.colorTemperatures.length} available color temperatures`}
-              type="single"
-              options={options.colorTemperatures.map(opt => ({
-                id: opt.id,
-                name: opt.label,
-                sku: `${opt.count} SKUs`,
-                value: opt.value
-              }))}
-              selected={configuration.colorTemperature}
-              onSelect={(value) => onUpdateConfiguration('colorTemperature', value)}
-            />
-          )}
-
-          {/* Mounting Options */}
-          {options.mountingOptions && options.mountingOptions.length > 0 && (
-            <ConfigurationOption
-              title="Mounting Options"
-              description={`Choose from ${options.mountingOptions.length} available mounting options`}
-              type="single"
-              options={options.mountingOptions.map(opt => ({
-                id: opt.id,
-                name: opt.label,
-                sku: `${opt.count} SKUs`,
-                value: opt.value
-              }))}
-              selected={configuration.mounting}
-              onSelect={(value) => onUpdateConfiguration('mounting', value)}
-            />
-          )}
-
-          {/* Accessories */}
-          {options.accessories && options.accessories.length > 0 && (
-            <ConfigurationOption
-              title="Accessories"
-              description={`Choose from ${options.accessories.length} available accessories`}
-              type="single"
-              options={options.accessories.map(opt => ({
-                id: opt.id,
-                name: opt.label,
-                sku: `${opt.count} SKUs`,
-                value: opt.value
-              }))}
-              selected={configuration.accessory}
-              onSelect={(value) => onUpdateConfiguration('accessory', value)}
-            />
-          )}
-
-          {/* Drivers */}
-          {options.drivers && options.drivers.length > 0 && (
-            <ConfigurationOption
-              title="Drivers"
-              description={`Choose from ${options.drivers.length} available drivers`}
-              type="single"
-              options={options.drivers.map(opt => ({
-                id: opt.id,
-                name: opt.label,
-                sku: `${opt.count} SKUs`,
-                value: opt.value
-              }))}
-              selected={configuration.driver}
-              onSelect={(value) => onUpdateConfiguration('driver', value)}
-            />
-          )}
-
-          {/* Mirror Styles */}
-          {options.mirrorStyles && options.mirrorStyles.length > 0 && (
-            <ConfigurationOption
-              title="Mirror Styles"
-              description={`Choose from ${options.mirrorStyles.length} available mirror styles`}
-              type="single"
-              options={options.mirrorStyles.map(opt => ({
-                id: opt.id,
-                name: opt.label,
-                sku: `${opt.count} SKUs`,
-                value: opt.value
-              }))}
-              selected={configuration.mirrorStyle}
-              onSelect={(value) => onUpdateConfiguration('mirrorStyle', value)}
-            />
+              return (
+                <ConfigurationOption
+                  key={componentConfig.collection}
+                  title={componentConfig.title}
+                  description={componentConfig.description}
+                  type={componentConfig.type}
+                  options={optionsData.map(opt => ({
+                    id: opt.id,
+                    name: opt.label,
+                    sku: `${opt.count || 0} SKUs`,
+                    value: opt.value || opt.id,
+                    count: opt.count,
+                    description: opt.description,
+                    sampleSkus: opt.sampleSkus
+                  }))}
+                  selected={configuration[componentConfig.configKey]}
+                  onSelect={(value) => onUpdateConfiguration(componentConfig.configKey, value)}
+                  columns={componentConfig.columns}
+                  debugMode={debugMode}
+                />
+              );
+            })
+          ) : (
+            <div className="text-center py-12">
+              <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Dynamic Configuration Unavailable</h3>
+              <p className="text-gray-600 mb-6">
+                Configuration UI data is missing or invalid. Component ordering cannot be determined from the database.
+              </p>
+              {debugMode && (
+                <div className="text-left bg-gray-50 p-4 rounded-lg mb-4">
+                  <p className="text-sm text-gray-700 mb-2">Debug Info:</p>
+                  <ul className="text-xs text-gray-600 list-disc list-inside space-y-1">
+                    <li>Configuration UI records: {configurationUI.length}</li>
+                    <li>Product options available: {Object.keys(options).length}</li>
+                    <li>Dynamic component configs built: {dynamicComponentConfigs.length}</li>
+                  </ul>
+                </div>
+              )}
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="border-[#F59E0B] text-[#F59E0B] hover:bg-[#F59E0B] hover:text-white"
+              >
+                Retry Loading
+              </Button>
+            </div>
           )}
         </>
       )}
