@@ -56,8 +56,7 @@ export const { productLines, products, rules } = testFixtures;
     console.log(`📊 Data summary:
     - Product Lines: ${fixtures.productLines.length}
     - Products: ${fixtures.products.length}
-    - Rules: ${fixtures.rules.length}
-    - Configuration UI: ${fixtures.configurationUI.length}`);
+    - Rules: ${fixtures.rules.length}`);
   } catch (error) {
     console.error("❌ Failed to generate fixtures:", error);
     process.exit(1);
