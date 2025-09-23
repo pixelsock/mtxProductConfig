@@ -25,44 +25,17 @@ export interface SKUGenerationConfig {
  * @returns Generated SKU string
  */
 export async function generateProductSKU(config: SKUGenerationConfig): Promise<string> {
-  try {
-    // Build evaluation context for rules (using IDs)
-    const ruleContext = {
-      product_line: config.product_line || config.productLine?.id,
-      frame_thickness: config.frame_thickness || config.frameThickness?.id,
-      mirror_style: config.mirror_style || config.mirrorStyle?.id,
-      light_direction: config.light_direction || config.lightDirection?.id
-    };
-
-    console.log('🔧 SKU Generation Context:', {
-      productLine: `${config.productLine?.name} (ID: ${ruleContext.product_line})`,
-      frameThickness: `${config.frameThickness?.name} (ID: ${ruleContext.frame_thickness})`,
-      mirrorStyle: `${config.mirrorStyle?.name} (ID: ${ruleContext.mirror_style})`,
-      lightDirection: `${config.lightDirection?.name} (ID: ${ruleContext.light_direction})`
-    });
-
-    // Check for rule-based SKU override
-    const skuOverride = await getSKUOverride(ruleContext);
-    
-    // Use override if available, otherwise use product line SKU
-    let baseSKU = skuOverride || config.productLine?.sku_code || '';
-    
-    console.log(`📝 Base SKU: "${baseSKU}" (from ${skuOverride ? 'rules override' : 'product line'})`);
-    
-    // Add style code if applicable
-    const styleSKU = appendStyleCode(baseSKU, config.mirrorStyle);
-    
-    // Add light direction suffix
-    const finalSKU = appendLightDirectionSuffix(styleSKU, config.lightDirection);
-    
-    console.log(`✅ Final SKU: ${finalSKU}`);
-    
-    return finalSKU;
-  } catch (error) {
-    console.error('Failed to generate SKU:', error);
-    // Return empty string if SKU generation fails
-    return '';
-  }
+  // SIMPLIFIED: We don't generate SKUs, we find products that match the configuration
+  // This function is now just used for debugging/logging purposes
+  console.log('🔧 Configuration Context:', {
+    productLine: `${config.productLine?.name} (ID: ${config.product_line})`,
+    frameThickness: `${config.frameThickness?.name} (ID: ${config.frame_thickness})`,
+    mirrorStyle: `${config.mirrorStyle?.name} (ID: ${config.mirror_style})`,
+    lightDirection: `${config.lightDirection?.name} (ID: ${config.light_direction})`
+  });
+  
+  // Return empty string since we'll find products by matching criteria, not generating SKUs
+  return '';
 }
 
 /**

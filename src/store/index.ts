@@ -81,6 +81,7 @@ export const useUIState = () => {
 
 export const useProductOptions = () => useConfiguratorStore((state) => state.productOptions);
 export const useAvailableProductLines = () => useConfiguratorStore((state) => state.availableProductLines);
+export const useConfigurationUI = () => useConfiguratorStore((state) => state.configurationUI);
 export const useDisabledOptionIds = () => useConfiguratorStore((state) => state.disabledOptionIds);
 export const useIsLoadingApp = () => useConfiguratorStore((state) => state.isLoadingApp);
 export const useIsLoadingProductLine = () => useConfiguratorStore((state) => state.isLoadingProductLine);
@@ -90,6 +91,7 @@ export const useError = () => useConfiguratorStore((state) => state.error);
 export const useAPIState = () => {
   const productOptions = useProductOptions();
   const availableProductLines = useAvailableProductLines();
+  const configurationUI = useConfigurationUI();
   const disabledOptionIds = useDisabledOptionIds();
   const isLoadingApp = useIsLoadingApp();
   const isLoadingProductLine = useIsLoadingProductLine();
@@ -99,12 +101,13 @@ export const useAPIState = () => {
   return useMemo(() => ({
     productOptions,
     availableProductLines,
+    configurationUI,
     disabledOptionIds,
     isLoadingApp,
     isLoadingProductLine,
     isComputingAvailability,
     error,
-  }), [productOptions, availableProductLines, disabledOptionIds, isLoadingApp, isLoadingProductLine, isComputingAvailability, error]);
+  }), [productOptions, availableProductLines, configurationUI, disabledOptionIds, isLoadingApp, isLoadingProductLine, isComputingAvailability, error]);
 };
 
 export const useQuoteItems = () => useConfiguratorStore((state) => state.quoteItems);
@@ -168,6 +171,7 @@ export const useUIActions = () => {
 export const useAPIActions = () => {
   const setProductOptions = useConfiguratorStore((state) => state.setProductOptions);
   const setAvailableProductLines = useConfiguratorStore((state) => state.setAvailableProductLines);
+  const setConfigurationUI = useConfiguratorStore((state) => state.setConfigurationUI);
   const setDisabledOptions = useConfiguratorStore((state) => state.setDisabledOptions);
   const setLoadingApp = useConfiguratorStore((state) => state.setLoadingApp);
   const setLoadingProductLine = useConfiguratorStore((state) => state.setLoadingProductLine);
@@ -180,6 +184,7 @@ export const useAPIActions = () => {
   return useMemo(() => ({
     setProductOptions,
     setAvailableProductLines,
+    setConfigurationUI,
     setDisabledOptions,
     setLoadingApp,
     setLoadingProductLine,
@@ -188,7 +193,7 @@ export const useAPIActions = () => {
     clearError,
     loadProductLineOptions,
     recomputeFiltering,
-  }), [setProductOptions, setAvailableProductLines, setDisabledOptions, setLoadingApp, setLoadingProductLine, setComputingAvailability, setError, clearError, loadProductLineOptions, recomputeFiltering]);
+  }), [setProductOptions, setAvailableProductLines, setConfigurationUI, setDisabledOptions, setLoadingApp, setLoadingProductLine, setComputingAvailability, setError, clearError, loadProductLineOptions, recomputeFiltering]);
 };
 
 export const useQuoteActions = () => {

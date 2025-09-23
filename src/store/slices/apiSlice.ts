@@ -6,12 +6,13 @@
  * providing centralized state management for API-related data.
  */
 
-import { APISlice, ProductOptions, ProductConfig, ProductLine, StoreSet, StoreGet } from '../types';
+import { APISlice, ProductOptions, ProductConfig, ProductLine, ConfigurationUIItem, StoreSet, StoreGet } from '../types';
 
 export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
   // State
   productOptions: null,
   availableProductLines: [],
+  configurationUI: [],
   disabledOptionIds: {},
   isLoadingApp: true,
   isLoadingProductLine: false,
@@ -30,6 +31,13 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
     set((state) => ({
       ...state,
       availableProductLines: lines,
+    }));
+  },
+
+  setConfigurationUI: (configUI: ConfigurationUIItem[]) => {
+    set((state) => ({
+      ...state,
+      configurationUI: configUI,
     }));
   },
 
@@ -280,19 +288,114 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
       // Get filtered options using existing two-level approach
       const filteringResult = getFilteredOptions(currentSelection, productLine.id);
 
-      // Convert filtering result to expected format
+      // STEP 3: Apply rules to get additional disabled options
+      let ruleDisabledOptions: Record<string, number[]> = {};
+      try {
+        if (import.meta.env.DEV) {
+          console.log('⚙️ STARTING rules evaluation with config:', config);
+        }
+        
+        const { applyRulesComplete } = await import('../../services/rules-ui-integration');
+        const rulesResult = await applyRulesComplete(config, productLine.id);
+        ruleDisabledOptions = rulesResult.disabledOptions || {};
+        
+        // Apply rule-set values to configuration if any rules set values
+        const setValuesKeys = Object.keys(rulesResult.setValues || {});
+        if (setValuesKeys.length > 0) {
+          if (import.meta.env.DEV) {
+            console.log('⚙️ Applying rule-set values to configuration:', rulesResult.setValues);
+          }
+          
+          // Get configuration actions to update values
+          const { updateConfiguration } = get();
+          
+          // Apply each rule-set value to the store config (string form)
+          setValuesKeys.forEach((field) => {
+            const value = (rulesResult.setValues as any)[field];
+            if (import.meta.env.DEV) {
+              console.log(`⚙️ Setting ${field} = ${value} due to rules`);
+            }
+            updateConfiguration(field as keyof ProductConfig, value != null ? value.toString() : '');
+          });
+
+          // Single re-evaluation pass with the rule-set values applied to avoid missing cascading rule effects
+          const effectiveConfig = {
+            ...config,
+            ...Object.fromEntries(
+              setValuesKeys.map((k) => [k, ((rulesResult.setValues as any)[k] ?? '').toString()])
+            ),
+          } as ProductConfig;
+
+          if (import.meta.env.DEV) {
+            console.log('🔁 Re-running rules with effective config after applying set values:', effectiveConfig);
+          }
+          const secondPass = await applyRulesComplete(effectiveConfig, productLine.id);
+
+          // Merge disabled options from the second pass
+          const mergeRuleDisabled = (target: Record<string, number[]>, source: Record<string, number[]>) => {
+            Object.entries(source || {}).forEach(([k, v]) => {
+              const existing = new Set(target[k] || []);
+              (v || []).forEach((id) => existing.add(id));
+              target[k] = Array.from(existing);
+            });
+          };
+          mergeRuleDisabled(ruleDisabledOptions, secondPass.disabledOptions || {});
+        }
+        
+        if (import.meta.env.DEV) {
+          console.log('⚙️ FINISHED rules evaluation. Results:', ruleDisabledOptions);
+          if (Object.keys(ruleDisabledOptions).length === 0) {
+            console.log('⚠️ No rules disabled any options - this might indicate an issue');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to apply rules for disabled options:', error);
+      }
+
+      // Convert filtering result to expected format and merge with rules
       const disabledOptions = {
-        mirror_styles: filteringResult.disabled.mirror_styles?.map(id => parseInt(id)) || [],
-        light_directions: filteringResult.disabled.light_directions?.map(id => parseInt(id)) || [],
-        frame_thicknesses: filteringResult.disabled.frame_thicknesses?.map(id => parseInt(id)) || [],
-        frame_colors: filteringResult.disabled.frame_colors?.map(id => parseInt(id)) || [],
-        mounting_options: filteringResult.disabled.mounting_options?.map(id => parseInt(id)) || [],
-        drivers: filteringResult.disabled.drivers?.map(id => parseInt(id)) || [],
-        color_temperatures: filteringResult.disabled.color_temperatures?.map(id => parseInt(id)) || [],
-        light_outputs: filteringResult.disabled.light_outputs?.map(id => parseInt(id)) || [],
-        sizes: filteringResult.disabled.sizes?.map(id => parseInt(id)) || [],
-        accessories: filteringResult.disabled.accessories?.map(id => parseInt(id)) || []
+        mirror_styles: [...(filteringResult.disabled.mirror_styles?.map(id => parseInt(id)) || [])],
+        light_directions: [...(filteringResult.disabled.light_directions?.map(id => parseInt(id)) || [])],
+        frame_thicknesses: [...(filteringResult.disabled.frame_thicknesses?.map(id => parseInt(id)) || [])],
+        frame_colors: [...(filteringResult.disabled.frame_colors?.map(id => parseInt(id)) || [])],
+        mounting_options: [...(filteringResult.disabled.mounting_options?.map(id => parseInt(id)) || [])],
+        drivers: [...(filteringResult.disabled.drivers?.map(id => parseInt(id)) || [])],
+        color_temperatures: [...(filteringResult.disabled.color_temperatures?.map(id => parseInt(id)) || [])],
+        light_outputs: [...(filteringResult.disabled.light_outputs?.map(id => parseInt(id)) || [])],
+        sizes: [...(filteringResult.disabled.sizes?.map(id => parseInt(id)) || [])],
+        accessories: [...(filteringResult.disabled.accessories?.map(id => parseInt(id)) || [])]
       };
+      
+      // ENHANCED: Merge rules-disabled options and handle rule-set values
+      Object.entries(ruleDisabledOptions).forEach(([key, disabledIds]) => {
+        if (key.endsWith('_rule_set')) {
+          // This is a rule that sets a value - disable all alternatives
+          const collection = key.replace('_rule_set', '');
+          const setValue = Array.isArray(disabledIds) ? disabledIds[0] : disabledIds;
+          
+          if (disabledOptions[collection] && setValue) {
+            // Get all available options for this collection from filtering result
+            const allAvailableIds = filteringResult.available[collection]?.map(id => parseInt(id)) || [];
+            
+            // Disable everything EXCEPT the set value
+            const alternativesToDisable = allAvailableIds.filter(id => id !== setValue);
+            
+            if (import.meta.env.DEV) {
+              console.log(`⚙️ Rule sets ${collection} = ${setValue}, disabling ${alternativesToDisable.length} alternatives:`, alternativesToDisable);
+            }
+            
+            // Merge with existing disabled options
+            const existingIds = new Set(disabledOptions[collection]);
+            alternativesToDisable.forEach(id => existingIds.add(id));
+            disabledOptions[collection] = Array.from(existingIds);
+          }
+        } else if (Array.isArray(disabledIds) && disabledOptions[key]) {
+          // Direct disabled IDs from rules
+          const existingIds = new Set(disabledOptions[key]);
+          disabledIds.forEach(id => existingIds.add(id));
+          disabledOptions[key] = Array.from(existingIds);
+        }
+      });
 
       setDisabledOptions(disabledOptions);
 

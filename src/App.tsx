@@ -80,6 +80,7 @@ import { selectProductImage, constructDirectusAssetUrl } from "./services/image-
 import { ProductLineSelector } from "./components/ui/product-line-selector";
 import { CurrentConfiguration } from "./components/ui/current-configuration";
 import { EnvironmentIndicator } from "./components/ui/environment-indicator";
+import { DynamicConfigurationRenderer } from "./components/DynamicConfigurationRenderer";
 
 // Interfaces moved to store/types.ts
 
@@ -111,6 +112,7 @@ const App: React.FC = () => {
   const {
     productOptions,
     availableProductLines,
+    configurationUI,
     disabledOptionIds,
     isLoadingApp,
     isLoadingProductLine,
@@ -143,6 +145,7 @@ const App: React.FC = () => {
   const {
     setProductOptions,
     setAvailableProductLines,
+    setConfigurationUI,
     setDisabledOptions,
     setLoadingApp,
     setLoadingProductLine,
@@ -194,61 +197,40 @@ const App: React.FC = () => {
       if (!mirrorStyle || !lightDirection) return;
       
       try {
-        // Build configuration context for rules (ensure all values are primitives, not objects)
-        const configContext = {
-          product_line: currentConfig.productLineId,
-          frame_thickness: frameThickness?.id,
-          mirror_style: mirrorStyle.id,
-          light_direction: lightDirection.id,
-          // Add other relevant fields as numbers
-          mirror_control: parseInt(currentConfig.mirrorControls),
-          frame_color: parseInt(currentConfig.frameColor),
-          mounting: parseInt(currentConfig.mounting),
-          driver: currentConfig.driver ? parseInt(currentConfig.driver) : undefined
-        };
+        // SIMPLIFIED: Just log the current configuration for debugging
+        if (import.meta.env.DEV) {
+          console.log('🔧 Current Configuration:', {
+            productLine: currentProductLine.name,
+            frameThickness: frameThickness?.name,
+            mirrorStyle: mirrorStyle?.name,
+            lightDirection: lightDirection?.name
+          });
+        }
         
-        // Process rules to get any overrides
-        const processedConfig = await processRules(configContext);
-        
-        // Generate SKU with rules applied (ensure we pass primitive IDs for rule evaluation)
-        const generatedSKU = await generateProductSKU({
-          productLine: currentProductLine,
-          frameThickness,
-          mirrorStyle,
-          lightDirection,
-          // Pass the primitive IDs for rule evaluation, not the processed config objects
-          product_line: configContext.product_line,
-          frame_thickness: configContext.frame_thickness,
-          mirror_style: configContext.mirror_style,
-          light_direction: configContext.light_direction
-        });
-        
-        if (import.meta.env.DEV) console.log('🔍 SKU Generation Debug:', {
-          productLine: currentProductLine.name,
-          frameThickness: frameThickness?.name,
-          generatedSKU,
-          rulesApplied: JSON.stringify(processedConfig) !== JSON.stringify(configContext)
-        });
-        
-        // Find best matching product
-        const mirrorStyleCode = mirrorStyle?.sku_code ? parseInt(mirrorStyle.sku_code, 10) : undefined;
+        // Find product that matches current configuration
         const product = await findBestMatchingProduct({
-          sku: generatedSKU,
           productLineId: currentConfig.productLineId,
           mirrorStyleId: mirrorStyle?.id,
-          mirrorStyleCode,
-          lightDirectionId: lightDirection.id
+          lightDirectionId: lightDirection.id,
+          frameThicknessId: frameThickness?.id
         });
         
-        if (import.meta.env.DEV) console.log('🔍 Product Match Debug:', {
-          foundProduct: !!product,
-          productName: product?.name,
-          productId: product?.id,
-          hasVerticalImage: !!product?.vertical_image,
-          hasHorizontalImage: !!product?.horizontal_image,
-          verticalImage: product?.vertical_image,
-          horizontalImage: product?.horizontal_image
-        });
+        if (import.meta.env.DEV) {
+          console.log('🔍 Product Match Debug:', {
+            searchCriteria: {
+              productLineId: currentConfig.productLineId,
+              mirrorStyleId: mirrorStyle?.id,
+              frameThicknessId: frameThickness?.id,
+              lightDirectionId: lightDirection.id
+            },
+            foundProduct: !!product,
+            productName: product?.name,
+            productSKU: product?.name, // The product name IS the SKU
+            productId: product?.id,
+            hasVerticalImage: !!product?.vertical_image,
+            hasHorizontalImage: !!product?.horizontal_image
+          });
+        }
         
         // Set the product if found
         setCurrentProduct(product);
@@ -354,6 +336,12 @@ const App: React.FC = () => {
 
       // Initialize filtering system
       await initializeFiltering();
+
+      // Load configuration UI settings
+      const { getConfigurationUI } = await import('./services/supabase');
+      const configUI = await getConfigurationUI();
+      setConfigurationUI(configUI || []);
+      console.log('🎨 Configuration UI loaded:', configUI?.length || 0, 'items');
 
       // Show schema information
       const schemaInfo = getSchemaInfo();
@@ -929,437 +917,17 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {/* Configuration Options - REORDERED ACCORDING TO SPECIFICATION */}
-            {currentConfig && (
-            <div className="space-y-10">
-              {/* 1. Mirror Controls */}
-              {productOptions.mirrorControls.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Mirror Controls</h3>
-                <div className="space-y-3">
-                  {productOptions.mirrorControls.map((control) => (
-                    <button
-                      key={control.id}
-                      onClick={() => handleConfigChange("mirrorControls", control.id.toString())}
-                      className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                        currentConfig.mirrorControls === control.id.toString()
-                          ? "border-amber-500 bg-amber-50"
-                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-gray-900 mb-1">{control.name}</div>
-                          <div className="text-sm text-gray-600">{control.description}</div>
-                        </div>
-                        <Badge variant="outline">{control.sku_code}</Badge>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              )}
-
-              {/* 2. Frame Color */}
-              {productOptions.frameColors.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Frame Color</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {productOptions.frameColors.map((color) => (
-                    <button
-                      key={color.id}
-                      onClick={() => handleConfigChange("frameColor", color.id.toString())}
-                      className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                        currentConfig.frameColor === color.id.toString()
-                          ? "border-amber-500 bg-amber-50"
-                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
-                          style={{
-                            backgroundColor: color.hex_code || "#000000",
-                            borderColor: color.hex_code === "#FFFFFF" ? "#e5e5e5" : color.hex_code || "#000000",
-                          }}
-                        />
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900">{color.name}</div>
-                          <div className="text-sm text-gray-600">{color.sku_code}</div>
-                        </div>
-                        <Badge variant="outline">{color.sku_code}</Badge>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              )}
-
-              {/* 3. Frame Thickness */}
-              {productOptions.frameThickness.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Frame Thickness</h3>
-                <div className="space-y-3">
-                  {productOptions.frameThickness.map((thickness) => (
-                    <button
-                      key={thickness.id}
-                      onClick={() => handleConfigChange("frameThickness", thickness.id.toString())}
-                      className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                        currentConfig.frameThickness === thickness.id.toString()
-                          ? "border-amber-500 bg-amber-50"
-                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-gray-900 mb-1">{thickness.name}</div>
-                          {thickness.description && (
-                            <div className="text-sm text-gray-600">{thickness.description}</div>
-                          )}
-                        </div>
-                        <Badge variant="outline">{thickness.sku_code}</Badge>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              )}
-
-              {/* 4. Mirror Style */}
-              {productOptions.mirrorStyles.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Mirror Style</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {productOptions.mirrorStyles.map((style) => {
-                    const isDisabled = disabledOptionIds.mirror_styles?.includes(style.id) || false;
-                    return (
-                      <button
-                        key={style.id}
-                        onClick={() => !isDisabled && handleConfigChange("mirrorStyle", style.id.toString())}
-                        disabled={isDisabled}
-                        className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                          currentConfig.mirrorStyle === style.id.toString()
-                            ? "border-amber-500 bg-amber-50"
-                            : isDisabled
-                              ? "border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
-                              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className={`font-medium mb-1 ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>
-                              {style.name}
-                              {isDisabled && <span className="text-xs ml-2">(Not available)</span>}
-                            </div>
-                            <div className="text-sm text-gray-600">{style.description}</div>
-                          </div>
-                          <Badge variant="outline">{style.sku_code}</Badge>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              )}
-
-              {/* 5. Light Direction (mirror style compatibility) */}
-              {productOptions.lightingOptions.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Light Direction</h3>
-                <div className="space-y-3">
-                  {productOptions.lightingOptions.map((option) => {
-                    const Icon = iconMapping[option.name.toLowerCase()] || Zap;
-                    const isDisabled = disabledOptionIds.light_directions?.includes(option.id) || false;
-                    return (
-                      <button
-                        key={option.id}
-                        onClick={() => !isDisabled && handleConfigChange("lighting", option.id.toString())}
-                        disabled={isDisabled}
-                        className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                          currentConfig.lighting === option.id.toString()
-                            ? "border-amber-500 bg-amber-50"
-                            : isDisabled
-                              ? "border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
-                              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <Icon className={`w-5 h-5 flex-shrink-0 ${isDisabled ? 'text-gray-400' : 'text-gray-600'}`} />
-                          <div className="flex-1">
-                            <div className={`font-medium mb-1 ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>
-                              {option.name}
-                              {isDisabled && <span className="text-xs ml-2">(Not available)</span>}
-                            </div>
-                            <div className="text-sm text-gray-600">{option.description}</div>
-                          </div>
-                          <Badge variant="outline">{option.sku_code}</Badge>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              )}
-
-              {/* 6. Orientation (Mounting Options) */}
-              {productOptions.mountingOptions.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Orientation</h3>
-                <div className="space-y-3">
-                  {productOptions.mountingOptions.map((option) => {
-                    const Icon = iconMapping[option.name.toLowerCase()] || RotateCcw;
-                    const isDisabled = disabledOptionIds.mounting_options?.includes(option.id) || false;
-                    return (
-                      <button
-                        key={option.id}
-                        onClick={() => !isDisabled && handleConfigChange("mounting", option.id.toString())}
-                        disabled={isDisabled}
-                        className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                          currentConfig.mounting === option.id.toString()
-                            ? "border-amber-500 bg-amber-50"
-                            : isDisabled
-                              ? "border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
-                              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <Icon className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900 mb-1">{option.name}</div>
-                            <div className="text-sm text-gray-600">{option.description}</div>
-                          </div>
-                          <Badge variant="outline">{option.sku_code}</Badge>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              )}
-
-              {/* 7. Size */}
-              {(productOptions.sizes.length > 0 || useCustomSize) && (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-gray-900">Size</h3>
-                  <div className="flex items-center space-x-3">
-                    <Label htmlFor="custom-size-toggle" className="text-sm text-gray-700">
-                      Custom Size
-                    </Label>
-                    <Switch
-                      id="custom-size-toggle"
-                      checked={useCustomSize}
-                      onCheckedChange={setCustomSizeEnabled}
-                    />
-                  </div>
-                </div>
-
-                {useCustomSize ? (
-                  // Custom size inputs
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-gray-700">Width (inches)</Label>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          value={currentConfig.width}
-                          onChange={(e) => handleConfigChange("width", e.target.value)}
-                          min="12"
-                          max="120"
-                          className="text-center text-lg font-medium h-12 bg-gray-50 border-gray-200"
-                        />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                          in
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-gray-700">Height (inches)</Label>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          value={currentConfig.height}
-                          onChange={(e) => handleConfigChange("height", e.target.value)}
-                          min="12"
-                          max="120"
-                          className="text-center text-lg font-medium h-12 bg-gray-50 border-gray-200"
-                        />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                          in
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  // Default size presets
-                  <div className="grid grid-cols-2 gap-4">
-                    {productOptions.sizes.map((size) => (
-                      <button
-                        key={size.id}
-                        onClick={() => handleSizePresetSelectLocal(size)}
-                        className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                          getCurrentSizeId() === size.sku_code
-                            ? "border-amber-500 bg-amber-50"
-                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-gray-900 mb-1">{size.name}</div>
-                            <div className="text-sm text-gray-600">{size.width}" × {size.height}"</div>
-                          </div>
-                          <Badge variant="outline">{size.sku_code}</Badge>
-                        </div>
-                        {/* Active state is expressed via border/background; no check icon */}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              )}
-
-              {/* 8. Accessories */}
-              {productOptions.accessoryOptions.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Accessories</h3>
-                <div className="space-y-3">
-                  {productOptions.accessoryOptions.map((accessory) => {
-                      const isSelected = currentConfig.accessories.includes(accessory.id.toString());
-                      return (
-                        <button
-                          key={accessory.id}
-                          onClick={() => handleAccessoryToggle(accessory.id.toString())}
-                          className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                            isSelected
-                              ? "border-amber-500 bg-amber-50"
-                              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                          }`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="flex-1">
-                              <div className="font-medium text-gray-900 mb-1">{accessory.name}</div>
-                              <div className="text-sm text-gray-600">{accessory.description || `SKU: ${accessory.sku_code}`}</div>
-                            </div>
-                            <Badge variant="outline" className="mr-3">{accessory.sku_code}</Badge>
-                            <div
-                              className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
-                                isSelected
-                                  ? "bg-amber-500 text-white"
-                                  : "border-2 border-gray-300"
-                              }`}
-                            >
-                              {isSelected && <Check className="w-3 h-3" />}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* 9. Color Temperature */}
-              {productOptions.colorTemperatures.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Color Temperature</h3>
-                <div className="space-y-3">
-                  {productOptions.colorTemperatures.map((temp) => {
-                    const isDisabled = disabledOptionIds.color_temperatures?.includes(temp.id) || false;
-                    return (
-                      <button
-                        key={temp.id}
-                        onClick={() => !isDisabled && handleConfigChange("colorTemperature", temp.id.toString())}
-                        disabled={isDisabled}
-                        className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                          currentConfig.colorTemperature === temp.id.toString()
-                            ? "border-amber-500 bg-amber-50"
-                            : isDisabled
-                              ? "border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
-                              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-gray-900 mb-1">{temp.name}</div>
-                            {temp.description && (
-                              <div className="text-sm text-gray-600">{temp.description}</div>
-                            )}
-                          </div>
-                          <Badge variant="outline">{temp.sku_code}</Badge>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              )}
-
-              {/* 10. Light Output */}
-              {productOptions.lightOutputs.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Light Output</h3>
-                <div className="space-y-3">
-                  {productOptions.lightOutputs.map((output) => {
-                    const isDisabled = disabledOptionIds.light_outputs?.includes(output.id) || false;
-                    return (
-                      <button
-                        key={output.id}
-                        onClick={() => !isDisabled && handleConfigChange("lightOutput", output.id.toString())}
-                        disabled={isDisabled}
-                        className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                          currentConfig.lightOutput === output.id.toString()
-                            ? "border-amber-500 bg-amber-50"
-                            : isDisabled
-                              ? "border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
-                              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-gray-900 mb-1">{output.name}</div>
-                            {output.description && (
-                              <div className="text-sm text-gray-600">{output.description}</div>
-                            )}
-                          </div>
-                          <Badge variant="outline">{output.sku_code}</Badge>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              )}
-
-              {/* 11. Driver Options */}
-              {productOptions.drivers.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Driver Options</h3>
-                <div className="space-y-3">
-                  {productOptions.drivers.map((driver) => (
-                    <button
-                      key={driver.id}
-                      onClick={() => handleConfigChange("driver", driver.id.toString())}
-                      className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
-                        currentConfig.driver === driver.id.toString()
-                          ? "border-amber-500 bg-amber-50"
-                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-gray-900 mb-1">{driver.name}</div>
-                          <div className="text-sm text-gray-600">{driver.description}</div>
-                        </div>
-                        <Badge variant="outline">{driver.sku_code}</Badge>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              )}
-
-
-            </div>
+            {/* ULTIMATE GOLDEN RULE: 100% DYNAMIC CONFIGURATION FROM DATABASE */}
+            {currentConfig && configurationUI.length > 0 && (
+              <DynamicConfigurationRenderer
+                configurationUI={configurationUI}
+                onConfigChange={handleConfigChange}
+                onSizePresetSelect={handleSizePresetSelectLocal}
+                onAccessoryToggle={handleAccessoryToggleLocal}
+                useCustomSize={useCustomSize}
+                setCustomSizeEnabled={setCustomSizeEnabled}
+                getCurrentSizeId={getCurrentSizeId}
+              />
             )}
           </div>
         </div>

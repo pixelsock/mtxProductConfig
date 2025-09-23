@@ -71,4 +71,19 @@ export async function getRules() {
   return data;
 }
 
+// Get configuration UI settings
+export async function getConfigurationUI() {
+  const { data, error } = await supabase
+    .from('configuration_ui')
+    .select('*')
+    .order('sort', { ascending: true });
+    
+  if (error) {
+    console.error('Error fetching configuration UI:', error);
+    throw error;
+  }
+  return data;
+}
+
 export type Rule = Database['public']['Tables']['rules']['Row'];
+export type ConfigurationUI = Database['public']['Tables']['configuration_ui']['Row'];

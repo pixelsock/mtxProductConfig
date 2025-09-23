@@ -16,6 +16,7 @@ export interface ProductMatchCriteria {
   mirrorStyleId?: number;
   mirrorStyleCode?: number; // style SKU code (e.g., 5 for "05")
   lightDirectionId?: number;
+  frameThicknessId?: number; // Add frame thickness support
   name?: string;
 }
 
@@ -44,39 +45,62 @@ export async function findBestMatchingProduct(criteria: ProductMatchCriteria): P
   try {
     const allProducts = await getProducts();
 
-    // 1) Exact SKU match (preferable) within product line if provided
-    if (criteria.sku) {
-      const skuUpper = criteria.sku.toUpperCase();
-      const exactAll = allProducts.find(p => (p.name || '').toUpperCase() === skuUpper &&
-        (criteria.productLineId === undefined || p.product_line === criteria.productLineId));
-      if (exactAll) return exactAll;
+    if (import.meta.env.DEV) {
+      console.log('🔍 Product Matcher: Starting search with criteria:', criteria);
+      console.log('🔍 Product Matcher: Total products available:', allProducts.length);
     }
 
-    // 2) Filter by product line and light direction
-    let candidates = allProducts.filter(p =>
-      (criteria.productLineId === undefined || p.product_line === criteria.productLineId) &&
-      (criteria.lightDirectionId === undefined || p.light_direction === criteria.lightDirectionId)
-    );
-
-    // 3) Apply mirror style if the dataset actually uses it; otherwise, skip
-    const hasMirrorStyleData = candidates.some(p => typeof p.mirror_style === 'number');
-    if (hasMirrorStyleData && (criteria.mirrorStyleId !== undefined || criteria.mirrorStyleCode !== undefined)) {
-      candidates = candidates.filter(p => {
-        const msId = criteria.mirrorStyleId;
-        const msCode = criteria.mirrorStyleCode;
-        return (msId !== undefined && p.mirror_style === msId) || (msCode !== undefined && p.mirror_style === msCode);
-      });
-    }
-
-    // 4) If a SKU is provided, try to match within candidates
-    if (criteria.sku) {
-      const skuUpper = criteria.sku.toUpperCase();
-      const exact = candidates.find(p => (p.name || '').toUpperCase() === skuUpper);
-      if (exact) return exact;
+    // SIMPLIFIED: Find products that match the current selections
+    let candidates = allProducts.filter(p => {
+      // Must match product line
+      if (criteria.productLineId !== undefined && p.product_line !== criteria.productLineId) {
+        return false;
+      }
+      
+      // Must match light direction if specified
+      if (criteria.lightDirectionId !== undefined && p.light_direction !== criteria.lightDirectionId) {
+        return false;
+      }
+      
+      // Must match mirror style if specified  
+      if (criteria.mirrorStyleId !== undefined && p.mirror_style !== criteria.mirrorStyleId) {
+        return false;
+      }
+      
+      // Must match frame thickness if specified
+      if (criteria.frameThicknessId !== undefined) {
+        // Handle both direct ID and JSON object format
+        const productFrameThickness = typeof p.frame_thickness === 'object' && p.frame_thickness !== null
+          ? (p.frame_thickness as any).key
+          : p.frame_thickness;
+        if (productFrameThickness !== criteria.frameThicknessId) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+    
+    if (import.meta.env.DEV) {
+      console.log(`🔍 Product Matcher: Found ${candidates.length} matching products`);
     }
 
     // 5) Return first candidate if any
-    return candidates[0] || null;
+    const result = candidates[0] || null;
+    if (import.meta.env.DEV) {
+      if (result) {
+        console.log('✅ Product Matcher: Selected product:', {
+          name: result.name,
+          id: result.id,
+          frame_thickness: result.frame_thickness,
+          mirror_style: result.mirror_style,
+          light_direction: result.light_direction
+        });
+      } else {
+        console.log('❌ Product Matcher: No suitable product found');
+      }
+    }
+    return result;
   } catch (error) {
     console.error('Failed to find best matching product:', error);
     return null;
@@ -145,6 +169,12 @@ export function validateProductMatch(
     return false;
   }
   
+  // Check frame thickness
+  if (criteria.frameThicknessId !== undefined && 
+      product.frame_thickness !== criteria.frameThicknessId) {
+    return false;
+  }
+  
   return true;
 }
 
@@ -183,6 +213,11 @@ export function getProductMatchScore(
   
   if (criteria.lightDirectionId !== undefined && 
       product.light_direction === criteria.lightDirectionId) {
+    score += 25;
+  }
+  
+  if (criteria.frameThicknessId !== undefined && 
+      product.frame_thickness === criteria.frameThicknessId) {
     score += 25;
   }
   

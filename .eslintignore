@@ -1,0 +1,8 @@
+node_modules/
+dist/
+build/
+supabase/
+supabase_local_backup/
+.agent-os/
+*.config.cjs
+*.config.js

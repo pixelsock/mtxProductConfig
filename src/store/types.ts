@@ -68,6 +68,15 @@ export interface CustomerInfo {
   phone: string;
 }
 
+// Configuration UI Type
+export interface ConfigurationUIItem {
+  id: string;
+  collection: string;
+  ui_type: string;
+  sort: number;
+  date_updated?: string;
+}
+
 // Supabase type aliases
 export type DecoProduct = Database['public']['Tables']['products']['Row'];
 export type FrameThickness = Database['public']['Tables']['frame_thicknesses']['Row'];
@@ -141,6 +150,7 @@ export interface APISlice {
   // Data
   productOptions: ProductOptions | null;
   availableProductLines: ProductLine[];
+  configurationUI: ConfigurationUIItem[];
   disabledOptionIds: Record<string, number[]>;
 
   // Loading States
@@ -154,6 +164,7 @@ export interface APISlice {
   // Actions
   setProductOptions: (options: ProductOptions) => void;
   setAvailableProductLines: (lines: ProductLine[]) => void;
+  setConfigurationUI: (configUI: ConfigurationUIItem[]) => void;
   setDisabledOptions: (disabled: Record<string, number[]>) => void;
   setLoadingApp: (loading: boolean) => void;
   setLoadingProductLine: (loading: boolean) => void;

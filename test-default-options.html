@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Default Options Loading</title>
+</head>
+<body>
+    <div id="app">
+        <h1>Testing Default Options Loading</h1>
+        <div id="logs"></div>
+        <button id="test-btn">Test Default Options Loading</button>
+    </div>
+    <script type="module">
+        console.log('🔧 Starting default options test...');
+
+        import { useConfiguratorStore } from './src/store/index.ts';
+
+        const logs = document.getElementById('logs');
+        const testBtn = document.getElementById('test-btn');
+
+        function addLog(message) {
+            console.log(message);
+            logs.innerHTML += `<p style="margin: 4px 0; font-family: monospace; font-size: 12px;">${message}</p>`;
+        }
+
+        testBtn.addEventListener('click', async () => {
+            logs.innerHTML = '';
+            addLog('🔧 Starting test...');
+
+            try {
+                const store = useConfiguratorStore.getState();
+
+                // Check current state
+                addLog(`Current product line: ${store.currentProductLine?.name || 'None'}`);
+                addLog(`Default options status: ${store.currentProductLine?.default_options ? `${store.currentProductLine.default_options.length} records` : 'undefined'}`);
+
+                // Test loading a product line
+                if (store.availableProductLines.length > 0) {
+                    const decoLine = store.availableProductLines.find(pl => pl.name === 'Deco');
+                    if (decoLine) {
+                        addLog(`Found Deco product line (ID: ${decoLine.id})`);
+
+                        // Set the product line
+                        store.setCurrentProductLine(decoLine);
+                        addLog('Set Deco as current product line');
+
+                        // Try to load options
+                        addLog('Loading product line options...');
+                        await store.loadProductLineOptions(decoLine);
+                        addLog('Finished loading options');
+
+                        // Check the state after loading
+                        const updatedStore = useConfiguratorStore.getState();
+                        addLog(`Updated default options: ${updatedStore.currentProductLine?.default_options ? `${updatedStore.currentProductLine.default_options.length} records` : 'still undefined'}`);
+
+                        if (updatedStore.currentProductLine?.default_options) {
+                            const collections = [...new Set(updatedStore.currentProductLine.default_options.map(opt => opt.collection))];
+                            addLog(`Collections in default options: ${collections.join(', ')}`);
+                        }
+                    } else {
+                        addLog('❌ Deco product line not found');
+                    }
+                } else {
+                    addLog('❌ No product lines available');
+                }
+
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`);
+                console.error('Test error:', error);
+            }
+        });
+
+        // Auto-run on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => testBtn.click(), 500);
+        });
+    </script>
+</body>
+</html>

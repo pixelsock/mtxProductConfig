@@ -1,0 +1,3 @@
+# Spec Summary (Lite)
+
+Implement dynamic ordering of configuration option sets based on the configuration_ui.sort field from the database. This ensures option sets display in the correct order defined by the database rather than hardcoded sequences, even when some collections aren't available for specific product lines. The system will fetch configuration_ui data, render components in sort order, and gracefully skip missing collections while maintaining relative ordering of available ones.
