@@ -8,6 +8,12 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "serve": "node serve.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run src/test/integration",
+    "generate-fixtures": "tsx scripts/generate-test-fixtures.ts",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "introspect-schema": "node scripts/introspect-schema.js",
     "generate-types": "node scripts/generate-types.js",
@@ -42,6 +48,9 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@trigger.dev/build": "4.0.0",
     "@types/node": "^20.5.0",
     "@types/react": "^18.2.15",
@@ -56,10 +65,12 @@
     "eslint-plugin-react-refresh": "^0.4.3",
     "express": "^5.1.0",
     "http-proxy-middleware": "^3.0.5",
+    "jsdom": "^27.0.0",
     "postcss": "^8.4.27",
     "tailwindcss": "^3.3.3",
     "tsx": "^4.7.0",
     "typescript": "^5.0.2",
-    "vite": "^4.4.5"
+    "vite": "^4.4.5",
+    "vitest": "^3.2.4"
   }
 }

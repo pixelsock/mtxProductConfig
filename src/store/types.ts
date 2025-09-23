@@ -5,7 +5,7 @@
  * maintaining compatibility with existing types from the Supabase integration.
  */
 
-import type { Database } from '../../supabase';
+import type { Database } from "../../supabase";
 
 // ProductLine type from dynamic-supabase service
 export interface ProductLine {
@@ -78,11 +78,14 @@ export interface ConfigurationUIItem {
 }
 
 // Supabase type aliases
-export type DecoProduct = Database['public']['Tables']['products']['Row'];
-export type FrameThickness = Database['public']['Tables']['frame_thicknesses']['Row'];
-export type MirrorStyle = Database['public']['Tables']['mirror_styles']['Row'];
-export type LightDirection = Database['public']['Tables']['light_directions']['Row'];
-export type MountingOption = Database['public']['Tables']['mounting_options']['Row'];
+export type DecoProduct = Database["public"]["Tables"]["products"]["Row"];
+export type FrameThickness =
+  Database["public"]["Tables"]["frame_thicknesses"]["Row"];
+export type MirrorStyle = Database["public"]["Tables"]["mirror_styles"]["Row"];
+export type LightDirection =
+  Database["public"]["Tables"]["light_directions"]["Row"];
+export type MountingOption =
+  Database["public"]["Tables"]["mounting_options"]["Row"];
 
 // Selection Adjustment Types
 export interface AdjustmentNotification {
@@ -100,11 +103,12 @@ export interface ConfigurationSlice {
   currentProduct: DecoProduct | null;
   currentProductLine: ProductLine | null;
   isAdjustingSelections: boolean;
+  isProcessingProductUpdate: boolean;
   adjustmentNotifications: AdjustmentNotification[];
 
   // Actions
   updateConfiguration: (field: keyof ProductConfig, value: any) => void;
-  setCurrentProduct: (product: DecoProduct | null) => void;
+  setCurrentProduct: (product: DecoProduct | null) => Promise<void>;
   setCurrentProductLine: (productLine: ProductLine) => void;
   resetConfiguration: () => Promise<void>;
   incrementQuantity: () => void;
@@ -173,8 +177,14 @@ export interface APISlice {
   clearError: () => void;
 
   // Async Actions (will call existing service layer)
-  loadProductLineOptions: (productLine: ProductLine) => Promise<void>;
-  recomputeFiltering: (productLine: ProductLine, config: ProductConfig) => Promise<void>;
+  loadProductLineOptions: (
+    productLine: ProductLine,
+    forceProduct?: DecoProduct | null,
+  ) => Promise<void>;
+  recomputeFiltering: (
+    productLine: ProductLine,
+    config: ProductConfig,
+  ) => Promise<void>;
 }
 
 // Quote Slice Types
@@ -197,16 +207,21 @@ export interface QuoteSlice {
 }
 
 // Combined Store Type
-export interface ConfiguratorStore extends
-  ConfigurationSlice,
-  UISlice,
-  APISlice,
-  QuoteSlice {}
+export interface ConfiguratorStore
+  extends ConfigurationSlice,
+    UISlice,
+    APISlice,
+    QuoteSlice {}
 
 // Store Action Parameters
 export type StoreSet = (
-  partial: ConfiguratorStore | Partial<ConfiguratorStore> | ((state: ConfiguratorStore) => ConfiguratorStore | Partial<ConfiguratorStore>),
-  replace?: boolean | undefined
+  partial:
+    | ConfiguratorStore
+    | Partial<ConfiguratorStore>
+    | ((
+        state: ConfiguratorStore,
+      ) => ConfiguratorStore | Partial<ConfiguratorStore>),
+  replace?: boolean | undefined,
 ) => void;
 
 export type StoreGet = () => ConfiguratorStore;

@@ -1,6 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
+/// <reference types="vitest" />
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { resolve } from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -10,56 +11,69 @@ export default defineConfig({
     strictPort: true,
     hmr: {
       overlay: true,
-      protocol: 'ws',
-      host: 'localhost'
+      protocol: "ws",
+      host: "localhost",
     },
     watch: {
       usePolling: false,
-      interval: 100
+      interval: 100,
     },
     proxy: {
-      '/api/directus': {
-        target: 'https://pim.dude.digital',
+      "/api/directus": {
+        target: "https://pim.dude.digital",
         changeOrigin: true,
         secure: false,
-        rewrite: path => path.replace(/^\/api\/directus/, ''),
+        rewrite: (path) => path.replace(/^\/api\/directus/, ""),
         configure: (proxy, options) => {
-          proxy.on('proxyReq', (proxyReq, req, res) => {
+          proxy.on("proxyReq", (proxyReq, req, res) => {
             // Add the authorization header
-            proxyReq.setHeader('Authorization', 'Bearer SatmtC2cTo-k-V17usWeYpBcc6hbtXjC');
+            proxyReq.setHeader(
+              "Authorization",
+              "Bearer SatmtC2cTo-k-V17usWeYpBcc6hbtXjC",
+            );
           });
-        }
+        },
       },
-      '/api': {
-        target: 'http://localhost:8056',
+      "/api": {
+        target: "http://localhost:8056",
         changeOrigin: true,
-        rewrite: path => path.replace(/^\/api/, '')
-      }
-    }
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
+      "@": resolve(__dirname, "./src"),
     },
   },
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/main.tsx'),
-      name: 'ProductConfigurator',
-      fileName: 'configurator',
-      formats: ['umd']
+      entry: resolve(__dirname, "src/main.tsx"),
+      name: "ProductConfigurator",
+      fileName: "configurator",
+      formats: ["umd"],
     },
     rollupOptions: {
       external: [],
       output: {
-        globals: {}
-      }
+        globals: {},
+      },
     },
     cssCodeSplit: false,
     sourcemap: false,
-    minify: 'esbuild'
+    minify: "esbuild",
   },
   define: {
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
-  }
-})
+    "process.env.NODE_ENV": JSON.stringify(
+      process.env.NODE_ENV || "production",
+    ),
+  },
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
+    css: true,
+    include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    exclude: ["node_modules", "dist", ".idea", ".git", ".cache"],
+  },
+});

@@ -25,7 +25,7 @@ export interface ComponentConfig {
  * Maps database collection names to ProductOptions interface keys
  */
 const COLLECTION_TO_OPTIONS_KEY: Record<string, keyof ProductOptions> = {
-  'hanging_techniques': 'hangingTechniques',
+  'hanging_techniques': 'mountingOptions', // hanging_techniques maps to mountingOptions for now
   'mirror_styles': 'mirrorStyles',
   'frame_thicknesses': 'frameThickness',
   'frame_colors': 'frameColors',
@@ -43,7 +43,7 @@ const COLLECTION_TO_OPTIONS_KEY: Record<string, keyof ProductOptions> = {
  * Maps database collection names to ProductConfig interface keys
  */
 const COLLECTION_TO_CONFIG_KEY: Record<string, keyof ProductConfig> = {
-  'hanging_techniques': 'hangingTechnique',
+  'hanging_techniques': 'mounting', // hanging_techniques maps to mounting for now
   'mirror_styles': 'mirrorStyle',
   'frame_thicknesses': 'frameThickness',
   'frame_colors': 'frameColor',
@@ -160,12 +160,19 @@ export function mapConfigurationUIToComponent(
 
 /**
  * Sort configuration_ui records by sort field ascending
+ * Handles malformed sort values defensively
  */
 export function sortConfigurationUIBySortField(configUI: ConfigurationUI[]): ConfigurationUI[] {
   return [...configUI].sort((a, b) => {
-    if (a.sort !== b.sort) {
-      return a.sort - b.sort;
+    // Handle malformed or missing sort values
+    const sortA = (typeof a.sort === 'number' && !isNaN(a.sort)) ? a.sort : 999999;
+    const sortB = (typeof b.sort === 'number' && !isNaN(b.sort)) ? b.sort : 999999;
+
+    if (sortA !== sortB) {
+      return sortA - sortB;
     }
+
+    // Use id as tiebreaker for consistent ordering
     return a.id.localeCompare(b.id);
   });
 }
@@ -179,6 +186,12 @@ export function filterAvailableCollections(
   currentProductLine?: any
 ): ConfigurationUI[] {
   return configUI.filter(config => {
+    // Defensive programming: handle null/empty collection names
+    if (!config.collection || config.collection.trim() === '') {
+      console.warn(`⚠️ Invalid collection name: "${config.collection}"`);
+      return false;
+    }
+
     const optionsKey = COLLECTION_TO_OPTIONS_KEY[config.collection];
     if (!optionsKey) {
       console.warn(`⚠️ No options key mapping for collection: ${config.collection}`);
@@ -254,8 +267,33 @@ export function validateComponentMappings(configUI: ConfigurationUI[]): {
 } {
   const errors: string[] = [];
 
-  configUI.forEach(config => {
-    const { collection, ui_type } = config;
+  configUI.forEach((config, index) => {
+    const { collection, ui_type, sort } = config;
+
+    // Check for null or empty collection names
+    if (!collection || collection.trim() === '') {
+      errors.push(`Invalid collection name at index ${index}: "${collection}"`);
+      return; // Skip further validation for this item
+    }
+
+    // Check for malformed sort values
+    if (sort !== null && sort !== undefined) {
+      if (typeof sort !== 'number' || isNaN(sort)) {
+        errors.push(`Invalid sort value for collection "${collection}": ${sort} (expected number)`);
+      }
+      if (sort < 0) {
+        errors.push(`Negative sort value for collection "${collection}": ${sort} (should be >= 0)`);
+      }
+      if (sort > 999999) {
+        errors.push(`Extremely large sort value for collection "${collection}": ${sort} (should be reasonable)`);
+      }
+    }
+
+    // Check for null or empty UI type
+    if (!ui_type || ui_type.trim() === '') {
+      errors.push(`Invalid ui_type for collection "${collection}": "${ui_type}"`);
+      return; // Skip UI type validation if empty
+    }
 
     // Check UI type is supported
     if (!UI_TYPE_TO_COMPONENT_TYPE[ui_type as UIType]) {

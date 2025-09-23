@@ -12,7 +12,7 @@
  * 3. Pass business rules validation
  */
 
-import { supabase } from './supabase';
+import { supabase } from "./supabase";
 
 export interface ProductLineOption {
   id: number;
@@ -53,12 +53,15 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
  */
 export async function initializeFiltering(): Promise<void> {
   // Check cache
-  if (productLineOptionsCache.length > 0 && Date.now() - cacheTimestamp < CACHE_DURATION) {
+  if (
+    productLineOptionsCache.length > 0 &&
+    Date.now() - cacheTimestamp < CACHE_DURATION
+  ) {
     if (import.meta.env.DEV) {
-      console.log('🔄 Dynamic filtering using cached data:', {
+      console.log("🔄 Dynamic filtering using cached data:", {
         productLineOptions: productLineOptionsCache.length,
         products: productsCache.length,
-        overrides: productOverridesCache.length
+        overrides: productOverridesCache.length,
       });
     }
     return;
@@ -69,18 +72,11 @@ export async function initializeFiltering(): Promise<void> {
     const [
       { data: productLineOptions, error: productLineError },
       { data: productOverrides, error: overridesError },
-      { data: products, error: productsError }
+      { data: products, error: productsError },
     ] = await Promise.all([
-      supabase
-        .from('product_lines_default_options')
-        .select('*'),
-      supabase
-        .from('products_options_overrides')
-        .select('*'),
-      supabase
-        .from('products')
-        .select('*')
-        .eq('active', true)
+      supabase.from("product_lines_default_options").select("*"),
+      supabase.from("products_options_overrides").select("*"),
+      supabase.from("products").select("*").eq("active", true),
     ]);
 
     if (productLineError) throw productLineError;
@@ -88,34 +84,38 @@ export async function initializeFiltering(): Promise<void> {
     if (productsError) throw productsError;
 
     // Update caches with proper type assertions and data transformation
-    productLineOptionsCache = (productLineOptions as unknown as ProductLineOption[]) || [];
-    productOverridesCache = (productOverrides as unknown as ProductOptionOverride[]) || [];
-    
+    productLineOptionsCache =
+      (productLineOptions as unknown as ProductLineOption[]) || [];
+    productOverridesCache =
+      (productOverrides as unknown as ProductOptionOverride[]) || [];
+
     // Transform products to match our interface
-    productsCache = ((products || []) as unknown as any[]).map(p => ({
+    productsCache = ((products || []) as unknown as any[]).map((p) => ({
       id: p.id,
-      name: p.name || '',
+      name: p.name || "",
       product_line: p.product_line,
       mirror_style: p.mirror_style,
       light_direction: p.light_direction,
       frame_thickness: p.frame_thickness,
       active: p.active === true,
       sku_code: p.sku_code || undefined,
-      ...p // Include all other properties
+      ...p, // Include all other properties
     }));
-    
+
     cacheTimestamp = Date.now();
-    
+
     if (import.meta.env.DEV) {
-      console.log('✅ Dynamic filtering initialized successfully:', {
+      console.log("✅ Dynamic filtering initialized successfully:", {
         productLineOptions: productLineOptionsCache.length,
         products: productsCache.length,
         overrides: productOverridesCache.length,
-        productLinesFound: [...new Set(productLineOptionsCache.map(p => p.product_lines_id))].length
+        productLinesFound: [
+          ...new Set(productLineOptionsCache.map((p) => p.product_lines_id)),
+        ].length,
       });
     }
   } catch (error) {
-    console.error('[Filtering] Initialization failed:', error);
+    console.error("[Filtering] Initialization failed:", error);
     throw error;
   }
 }
@@ -129,16 +129,17 @@ export async function initializeFiltering(): Promise<void> {
  */
 export function getFilteredOptions(
   currentSelection: Record<string, any>,
-  productLineId: number
+  productLineId: number,
+  currentProduct?: { id: number } | null,
 ): {
-  available: Record<string, string[]>,
-  disabled: Record<string, string[]>,
-  all: Record<string, string[]>
+  available: Record<string, string[]>;
+  disabled: Record<string, string[]>;
+  all: Record<string, string[]>;
 } {
   const result = {
     available: {} as Record<string, string[]>,
     disabled: {} as Record<string, string[]>,
-    all: {} as Record<string, string[]>
+    all: {} as Record<string, string[]>,
   };
 
   if (!productLineId) {
@@ -147,17 +148,20 @@ export function getFilteredOptions(
 
   // Get product line default options (defines what fields should appear)
   const productLineOptions = productLineOptionsCache.filter(
-    option => option.product_lines_id === productLineId
+    (option) => option.product_lines_id === productLineId,
   );
 
   // Group by collection - this defines the base UI fields
-  const baseOptionsByCollection = productLineOptions.reduce((acc, option) => {
-    if (!acc[option.collection]) {
-      acc[option.collection] = [];
-    }
-    acc[option.collection].push(option.item);
-    return acc;
-  }, {} as Record<string, string[]>);
+  const baseOptionsByCollection = productLineOptions.reduce(
+    (acc, option) => {
+      if (!acc[option.collection]) {
+        acc[option.collection] = [];
+      }
+      acc[option.collection].push(option.item);
+      return acc;
+    },
+    {} as Record<string, string[]>,
+  );
 
   // Determine filtering level based on selections
   const hasProductLine = !!productLineId;
@@ -171,12 +175,12 @@ export function getFilteredOptions(
       result.available[collection] = uniqueItems; // Show everything at level 1
       result.disabled[collection] = []; // Nothing disabled at level 1
     });
-
   } else if (hasProductLine && hasMirrorStyle) {
     // LEVEL 2: Product line + mirror style - filter actual products
-    const filteredProducts = productsCache.filter(p => 
-      p.product_line === productLineId &&
-      p.mirror_style?.toString() === currentSelection.mirror_styles
+    const filteredProducts = productsCache.filter(
+      (p) =>
+        p.product_line === productLineId &&
+        p.mirror_style?.toString() === currentSelection.mirror_styles,
     );
 
     // Extract available options from these specific products
@@ -187,29 +191,30 @@ export function getFilteredOptions(
       availableFromProducts.mirror_styles = Array.from(
         new Set(
           filteredProducts
-            .map(p => p.mirror_style?.toString())
-            .filter((item): item is string => Boolean(item))
-        )
+            .map((p) => p.mirror_style?.toString())
+            .filter((item): item is string => Boolean(item)),
+        ),
       );
 
       availableFromProducts.light_directions = Array.from(
         new Set(
           filteredProducts
-            .map(p => p.light_direction?.toString())
-            .filter((item): item is string => Boolean(item))
-        )
+            .map((p) => p.light_direction?.toString())
+            .filter((item): item is string => Boolean(item)),
+        ),
       );
 
       // Frame thickness from JSON field with proper type safety
       const frameThicknesses = filteredProducts
-        .map(p => p.frame_thickness?.key?.toString())
+        .map((p) => p.frame_thickness?.key?.toString())
         .filter((item): item is string => Boolean(item));
       // ALWAYS set the array, even if empty - this is critical for proper filtering
-      availableFromProducts.frame_thicknesses = Array.from(new Set(frameThicknesses));
+      availableFromProducts.frame_thicknesses = Array.from(
+        new Set(frameThicknesses),
+      );
 
       // Add other product-related collections that need dynamic filtering
       // These would be expanded as more collections are moved to product-based filtering
-      
     } else {
       // No products match current selection - all dependent collections should be empty
       availableFromProducts.mirror_styles = [];
@@ -222,8 +227,13 @@ export function getFilteredOptions(
       result.all[collection] = [...new Set(items)];
 
       // CRITICAL: Never disable options within the same collection being selected
-      const isCurrentlySelectingThisCollection = Object.keys(currentSelection).some(key =>
-        key === collection || key === `${collection}s` || key.replace(/s$/, '') === collection
+      const isCurrentlySelectingThisCollection = Object.keys(
+        currentSelection,
+      ).some(
+        (key) =>
+          key === collection ||
+          key === `${collection}s` ||
+          key.replace(/s$/, "") === collection,
       );
 
       if (isCurrentlySelectingThisCollection) {
@@ -236,17 +246,22 @@ export function getFilteredOptions(
           // Collection has product-specific filtering defined
           const availableItems = availableFromProducts[collection];
           result.available[collection] = [...availableItems];
-          result.disabled[collection] = items.filter(item => !availableItems.includes(item));
-          console.log(`🔒 ${collection}: ${availableItems.length} available from products, ${result.disabled[collection].length} disabled`);
+          result.disabled[collection] = items.filter(
+            (item) => !availableItems.includes(item),
+          );
+          console.log(
+            `🔒 ${collection}: ${availableItems.length} available from products, ${result.disabled[collection].length} disabled`,
+          );
         } else {
           // No product-specific filtering for this collection - keep all defaults available
           result.available[collection] = [...items];
           result.disabled[collection] = [];
-          console.log(`📖 ${collection}: ${items.length} available from defaults (no product filtering)`);
+          console.log(
+            `📖 ${collection}: ${items.length} available from defaults (no product filtering)`,
+          );
         }
       }
     });
-
   } else {
     // Fallback: show everything
     Object.entries(baseOptionsByCollection).forEach(([collection, items]) => {
@@ -256,72 +271,115 @@ export function getFilteredOptions(
     });
   }
 
-  // CRITICAL FIX: Only apply product overrides when we've narrowed down to a SPECIFIC product
-  // Not when we just have mirror style selected - that's too broad
-  
-  // Check if we have enough selections to identify a specific product
-  const hasEnoughSelectionsForSpecificProduct = hasProductLine && hasMirrorStyle && 
-    (currentSelection.light_directions || currentSelection.frame_thicknesses);
-    
-  if (hasEnoughSelectionsForSpecificProduct) {
-    // Find the specific products that match ALL current selections
-    const matchingProducts = productsCache.filter(p => {
-      if (p.product_line !== productLineId) return false;
-      if (currentSelection.mirror_styles && p.mirror_style !== parseInt(currentSelection.mirror_styles)) return false;
-      if (currentSelection.light_directions && p.light_direction !== parseInt(currentSelection.light_directions)) return false;
-      if (currentSelection.frame_thicknesses) {
-        const productFrameThickness = typeof p.frame_thickness === 'object' && p.frame_thickness !== null
-          ? (p.frame_thickness as any).key
-          : p.frame_thickness;
-        if (productFrameThickness !== parseInt(currentSelection.frame_thicknesses)) return false;
-      }
-      return true;
-    });
-    
-    // Only apply overrides if we have a single specific product (or very few)
-    if (matchingProducts.length <= 2) {
-      const applicableOverrides = productOverridesCache.filter(override =>
-        matchingProducts.some(p => p.id === override.products_id)
-      );
-      
-      if (applicableOverrides.length > 0) {
-        if (import.meta.env.DEV) {
-          console.log(`🎯 Applying ${applicableOverrides.length} product-specific overrides for ${matchingProducts.length} products`);
-        }
-        
-        // Apply overrides - these REPLACE the default options for affected collections
-        const overridesByCollection = {} as Record<string, string[]>;
-        applicableOverrides.forEach(override => {
-          if (!overridesByCollection[override.collection]) {
-            overridesByCollection[override.collection] = [];
-          }
-          overridesByCollection[override.collection].push(override.item);
-        });
+  // ENHANCED: Apply product overrides in two scenarios:
+  // 1. When a specific product is explicitly provided (immediate application)
+  // 2. When field selections narrow down to a specific product (legacy behavior)
 
-        // Replace options with overrides where they exist
-        Object.entries(overridesByCollection).forEach(([collection, overrideItems]) => {
-          result.all[collection] = [...new Set(overrideItems)];
-          result.available[collection] = [...new Set(overrideItems)];
-          result.disabled[collection] = [];
-          if (import.meta.env.DEV) {
-            console.log(`🎯 Override applied to ${collection}: ${overrideItems.length} options`);
-          }
-        });
+  let shouldApplyOverrides = false;
+  let applicableOverrides: any[] = [];
+
+  if (currentProduct) {
+    // Scenario 1: Specific product provided - apply its overrides immediately
+    applicableOverrides = productOverridesCache.filter(
+      (override) => override.products_id === currentProduct.id,
+    );
+    shouldApplyOverrides = applicableOverrides.length > 0;
+
+    if (import.meta.env.DEV && shouldApplyOverrides) {
+      console.log(
+        `🎯 Applying product-specific overrides for product ${currentProduct.id}: ${applicableOverrides.length} overrides`,
+      );
+    }
+  } else {
+    // Scenario 2: Check if we have enough selections to identify a specific product
+    const hasEnoughSelectionsForSpecificProduct =
+      hasProductLine &&
+      hasMirrorStyle &&
+      (currentSelection.light_directions || currentSelection.frame_thicknesses);
+
+    if (hasEnoughSelectionsForSpecificProduct) {
+      // Find the specific products that match ALL current selections
+      const matchingProducts = productsCache.filter((p) => {
+        if (p.product_line !== productLineId) return false;
+        if (
+          currentSelection.mirror_styles &&
+          p.mirror_style !== parseInt(currentSelection.mirror_styles)
+        )
+          return false;
+        if (
+          currentSelection.light_directions &&
+          p.light_direction !== parseInt(currentSelection.light_directions)
+        )
+          return false;
+        if (currentSelection.frame_thicknesses) {
+          const productFrameThickness =
+            typeof p.frame_thickness === "object" && p.frame_thickness !== null
+              ? (p.frame_thickness as any).key
+              : p.frame_thickness;
+          if (
+            productFrameThickness !==
+            parseInt(currentSelection.frame_thicknesses)
+          )
+            return false;
+        }
+        return true;
+      });
+
+      // Only apply overrides if we have a single specific product (or very few)
+      if (matchingProducts.length <= 2) {
+        applicableOverrides = productOverridesCache.filter((override) =>
+          matchingProducts.some((p) => p.id === override.products_id),
+        );
+        shouldApplyOverrides = applicableOverrides.length > 0;
+
+        if (import.meta.env.DEV && shouldApplyOverrides) {
+          console.log(
+            `🎯 Applying ${applicableOverrides.length} product-specific overrides for ${matchingProducts.length} products`,
+          );
+        }
       }
     }
   }
 
+  // Apply overrides if we have any (from either scenario)
+  if (shouldApplyOverrides && applicableOverrides.length > 0) {
+    // Apply overrides - these REPLACE the default options for affected collections
+    const overridesByCollection = {} as Record<string, string[]>;
+    applicableOverrides.forEach((override) => {
+      if (!overridesByCollection[override.collection]) {
+        overridesByCollection[override.collection] = [];
+      }
+      overridesByCollection[override.collection].push(override.item);
+    });
+
+    // Replace options with overrides where they exist
+    Object.entries(overridesByCollection).forEach(
+      ([collection, overrideItems]) => {
+        result.all[collection] = [...new Set(overrideItems)];
+        result.available[collection] = [...new Set(overrideItems)];
+        result.disabled[collection] = [];
+        if (import.meta.env.DEV) {
+          console.log(
+            `🎯 Override applied to ${collection}: ${overrideItems.length} options`,
+          );
+        }
+      },
+    );
+  }
+
   // Final summary for debugging
   if (import.meta.env.DEV) {
-    console.group('🔍 Dynamic Filtering Result');
-    console.log('Current selection:', currentSelection);
-    console.log('Product line:', productLineId);
+    console.group("🔍 Dynamic Filtering Result");
+    console.log("Current selection:", currentSelection);
+    console.log("Product line:", productLineId);
     Object.entries(result.available).forEach(([collection, availableItems]) => {
       const allItems = result.all[collection] || [];
       const disabledItems = result.disabled[collection] || [];
-      console.log(`📄 ${collection}: ${availableItems.length}/${allItems.length} available, ${disabledItems.length} disabled`);
+      console.log(
+        `📄 ${collection}: ${availableItems.length}/${allItems.length} available, ${disabledItems.length} disabled`,
+      );
       if (disabledItems.length > 0) {
-        console.log(`   → Disabled: [${disabledItems.join(', ')}]`);
+        console.log(`   → Disabled: [${disabledItems.join(", ")}]`);
       }
     });
     console.groupEnd();
@@ -334,9 +392,9 @@ export function getFilteredOptions(
  * Get all available options for a product line (initial state)
  */
 export function getInitialOptions(productLineId: number): {
-  available: Record<string, string[]>,
-  disabled: Record<string, string[]>,
-  all: Record<string, string[]>
+  available: Record<string, string[]>;
+  disabled: Record<string, string[]>;
+  all: Record<string, string[]>;
 } {
   return getFilteredOptions({}, productLineId);
 }
@@ -348,7 +406,7 @@ export function isOptionValid(
   collection: string,
   optionId: string,
   currentSelection: Record<string, any>,
-  productLineId: number
+  productLineId: number,
 ): boolean {
   const filtered = getFilteredOptions(currentSelection, productLineId);
   return filtered.available[collection]?.includes(optionId) || false;
@@ -361,7 +419,7 @@ export function isOptionDisabled(
   collection: string,
   optionId: string,
   currentSelection: Record<string, any>,
-  productLineId: number
+  productLineId: number,
 ): boolean {
   const filtered = getFilteredOptions(currentSelection, productLineId);
   return filtered.disabled[collection]?.includes(optionId) || false;
@@ -373,7 +431,7 @@ export function isOptionDisabled(
 export function getDisabledOptions(
   collection: string,
   currentSelection: Record<string, any>,
-  productLineId: number
+  productLineId: number,
 ): string[] {
   const filtered = getFilteredOptions(currentSelection, productLineId);
   return filtered.disabled[collection] || [];
@@ -385,7 +443,7 @@ export function getDisabledOptions(
 export function getAllOptions(
   collection: string,
   currentSelection: Record<string, any>,
-  productLineId: number
+  productLineId: number,
 ): string[] {
   const filtered = getFilteredOptions(currentSelection, productLineId);
   return filtered.all[collection] || [];
@@ -397,13 +455,16 @@ export function getAllOptions(
  */
 export function applyHierarchicalFiltering(
   configuration: Record<string, any>,
-  productLineId: number
+  productLineId: number,
 ): {
-  available: Record<string, string[]>,
-  disabled: Record<string, string[]>,
-  all: Record<string, string[]>
+  available: Record<string, string[]>;
+  disabled: Record<string, string[]>;
+  all: Record<string, string[]>;
 } {
-  console.log('🔄 Applying hierarchical filtering', { configuration, productLineId });
+  console.log("🔄 Applying hierarchical filtering", {
+    configuration,
+    productLineId,
+  });
 
   // The hierarchy is built into getFilteredOptions
   return getFilteredOptions(configuration, productLineId);
@@ -414,27 +475,35 @@ export function applyHierarchicalFiltering(
  */
 export function debugFiltering(
   configuration: Record<string, any>,
-  productLineId: number
+  productLineId: number,
 ): void {
-  console.group('🔍 Filtering Analysis');
-  console.log('Current configuration:', configuration);
-  console.log('Product line:', productLineId);
+  console.group("🔍 Filtering Analysis");
+  console.log("Current configuration:", configuration);
+  console.log("Product line:", productLineId);
 
   // Show product line options
   const productLineOptions = productLineOptionsCache.filter(
-    option => option.product_lines_id === productLineId
+    (option) => option.product_lines_id === productLineId,
   );
   console.log(`Product line has ${productLineOptions.length} default options`);
 
   // Show applicable overrides
-  const applicableOverrides = productOverridesCache.filter(override => {
-    const matchingProducts = productsCache.filter(p => {
+  const applicableOverrides = productOverridesCache.filter((override) => {
+    const matchingProducts = productsCache.filter((p) => {
       if (p.product_line !== productLineId) return false;
-      if (configuration.mirror_styles && p.mirror_style !== parseInt(configuration.mirror_styles)) return false;
-      if (configuration.light_directions && p.light_direction !== parseInt(configuration.light_directions)) return false;
+      if (
+        configuration.mirror_styles &&
+        p.mirror_style !== parseInt(configuration.mirror_styles)
+      )
+        return false;
+      if (
+        configuration.light_directions &&
+        p.light_direction !== parseInt(configuration.light_directions)
+      )
+        return false;
       return true;
     });
-    return matchingProducts.some(p => p.id === override.products_id);
+    return matchingProducts.some((p) => p.id === override.products_id);
   });
   console.log(`${applicableOverrides.length} product-specific overrides apply`);
 
@@ -443,12 +512,14 @@ export function debugFiltering(
   Object.entries(filtered.available).forEach(([collection, options]) => {
     const disabled = filtered.disabled[collection] || [];
     const all = filtered.all[collection] || [];
-    console.log(`${collection}: ${options.length}/${all.length} available, ${disabled.length} disabled`);
+    console.log(
+      `${collection}: ${options.length}/${all.length} available, ${disabled.length} disabled`,
+    );
     if (options.length <= 10) {
-      console.log(`  → Available: [${options.join(', ')}]`);
+      console.log(`  → Available: [${options.join(", ")}]`);
     }
     if (disabled.length <= 10 && disabled.length > 0) {
-      console.log(`  → Disabled: [${disabled.join(', ')}]`);
+      console.log(`  → Disabled: [${disabled.join(", ")}]`);
     }
   });
 
@@ -458,10 +529,142 @@ export function debugFiltering(
 /**
  * Clear filtering cache
  */
+/**
+ * Rebuilds ProductOptions from the full cache based on available option IDs
+ * This is needed for product overrides where the override-specific options
+ * may not be in the original product line defaults
+ */
+export async function rebuildProductOptionsFromCache(
+  productLineId: number,
+  availableOptions: Record<string, string[]>,
+): Promise<ProductOptions> {
+  // Fetch all options from the cache using Supabase
+  const { createClient } = await import("@supabase/supabase-js");
+  const supabase = createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON_KEY,
+  );
+
+  const collectionsToFetch = [
+    { collection: "sizes", availableIds: availableOptions.sizes || [] },
+    {
+      collection: "mirror_styles",
+      availableIds: availableOptions.mirror_styles || [],
+    },
+    {
+      collection: "frame_colors",
+      availableIds: availableOptions.frame_colors || [],
+    },
+    {
+      collection: "light_directions",
+      availableIds: availableOptions.light_directions || [],
+    },
+    {
+      collection: "color_temperatures",
+      availableIds: availableOptions.color_temperatures || [],
+    },
+    { collection: "drivers", availableIds: availableOptions.drivers || [] },
+    {
+      collection: "light_outputs",
+      availableIds: availableOptions.light_outputs || [],
+    },
+    {
+      collection: "mounting_options",
+      availableIds: availableOptions.mounting_options || [],
+    },
+    {
+      collection: "accessories",
+      availableIds: availableOptions.accessories || [],
+    },
+  ];
+
+  const results: Record<string, any[]> = {};
+
+  // Fetch each collection's data
+  for (const { collection, availableIds } of collectionsToFetch) {
+    if (availableIds.length > 0) {
+      const { data, error } = await supabase
+        .from(collection)
+        .select("*")
+        .in(
+          "id",
+          availableIds.map((id) => parseInt(id)),
+        )
+        .eq("active", true);
+
+      if (error) {
+        console.error(`Failed to fetch ${collection}:`, error);
+        results[collection] = [];
+      } else {
+        results[collection] = data || [];
+      }
+    } else {
+      results[collection] = [];
+    }
+  }
+
+  // Build the ProductOptions object
+  return {
+    sizes: results.sizes.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      sku_code: item.sku_code,
+      width: item.width,
+      height: item.height,
+    })),
+    mirrorStyles: results.mirror_styles.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      sku_code: item.sku_code,
+      svg_code: item.svg_code,
+    })),
+    frameColors: results.frame_colors.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      sku_code: item.sku_code,
+      hex_code: item.hex_code,
+    })),
+    lightingOptions: results.light_directions.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      sku_code: item.sku_code,
+      description: item.description,
+    })),
+    colorTemperatures: results.color_temperatures.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      sku_code: item.sku_code,
+    })),
+    drivers: results.drivers.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      sku_code: item.sku_code,
+    })),
+    lightOutputs: results.light_outputs.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      sku_code: item.sku_code,
+    })),
+    mountingOptions: results.mounting_options.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      sku_code: item.sku_code,
+      description: item.description,
+    })),
+    accessories: results.accessories.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      sku_code: item.sku_code,
+    })),
+    frameThickness: [], // This doesn't need filtering as it's product-specific
+    mirrorControls: [], // Deprecated
+  };
+}
+
 export function clearFilteringCache(): void {
   productLineOptionsCache = [];
   productOverridesCache = [];
   productsCache = [];
   cacheTimestamp = 0;
-  console.log('🗑️ Filtering cache cleared');
+  console.log("🗑️ Filtering cache cleared");
 }
