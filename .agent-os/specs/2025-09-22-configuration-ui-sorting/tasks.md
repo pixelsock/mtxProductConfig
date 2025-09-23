@@ -42,22 +42,22 @@ These are the tasks to be completed for the spec detailed in @.agent-os/specs/20
 
 ### 4. Missing Collection Handling and Edge Cases
 
-- [ ] 4.1 Write tests for missing collection scenarios and edge cases
-- [ ] 4.2 Implement graceful handling when configuration_ui references non-existent collections
-- [ ] 4.3 Add logic to maintain sort order even when some collections are unavailable
-- [ ] 4.4 Create fallback component ordering when configuration_ui data is completely missing
-- [ ] 4.5 Implement warning system for configuration_ui data inconsistencies
-- [ ] 4.6 Add defensive programming for malformed sort values or null collection names
-- [ ] 4.7 Test configurator behavior with various missing collection combinations
-- [ ] 4.8 Verify tests pass for all missing collection handling scenarios
+- [x] 4.1 Write tests for missing collection scenarios and edge cases
+- [x] 4.2 Implement graceful handling when configuration_ui references non-existent collections
+- [x] 4.3 Add logic to maintain sort order even when some collections are unavailable
+- [x] 4.4 Create fallback component ordering when configuration_ui data is completely missing
+- [x] 4.5 Implement warning system for configuration_ui data inconsistencies
+- [x] 4.6 Add defensive programming for malformed sort values or null collection names
+- [x] 4.7 Test configurator behavior with various missing collection combinations
+- [x] 4.8 Verify tests pass for all missing collection handling scenarios
 
 ### 5. Integration Testing and Validation
 
-- [ ] 5.1 Write comprehensive integration tests for end-to-end configuration_ui sorting
-- [ ] 5.2 Test dynamic ordering behavior across different product lines
-- [ ] 5.3 Validate that existing option functionality remains unchanged
-- [ ] 5.4 Test performance impact of configuration_ui data loading and processing
-- [ ] 5.5 Verify UI components render correctly in database-defined order
-- [ ] 5.6 Test configurator behavior when configuration_ui sort values are updated
-- [ ] 5.7 Validate error handling and fallback scenarios work as expected
-- [ ] 5.8 Verify all integration tests pass for configuration UI sorting feature
+- [x] 5.1 Write comprehensive integration tests for end-to-end configuration_ui sorting
+- [x] 5.2 Test dynamic ordering behavior across different product lines
+- [x] 5.3 Validate that existing option functionality remains unchanged
+- [x] 5.4 Test performance impact of configuration_ui data loading and processing
+- [x] 5.5 Verify UI components render correctly in database-defined order
+- [x] 5.6 Test configurator behavior when configuration_ui sort values are updated
+- [x] 5.7 Validate error handling and fallback scenarios work as expected
+- [x] 5.8 Verify all integration tests pass for configuration UI sorting feature

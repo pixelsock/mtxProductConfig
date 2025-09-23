@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Loop Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Simple Loop Test</h1>
+
+    <div id="test-status" class="test-result info">
+        Starting loop detection test...
+    </div>
+
+    <p>Monitoring console for loop patterns...</p>
+
+    <script>
+        let logCount = 0;
+        let loopDetected = false;
+        const statusEl = document.getElementById('test-status');
+
+        // Override console.log to count messages
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+
+            const message = args.join(' ');
+
+            // Look for specific patterns that indicate loops
+            if (message.includes('🔄 Product selected') ||
+                message.includes('recomputing filtering') ||
+                message.includes('Product Match Debug')) {
+                logCount++;
+
+                if (logCount > 10) {
+                    loopDetected = true;
+                    statusEl.textContent = `❌ Loop detected! ${logCount} repetitive log messages found.`;
+                    statusEl.className = 'test-result error';
+                }
+            }
+        };
+
+        // Check after 8 seconds
+        setTimeout(() => {
+            if (!loopDetected) {
+                statusEl.textContent = `✅ No loop detected! Only ${logCount} configuration messages logged.`;
+                statusEl.className = 'test-result success';
+            }
+        }, 8000);
+
+        // Start the main app
+        window.location.href = '/';
+    </script>
+</body>
+</html>
