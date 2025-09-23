@@ -7,6 +7,7 @@
  */
 
 import { APISlice, ProductOptions, ProductConfig, ProductLine, ConfigurationUIItem, StoreSet, StoreGet } from '../types';
+import { supabase } from '../../services/supabase';
 
 export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
   // State
@@ -398,6 +399,66 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
       });
 
       setDisabledOptions(disabledOptions);
+
+      // CRITICAL FIX: Update available options when overrides are applied
+      // The initial load only sets options once, but overrides can change available options
+      // so we need to reload them when filtering changes
+      if (filteringResult.available) {
+        const { productOptions, setProductOptions } = get();
+
+        // Helper function to reload options for a collection
+        const loadOptionsForCollection = async (collectionName: string, availableIds: string[]) => {
+          if (availableIds.length === 0) return [];
+
+          try {
+            const { data, error } = await supabase
+              .from(collectionName)
+              .select('*')
+              .in('id', availableIds)
+              .eq('active', true)
+              .order('sort', { ascending: true });
+
+            if (error) throw error;
+            return data || [];
+          } catch (error) {
+            console.error(`Failed to load ${collectionName}:`, error);
+            return [];
+          }
+        };
+
+        // Update sizes if they've changed due to overrides
+        if (filteringResult.available.sizes && filteringResult.available.sizes.length > 0 && productOptions) {
+          try {
+            const sizesData = await loadOptionsForCollection('sizes', filteringResult.available.sizes);
+
+            // Transform to ProductOption format
+            const transformedSizes = sizesData.map(item => ({
+              id: item.id as number,
+              name: item.name as string,
+              sku_code: item.sku_code as string,
+              width: item.width as number,
+              height: item.height as number
+            }));
+
+            // Update productOptions with the filtered sizes
+            const updatedOptions = {
+              ...productOptions,
+              sizes: transformedSizes
+            };
+
+            setProductOptions(updatedOptions);
+
+            if (import.meta.env.DEV) {
+              console.log(`🔄 Updated available sizes: ${transformedSizes.length} options (IDs: ${filteringResult.available.sizes.join(', ')})`);
+            }
+          } catch (error) {
+            console.error('Failed to reload sizes after filtering:', error);
+          }
+        }
+
+        // Add other collections here if they can be affected by overrides in the future
+        // Note: Currently only sizes are known to have product overrides
+      }
 
       console.log('✅ Two-level filtering updated:', {
         available: filteringResult.available,

@@ -141,6 +141,9 @@ export function getFilteredOptions(
     all: {} as Record<string, string[]>
   };
 
+  // Track which filtering mechanism affected each collection for debugging
+  const filteringHistory = {} as Record<string, string[]>;
+
   if (!productLineId) {
     return result;
   }
@@ -170,6 +173,7 @@ export function getFilteredOptions(
       result.all[collection] = uniqueItems;
       result.available[collection] = uniqueItems; // Show everything at level 1
       result.disabled[collection] = []; // Nothing disabled at level 1
+      filteringHistory[collection] = ['product_line_defaults'];
     });
 
   } else if (hasProductLine && hasMirrorStyle) {
@@ -237,11 +241,13 @@ export function getFilteredOptions(
           const availableItems = availableFromProducts[collection];
           result.available[collection] = [...availableItems];
           result.disabled[collection] = items.filter(item => !availableItems.includes(item));
+          filteringHistory[collection] = ['product_line_defaults', 'dynamic_product_matching'];
           console.log(`🔒 ${collection}: ${availableItems.length} available from products, ${result.disabled[collection].length} disabled`);
         } else {
           // No product-specific filtering for this collection - keep all defaults available
           result.available[collection] = [...items];
           result.disabled[collection] = [];
+          filteringHistory[collection] = ['product_line_defaults'];
           console.log(`📖 ${collection}: ${items.length} available from defaults (no product filtering)`);
         }
       }
@@ -256,40 +262,31 @@ export function getFilteredOptions(
     });
   }
 
-  // CRITICAL FIX: Only apply product overrides when we've narrowed down to a SPECIFIC product
-  // Not when we just have mirror style selected - that's too broad
-  
-  // Check if we have enough selections to identify a specific product
-  const hasEnoughSelectionsForSpecificProduct = hasProductLine && hasMirrorStyle && 
-    (currentSelection.light_directions || currentSelection.frame_thicknesses);
-    
-  if (hasEnoughSelectionsForSpecificProduct) {
-    // Find the specific products that match ALL current selections
-    const matchingProducts = productsCache.filter(p => {
-      if (p.product_line !== productLineId) return false;
-      if (currentSelection.mirror_styles && p.mirror_style !== parseInt(currentSelection.mirror_styles)) return false;
-      if (currentSelection.light_directions && p.light_direction !== parseInt(currentSelection.light_directions)) return false;
-      if (currentSelection.frame_thicknesses) {
-        const productFrameThickness = typeof p.frame_thickness === 'object' && p.frame_thickness !== null
-          ? (p.frame_thickness as any).key
-          : p.frame_thickness;
-        if (productFrameThickness !== parseInt(currentSelection.frame_thicknesses)) return false;
-      }
-      return true;
-    });
-    
-    // Only apply overrides if we have a single specific product (or very few)
-    if (matchingProducts.length <= 2) {
+  // OVERRIDE ISOLATION FIX: Apply product overrides when mirror style is selected
+  // but ONLY to collections that have explicit overrides in the database
+  // This runs AFTER product matching to ensure overrides take precedence
+
+  if (hasProductLine && hasMirrorStyle) {
+    // Find products that match the current mirror style selection
+    const productsWithSelectedMirrorStyle = productsCache.filter(p =>
+      p.product_line === productLineId &&
+      p.mirror_style?.toString() === currentSelection.mirror_styles
+    );
+
+    if (productsWithSelectedMirrorStyle.length > 0) {
+      const productIds = productsWithSelectedMirrorStyle.map(p => p.id);
+
+      // Find overrides that apply to these products
       const applicableOverrides = productOverridesCache.filter(override =>
-        matchingProducts.some(p => p.id === override.products_id)
+        productIds.includes(override.products_id)
       );
-      
+
       if (applicableOverrides.length > 0) {
         if (import.meta.env.DEV) {
-          console.log(`🎯 Applying ${applicableOverrides.length} product-specific overrides for ${matchingProducts.length} products`);
+          console.log(`🎯 Applying ${applicableOverrides.length} product-specific overrides for mirror style selection`);
         }
-        
-        // Apply overrides - these REPLACE the default options for affected collections
+
+        // Group overrides by collection
         const overridesByCollection = {} as Record<string, string[]>;
         applicableOverrides.forEach(override => {
           if (!overridesByCollection[override.collection]) {
@@ -298,15 +295,42 @@ export function getFilteredOptions(
           overridesByCollection[override.collection].push(override.item);
         });
 
-        // Replace options with overrides where they exist
+        // Get collections that have explicit overrides
+        const collectionsWithOverrides = new Set(Object.keys(overridesByCollection));
+
+        // CRITICAL: Only apply overrides to collections that actually have them
+        // This prevents cross-collection contamination by overriding the results from product matching
         Object.entries(overridesByCollection).forEach(([collection, overrideItems]) => {
-          result.all[collection] = [...new Set(overrideItems)];
-          result.available[collection] = [...new Set(overrideItems)];
-          result.disabled[collection] = [];
-          if (import.meta.env.DEV) {
-            console.log(`🎯 Override applied to ${collection}: ${overrideItems.length} options`);
+          if (collectionsWithOverrides.has(collection)) {
+            const uniqueOverrideItems = [...new Set(overrideItems)];
+            const originalAvailable = result.available[collection]?.length || 0;
+
+            result.all[collection] = uniqueOverrideItems;
+            result.available[collection] = uniqueOverrideItems;
+            result.disabled[collection] = [];
+
+            // Update filtering history to show override was applied
+            filteringHistory[collection] = [...(filteringHistory[collection] || []), 'product_overrides'];
+
+            if (import.meta.env.DEV) {
+              console.log(`🎯 Override applied to ${collection}: ${uniqueOverrideItems.length} options (was ${originalAvailable}, base: ${baseOptionsByCollection[collection]?.length || 0})`);
+            }
           }
         });
+
+        // Log collections that are NOT affected by overrides for debugging
+        if (import.meta.env.DEV) {
+          const allCollections = Object.keys(baseOptionsByCollection);
+          const unaffectedCollections = allCollections.filter(c => !collectionsWithOverrides.has(c));
+          if (unaffectedCollections.length > 0) {
+            console.log(`📋 Collections preserved from overrides: ${unaffectedCollections.join(', ')}`);
+            unaffectedCollections.forEach(collection => {
+              const available = result.available[collection]?.length || 0;
+              const total = result.all[collection]?.length || 0;
+              console.log(`   → ${collection}: ${available}/${total} available (preserved from product matching/defaults)`);
+            });
+          }
+        }
       }
     }
   }
@@ -319,7 +343,9 @@ export function getFilteredOptions(
     Object.entries(result.available).forEach(([collection, availableItems]) => {
       const allItems = result.all[collection] || [];
       const disabledItems = result.disabled[collection] || [];
+      const mechanisms = filteringHistory[collection] || ['unknown'];
       console.log(`📄 ${collection}: ${availableItems.length}/${allItems.length} available, ${disabledItems.length} disabled`);
+      console.log(`   → Filtering: [${mechanisms.join(' → ')}]`);
       if (disabledItems.length > 0) {
         console.log(`   → Disabled: [${disabledItems.join(', ')}]`);
       }
