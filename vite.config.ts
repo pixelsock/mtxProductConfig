@@ -11,7 +11,6 @@ export default defineConfig({
     hmr: {
       overlay: true,
       protocol: 'ws',
-      host: 'localhost'
     },
     watch: {
       usePolling: false,
