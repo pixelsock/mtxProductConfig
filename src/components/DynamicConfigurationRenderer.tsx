@@ -387,14 +387,29 @@ const useDynamicOptions = (collection: string, productLineId: number) => {
           .from(collection)
           .select('*')
           .in('id', allowedIds)
-          .eq('active', true)
           .order('sort', { ascending: true });
 
-        if (collectionError) {
-          throw collectionError;
+        // If the first query fails, try without the active filter
+        let finalData = collectionData;
+        let finalError = collectionError;
+
+        if (collectionError && collectionError.code === '42703') {
+          // Column doesn't exist, retry without active filter
+          const { data: retryData, error: retryError } = await supabase
+            .from(collection)
+            .select('*')
+            .in('id', allowedIds)
+            .order('sort', { ascending: true });
+          
+          finalData = retryData;
+          finalError = retryError;
         }
 
-        setOptions(collectionData || []);
+        if (finalError) {
+          throw finalError;
+        }
+
+        setOptions(finalData || []);
 
       } catch (err) {
         console.error(`Failed to load options for ${collection}:`, err);
