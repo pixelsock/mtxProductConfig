@@ -66,46 +66,166 @@ export const createConfigurationSlice = (
   },
 
   resetConfiguration: async () => {
-    const { currentProductLine, productOptions, recomputeFiltering } = get();
+    const { currentProductLine, recomputeFiltering } = get();
 
-    if (!currentProductLine || !productOptions) return;
+    if (!currentProductLine) return;
 
-    // Create new configuration with defaults (same logic as original)
-    const defaultSize = productOptions.sizes[0];
+    console.log('🔄 Resetting configuration for product line:', currentProductLine.name);
 
-    const initialConfig: ProductConfig = {
+    // Create basic configuration structure
+    const baseConfig: ProductConfig = {
       id: `config-${Date.now()}`,
       productLineId: currentProductLine.id,
       productLineName: currentProductLine.name,
-      mirrorControls: productOptions.mirrorControls[0]?.id.toString() || "",
-      frameColor: productOptions.frameColors[0]?.id.toString() || "",
-      frameThickness: productOptions.frameThickness[0]?.id.toString() || "",
-      mirrorStyle: productOptions.mirrorStyles[0]?.id.toString() || "",
-      width: defaultSize?.width?.toString() || "24",
-      height: defaultSize?.height?.toString() || "36",
-      mounting: productOptions.mountingOptions[0]?.id.toString() || "",
-      lighting: productOptions.lightingOptions[0]?.id.toString() || "",
-      colorTemperature: productOptions.colorTemperatures[0]?.id.toString() || "",
-      lightOutput: productOptions.lightOutputs[0]?.id.toString() || "",
-      driver: productOptions.drivers[0]?.id.toString() || "",
+      // Legacy fields for backward compatibility
+      mirrorControls: "",
+      frameColor: "",
+      frameThickness: "",
+      mirrorStyle: "",
+      width: "24",
+      height: "36",
+      mounting: "",
+      lighting: "",
+      colorTemperature: "",
+      lightOutput: "",
+      driver: "",
       accessories: [],
       quantity: 1,
     };
 
-    // Set the initial configuration
+    // Set the base configuration first
     set((state) => ({
       ...state,
-      currentConfig: initialConfig,
+      currentConfig: baseConfig,
     }));
 
-    console.log('🔄 Initial configuration set, applying dynamic filtering and validation...');
-
-    // Apply dynamic filtering based on the initial configuration
+    // Now load default options from the database and populate the configuration
     try {
-      await recomputeFiltering(currentProductLine, initialConfig);
-      console.log('✅ Initial configuration dynamic filtering and validation complete');
+      const { data: configUI, error: configError } = await supabase
+        .from('configuration_ui')
+        .select('*')
+        .order('sort', { ascending: true });
+
+      if (configError) {
+        console.error('Failed to load configuration UI:', configError);
+        return;
+      }
+
+      if (!configUI || configUI.length === 0) {
+        console.warn('No configuration UI found - using base configuration');
+        return;
+      }
+
+      console.log(`🔧 Loading default options for ${configUI.length} collections...`);
+
+      // Load default options for each collection in the configuration UI
+      for (const configItem of configUI) {
+        try {
+          // Get default options for this collection from product line
+          const { data: defaultOptions, error: defaultError } = await supabase
+            .from('product_lines_default_options')
+            .select('*')
+            .eq('product_lines_id', currentProductLine.id)
+            .eq('collection', configItem.collection);
+
+          if (defaultError || !defaultOptions || defaultOptions.length === 0) {
+            console.log(`No default options for ${configItem.collection} in product line ${currentProductLine.id}`);
+            continue;
+          }
+
+          // Get the allowed item IDs
+          const allowedIds = defaultOptions.map(opt => parseInt(opt.item)).filter(id => !isNaN(id));
+          if (allowedIds.length === 0) continue;
+
+          // Load the first option from this collection
+          const { data: collectionData, error: collectionError } = await supabase
+            .from(configItem.collection)
+            .select('*')
+            .in('id', allowedIds)
+            .order('sort', { ascending: true })
+            .limit(1);
+
+          if (collectionError) {
+            // Try without active filter if column doesn't exist
+            const { data: retryData, error: retryError } = await supabase
+              .from(configItem.collection)
+              .select('*')
+              .in('id', allowedIds)
+              .order('sort', { ascending: true })
+              .limit(1);
+
+            if (retryError) {
+              console.warn(`Failed to load default option for ${configItem.collection}:`, retryError);
+              continue;
+            }
+
+            if (retryData && retryData.length > 0) {
+              const defaultOption = retryData[0];
+              console.log(`✓ Setting default ${configItem.collection}: ${defaultOption.name} (ID: ${defaultOption.id})`);
+              
+              // Update configuration with this default selection
+              set((state) => ({
+                ...state,
+                currentConfig: state.currentConfig ? {
+                  ...state.currentConfig,
+                  [configItem.collection]: defaultOption.id.toString(),
+                  // Handle special cases for legacy field names
+                  ...(configItem.collection === 'sizes' && defaultOption.width && defaultOption.height ? {
+                    width: defaultOption.width.toString(),
+                    height: defaultOption.height.toString()
+                  } : {}),
+                  ...(configItem.collection === 'light_directions' ? {
+                    lighting: defaultOption.id.toString()
+                  } : {}),
+                  ...(configItem.collection === 'mounting_options' ? {
+                    mounting: defaultOption.id.toString()
+                  } : {})
+                } : state.currentConfig
+              }));
+            }
+          } else if (collectionData && collectionData.length > 0) {
+            const defaultOption = collectionData[0];
+            console.log(`✓ Setting default ${configItem.collection}: ${defaultOption.name} (ID: ${defaultOption.id})`);
+            
+            // Update configuration with this default selection
+            set((state) => ({
+              ...state,
+              currentConfig: state.currentConfig ? {
+                ...state.currentConfig,
+                [configItem.collection]: defaultOption.id.toString(),
+                // Handle special cases for legacy field names
+                ...(configItem.collection === 'sizes' && defaultOption.width && defaultOption.height ? {
+                  width: defaultOption.width.toString(),
+                  height: defaultOption.height.toString()
+                } : {}),
+                ...(configItem.collection === 'light_directions' ? {
+                  lighting: defaultOption.id.toString()
+                } : {}),
+                ...(configItem.collection === 'mounting_options' ? {
+                  mounting: defaultOption.id.toString()
+                } : {})
+              } : state.currentConfig
+            }));
+          }
+        } catch (error) {
+          console.warn(`Failed to load default option for ${configItem.collection}:`, error);
+        }
+      }
+
+      console.log('✅ Configuration initialized with database-driven defaults');
+
+      // Apply dynamic filtering based on the populated configuration
+      const { currentConfig } = get();
+      if (currentConfig) {
+        try {
+          await recomputeFiltering(currentProductLine, currentConfig);
+          console.log('✅ Dynamic filtering applied to initialized configuration');
+        } catch (error) {
+          console.error('❌ Failed to apply dynamic filtering:', error);
+        }
+      }
     } catch (error) {
-      console.error('❌ Failed to apply initial dynamic filtering:', error);
+      console.error('❌ Failed to initialize configuration from database:', error);
     }
   },
 
