@@ -6,6 +6,7 @@
  * same logic patterns as the original useState implementation.
  */
 
+import { supabase } from '../../services/supabase';
 import {
   ConfigurationSlice,
   ProductConfig,
