@@ -34,6 +34,8 @@ export interface ProductConfig {
   driver: string;
   accessories: string[];
   quantity: number;
+  // Allow dynamic fields from any collection
+  [key: string]: any;
 }
 
 export interface ProductOption {

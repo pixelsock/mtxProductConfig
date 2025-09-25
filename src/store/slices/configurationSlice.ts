@@ -33,12 +33,20 @@ export const createConfigurationSlice = (
     set((state) => {
       if (!state.currentConfig) return state;
 
+      // Handle dynamic collection fields that aren't in the ProductConfig interface
+      const updatedConfig = {
+        ...state.currentConfig,
+        [field]: value,
+      };
+
+      // For any field not in the original interface, store it as a dynamic property
+      if (!(field in state.currentConfig)) {
+        (updatedConfig as any)[field] = value;
+      }
+
       return {
         ...state,
-        currentConfig: {
-          ...state.currentConfig,
-          [field]: value,
-        },
+        currentConfig: updatedConfig,
       };
     });
   },

@@ -92,171 +92,37 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
       setLoadingProductLine(true);
       setError(null);
 
-      // Import and use existing service layer functions
-      const { getFilteredOptions } = await import('../../services/dynamic-filtering');
-      const { supabase } = await import('../../services/supabase');
-
       if (import.meta.env.DEV) {
         console.log(`🔄 Loading options for ${productLine.name} using database-driven filtering...`);
       }
 
-      // Get the properly filtered options using existing two-level approach
-      const initialFilteringResult = getFilteredOptions({}, productLine.id);
-
-      // Load option data from Supabase (same logic as original)
-      const loadOptionsForCollection = async (collectionName: string, availableIds: string[]) => {
-        if (availableIds.length === 0) return [];
-
-        try {
-          const { data, error } = await supabase
-            .from(collectionName as any)
-            .select('*')
-            .in('id', availableIds.map(id => parseInt(id)))
-            .eq('active', true);
-
-          if (error) {
-            console.warn(`⚠️ Failed to load ${collectionName}:`, error);
-            return [];
-          }
-
-          return data || [];
-        } catch (error) {
-          console.warn(`⚠️ Error loading ${collectionName}:`, error);
-          return [];
-        }
-      };
-
-      // Load all collections in parallel (same as original)
-      const [
-        frameColorsData,
-        frameThicknessData,
-        mirrorStylesData,
-        mountingOptionsData,
-        lightingOptionsData,
-        colorTemperaturesData,
-        lightOutputsData,
-        driversData,
-        sizesData,
-        accessoriesData
-      ] = await Promise.all([
-        loadOptionsForCollection('frame_colors', initialFilteringResult.available.frame_colors || []),
-        loadOptionsForCollection('frame_thicknesses', initialFilteringResult.available.frame_thicknesses || []),
-        loadOptionsForCollection('mirror_styles', initialFilteringResult.available.mirror_styles || []),
-        loadOptionsForCollection('mounting_options', initialFilteringResult.available.mounting_options || []),
-        loadOptionsForCollection('light_directions', initialFilteringResult.available.light_directions || []),
-        loadOptionsForCollection('color_temperatures', initialFilteringResult.available.color_temperatures || []),
-        loadOptionsForCollection('light_outputs', initialFilteringResult.available.light_outputs || []),
-        loadOptionsForCollection('drivers', initialFilteringResult.available.drivers || []),
-        loadOptionsForCollection('sizes', initialFilteringResult.available.sizes || []),
-        loadOptionsForCollection('accessories', initialFilteringResult.available.accessories || [])
-      ]);
-
-      // Initialize disabled state (Level 1 = no disabled options)
-      const initialDisabledOptions = {
-        mirror_styles: [],
-        light_directions: [],
-        frame_thicknesses: [],
-        frame_colors: [],
-        mounting_options: [],
+      // The new system doesn't need to pre-load all options
+      // Options are loaded dynamically by each collection renderer
+      // Just set a placeholder to indicate loading is complete
+      setProductOptions({
+        mirrorControls: [],
+        frameColors: [],
+        frameThickness: [],
+        mirrorStyles: [],
+        mountingOptions: [],
+        lightingOptions: [],
+        colorTemperatures: [],
+        lightOutputs: [],
         drivers: [],
-        color_temperatures: [],
-        light_outputs: [],
+        accessoryOptions: [],
         sizes: [],
-        accessories: []
-      };
+      });
 
-      setDisabledOptions(initialDisabledOptions);
-
-      // Transform data to ProductOptions format (same logic as original)
-      const options: ProductOptions = {
-        mirrorControls: [], // Table doesn't exist in database
-        frameColors: frameColorsData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string,
-          hex_code: (item.hex_code || "#000000") as string
-        })),
-        frameThickness: frameThicknessData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string
-        })),
-        mirrorStyles: mirrorStylesData
-          .map(item => ({
-            id: item.id as number,
-            name: item.name as string,
-            sku_code: item.sku_code as string,
-            description: item.description as string
-          }))
-          .sort((a, b) => {
-            const aa = a.sku_code ? parseInt(a.sku_code, 10) : Number.MAX_SAFE_INTEGER;
-            const bb = b.sku_code ? parseInt(b.sku_code, 10) : Number.MAX_SAFE_INTEGER;
-            if (Number.isNaN(aa) && Number.isNaN(bb)) return (a.sku_code || '').localeCompare(b.sku_code || '');
-            if (Number.isNaN(aa)) return 1;
-            if (Number.isNaN(bb)) return -1;
-            return aa - bb;
-          }),
-        mountingOptions: mountingOptionsData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string,
-          description: item.description as string
-        })),
-        lightingOptions: lightingOptionsData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string,
-          description: item.description as string
-        })),
-        colorTemperatures: colorTemperaturesData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string
-        })),
-        lightOutputs: lightOutputsData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string
-        })),
-        drivers: driversData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string,
-          description: item.description as string
-        })),
-        accessoryOptions: accessoriesData.map(item => ({
-          id: item.id as number,
-          name: item.name as string,
-          sku_code: item.sku_code as string,
-          description: (item.description || undefined) as string | undefined
-        })),
-        sizes: sizesData.map(item => {
-          const dimensions = {
-            width: item.width ? Number(item.width) : undefined,
-            height: item.height ? Number(item.height) : undefined
-          };
-          return {
-            id: item.id as number,
-            name: item.name as string,
-            sku_code: item.sku_code as string,
-            width: dimensions.width,
-            height: dimensions.height
-          };
-        }),
-      };
-
-      setProductOptions(options);
+      // Initialize disabled state as empty
+      setDisabledOptions({});
 
       // Initialize configuration with default values from loaded options
       const { resetConfiguration } = get();
       await resetConfiguration();
 
       if (import.meta.env.DEV) {
-        console.log("✓ Real product data loaded successfully");
-        console.log(`✓ Loaded ${options.frameColors.length} frame colors`);
-        console.log(`✓ Loaded ${options.mirrorStyles.length} mirror styles`);
-        console.log(`✓ Loaded ${options.sizes.length} size options`);
-        console.log("✓ Configuration initialized with default values");
+        console.log("✓ Dynamic configuration system initialized");
+        console.log("✓ Options will be loaded dynamically based on configuration_ui");
       }
 
     } catch (error) {
