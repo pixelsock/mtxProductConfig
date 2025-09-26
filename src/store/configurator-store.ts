@@ -7,6 +7,11 @@ import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { supabase } from '../services/supabase';
+import { initializeFiltering, getFilteredOptions } from '../services/dynamic-filtering';
+import { applyRulesComplete } from '../services/rules-ui-integration';
+import { findBestMatchingProduct } from '../services/product-matcher';
+import { selectProductImage } from '../services/image-selector';
+import { getProductLineById } from '../services/directus';
 
 // Core types
 export interface ConfigurationState {
@@ -150,8 +155,8 @@ export const useConfiguratorStore = create<ConfiguratorStore>()(
             }
           });
 
-          // Trigger server-side filtering update
-          get().refreshOptions();
+          // Trigger filtering update after state change
+          setTimeout(() => get().refreshOptions(), 0);
         },
 
         selectMultipleOptions: (collectionKey: string, optionIds: (number | string)[]) => {
@@ -161,7 +166,7 @@ export const useConfiguratorStore = create<ConfiguratorStore>()(
             );
           });
 
-          get().refreshOptions();
+          setTimeout(() => get().refreshOptions(), 0);
         },
 
         clearSelection: (collectionKey: string) => {
@@ -169,7 +174,7 @@ export const useConfiguratorStore = create<ConfiguratorStore>()(
             delete state.configuration[collectionKey];
           });
 
-          get().refreshOptions();
+          setTimeout(() => get().refreshOptions(), 0);
         },
 
         resetConfiguration: () => {
@@ -180,7 +185,7 @@ export const useConfiguratorStore = create<ConfiguratorStore>()(
             state.productImage = null;
           });
 
-          get().refreshOptions();
+          setTimeout(() => get().refreshOptions(), 0);
         },
 
         // State queries
@@ -219,6 +224,11 @@ export const useConfiguratorStore = create<ConfiguratorStore>()(
 
         // Data loading
         loadProductLine: async (productLineId: number) => {
+          const currentState = get();
+          if (currentState.productLineId === productLineId && currentState.isLoading) {
+            return; // Prevent duplicate loading
+          }
+
           set((state) => {
             state.isLoading = true;
             state.error = null;
@@ -226,22 +236,69 @@ export const useConfiguratorStore = create<ConfiguratorStore>()(
           });
 
           try {
-            // Call server-side function to get all data
-            const { data, error } = await supabase.rpc('get_configurator_data', {
-              p_product_line_id: productLineId
-            });
+            // Initialize filtering system
+            await initializeFiltering();
 
-            if (error) throw error;
+            // Get configuration UI
+            const { data: configUI, error: configUIError } = await supabase
+              .from('configuration_ui')
+              .select('*')
+              .order('sort');
+
+            if (configUIError) throw configUIError;
+
+            // Get product line default options
+            const { data: defaultOptions, error: defaultOptionsError } = await supabase
+              .from('product_lines_default_options')
+              .select('*')
+              .eq('product_lines_id', productLineId);
+
+            if (defaultOptionsError) throw defaultOptionsError;
+
+            // Get collections data based on configuration UI
+            const collections: CollectionData = {};
+            
+            for (const uiConfig of configUI || []) {
+              const { data: collectionData, error: collectionError } = await supabase
+                .from(uiConfig.collection)
+                .select('*')
+                .eq('active', true)
+                .order('sort');
+
+              if (collectionError) {
+                console.warn(`Failed to load ${uiConfig.collection}:`, collectionError);
+                continue;
+              }
+
+              collections[uiConfig.collection] = collectionData || [];
+            }
 
             set((state) => {
-              state.collections = data.collections || {};
-              state.configurationUI = data.configurationUI || [];
-              state.disabledOptions = data.disabledOptions || {};
+              state.collections = collections;
+              state.configurationUI = (configUI || []).map(ui => ({
+                id: ui.id,
+                collection: ui.collection,
+                ui_type: ui.ui_type,
+                sort: ui.sort || 0
+              }));
+              state.disabledOptions = {};
               state.isLoading = false;
             });
 
-            // Initialize with default selections
-            get().initializeDefaults();
+            // Initialize with first available option for each collection
+            const newConfig: ConfigurationState = {};
+            Object.entries(collections).forEach(([collectionKey, options]) => {
+              if (options.length > 0) {
+                newConfig[collectionKey] = options[0].id.toString();
+              }
+            });
+
+            set((state) => {
+              state.configuration = newConfig;
+            });
+
+            // Apply initial filtering
+            setTimeout(() => get().refreshOptions(), 0);
 
           } catch (error) {
             console.error('Failed to load product line:', error);
@@ -261,19 +318,40 @@ export const useConfiguratorStore = create<ConfiguratorStore>()(
           });
 
           try {
-            // Get filtered options based on current configuration
-            const { data, error } = await supabase.rpc('get_filtered_options', {
-              p_product_line_id: state.productLineId,
-              p_current_selections: state.configuration
+            // Apply dynamic filtering
+            const filteredOptions = getFilteredOptions(state.configuration, state.productLineId);
+            
+            // Apply rules to get disabled options
+            const rulesResult = await applyRulesComplete(state.configuration, state.productLineId);
+            
+            // Combine filtering and rules disabled options
+            const combinedDisabled: DisabledState = {};
+            Object.keys(state.collections).forEach(collection => {
+              const filteringDisabled = filteredOptions.disabled[collection] || [];
+              const rulesDisabled = rulesResult.disabledOptions[collection] || [];
+              combinedDisabled[collection] = [...new Set([...filteringDisabled, ...rulesDisabled])];
             });
-
-            if (error) throw error;
+            
+            // Find matching product
+            const productCriteria = {
+              productLineId: state.productLineId,
+              mirrorStyleId: state.configuration.mirrorStyles ? parseInt(state.configuration.mirrorStyles as string) : undefined,
+              lightDirectionId: state.configuration.lightDirections ? parseInt(state.configuration.lightDirections as string) : undefined,
+              frameThicknessId: state.configuration.frameThicknesses ? parseInt(state.configuration.frameThicknesses as string) : undefined,
+            };
+            
+            const matchingProduct = await findBestMatchingProduct(productCriteria);
+            
+            // Select product image
+            const imageResult = selectProductImage(
+              matchingProduct,
+              state.collections.mountingOptions?.find(m => m.id.toString() === state.configuration.mountingOptions)
+            );
 
             set((state) => {
-              state.collections = data.collections || state.collections;
-              state.disabledOptions = data.disabledOptions || {};
-              state.currentProduct = data.currentProduct || null;
-              state.productImage = data.productImage || null;
+              state.disabledOptions = combinedDisabled;
+              state.currentProduct = matchingProduct;
+              state.productImage = imageResult.primaryImage;
               state.isLoadingOptions = false;
             });
 
@@ -283,25 +361,6 @@ export const useConfiguratorStore = create<ConfiguratorStore>()(
               state.isLoadingOptions = false;
             });
           }
-        },
-
-        // Initialize with first available option for each collection
-        initializeDefaults: () => {
-          const state = get();
-          const newConfig: ConfigurationState = {};
-
-          Object.entries(state.collections).forEach(([collectionKey, options]) => {
-            if (options.length > 0) {
-              // Select first available option
-              newConfig[collectionKey] = options[0].id.toString();
-            }
-          });
-
-          set((state) => {
-            state.configuration = newConfig;
-          });
-
-          get().refreshOptions();
         },
 
         // Quote management
