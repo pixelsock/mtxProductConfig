@@ -16,6 +16,10 @@ import { Badge } from './ui/badge';
 import { Check, Zap, Lightbulb, RotateCcw, RotateCw } from 'lucide-react';
 import { supabase } from '../services/supabase';
 
+// Import rules engine for processing business logic
+import { processRules, buildRuleConstraints, applyConstraintsToIds } from '../services/rules-engine';
+import { getRules } from '../services/supabase';
+
 interface ConfigUIItem {
   id: string;
   collection: string;
@@ -347,6 +351,8 @@ const useDynamicOptions = (collection: string, productLineId: number) => {
   const [options, setOptions] = React.useState<DynamicOption[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const { currentConfig, disabledOptionIds } = useConfigurationState();
+  const { } = useAPIState();
 
   React.useEffect(() => {
     const loadOptions = async () => {
@@ -409,7 +415,66 @@ const useDynamicOptions = (collection: string, productLineId: number) => {
           throw finalError;
         }
 
-        setOptions(finalData || []);
+        // Apply rules engine processing to determine disabled options
+        let processedOptions = finalData || [];
+        
+        if (currentConfig && processedOptions.length > 0) {
+          try {
+            // Build rule context for evaluation
+            const ruleContext = {
+              product_line: productLineId,
+              mirror_style: currentConfig.mirror_styles ? parseInt(currentConfig.mirror_styles) : undefined,
+              light_direction: currentConfig.light_directions ? parseInt(currentConfig.light_directions) : undefined,
+              frame_thickness: currentConfig.frame_thicknesses ? parseInt(currentConfig.frame_thicknesses) : undefined,
+              mounting_option: currentConfig.mounting_options ? parseInt(currentConfig.mounting_options) : undefined,
+              driver: currentConfig.drivers ? parseInt(currentConfig.drivers) : undefined,
+              frame_color: currentConfig.frame_colors ? parseInt(currentConfig.frame_colors) : undefined,
+              color_temperature: currentConfig.color_temperatures ? parseInt(currentConfig.color_temperatures) : undefined,
+              light_output: currentConfig.light_outputs ? parseInt(currentConfig.light_outputs) : undefined,
+              accessory: Array.isArray(currentConfig.accessories) ? currentConfig.accessories.map((a: any) => parseInt(a)) : undefined,
+              // Add any other fields that might be in currentConfig
+              ...Object.fromEntries(
+                Object.entries(currentConfig).map(([key, value]) => [
+                  key,
+                  typeof value === 'string' && !isNaN(parseInt(value)) ? parseInt(value) : value
+                ])
+              )
+            };
+
+            // Get rules and apply constraints
+            const rules = await getRules();
+            const ruleConstraints = buildRuleConstraints(rules, ruleContext);
+            
+            // Check if this collection has rule constraints
+            const collectionConstraints = ruleConstraints[collection];
+            if (collectionConstraints) {
+              // Apply rule constraints to filter options
+              const allOptionIds = processedOptions.map(opt => opt.id);
+              const constrainedIds = applyConstraintsToIds(
+                { [collection]: allOptionIds },
+                { [collection]: collectionConstraints },
+                (field) => field === collection ? allOptionIds : []
+              );
+              
+              // Filter options based on rule constraints
+              const allowedIds = constrainedIds[collection] || allOptionIds;
+              processedOptions = processedOptions.filter(opt => allowedIds.includes(opt.id));
+              
+              if (import.meta.env.DEV) {
+                console.log(`⚙️ Rules applied to ${collection}:`, {
+                  originalCount: allOptionIds.length,
+                  filteredCount: processedOptions.length,
+                  constraints: collectionConstraints
+                });
+              }
+            }
+          } catch (rulesError) {
+            console.warn(`Failed to apply rules to ${collection}:`, rulesError);
+            // Continue with unfiltered options if rules fail
+          }
+        }
+
+        setOptions(processedOptions);
 
       } catch (err) {
         console.error(`Failed to load options for ${collection}:`, err);
@@ -421,7 +486,7 @@ const useDynamicOptions = (collection: string, productLineId: number) => {
     };
 
     loadOptions();
-  }, [collection, productLineId]);
+  }, [collection, productLineId, currentConfig]);
 
   return { options, loading, error };
 };
@@ -460,7 +525,7 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
             productLineId={currentProductLine.id}
             currentConfig={currentConfig}
             disabledOptionIds={disabledOptionIds}
-            onConfigChange={onConfigChange}
+            isDisabled={isDisabled || (disabledOptionIds[collection]?.includes(option.id) || false)}
             onSizePresetSelect={onSizePresetSelect}
             onAccessoryToggle={onAccessoryToggle}
             useCustomSize={useCustomSize}
