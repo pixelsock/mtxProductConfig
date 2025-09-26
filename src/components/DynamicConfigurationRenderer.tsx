@@ -530,7 +530,6 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
             onAccessoryToggle={onAccessoryToggle}
             useCustomSize={useCustomSize}
             setCustomSizeEnabled={setCustomSizeEnabled}
-            getCurrentSizeId={getCurrentSizeId}
           />
         );
       })}
