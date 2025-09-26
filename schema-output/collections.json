@@ -1,0 +1,6190 @@
+{
+  "accessories": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "accessoriesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "accessoriesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "accessoriesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "accessoriesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `accessories`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "api_test": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "api_testFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "api_testOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "api_testCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "api_testConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `api_test`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "api_test_v2": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "api_test_v2Filter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "api_test_v2OrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "api_test_v2Collection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "api_test_v2Connection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `api_test_v2`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "color_temperatures": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "color_temperaturesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "color_temperaturesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "color_temperaturesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "color_temperaturesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `color_temperatures`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "configuration_attributes": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "configuration_attributesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "configuration_attributesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "configuration_attributesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "configuration_attributesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `configuration_attributes`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "configuration_dependencies": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "configuration_dependenciesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "configuration_dependenciesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "configuration_dependenciesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "configuration_dependenciesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `configuration_dependencies`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "configuration_options": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "configuration_optionsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "configuration_optionsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "configuration_optionsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "configuration_optionsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `configuration_options`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "configuration_pricing": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "configuration_pricingFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "configuration_pricingOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "configuration_pricingCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "configuration_pricingConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `configuration_pricing`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "configuration_ui": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "configuration_uiFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "configuration_uiOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "configuration_uiCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "configuration_uiConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `configuration_ui`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "diagnostic_results": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "diagnostic_resultsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "diagnostic_resultsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "diagnostic_resultsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "diagnostic_resultsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `diagnostic_results`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_access": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_accessFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_accessOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_accessCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_accessConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_access`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_activity": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_activityFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_activityOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_activityCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_activityConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_activity`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_collections": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_collectionsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_collectionsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_collectionsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_collectionsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_collections`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_comments": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_commentsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_commentsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_commentsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_commentsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_comments`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_dashboards": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_dashboardsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_dashboardsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_dashboardsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_dashboardsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_dashboards`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_extensions": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_extensionsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_extensionsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_extensionsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_extensionsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_extensions`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_fields": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_fieldsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_fieldsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_fieldsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_fieldsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_fields`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_files": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_filesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_filesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_filesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_filesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_files`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_flows": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_flowsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_flowsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_flowsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_flowsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_flows`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_folders": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_foldersFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_foldersOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_foldersCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_foldersConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_folders`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_migrations": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_migrationsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_migrationsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_migrationsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_migrationsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_migrations`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_notifications": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_notificationsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_notificationsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_notificationsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_notificationsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_notifications`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_operations": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_operationsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_operationsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_operationsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_operationsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_operations`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_panels": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_panelsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_panelsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_panelsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_panelsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_panels`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_permissions": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_permissionsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_permissionsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_permissionsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_permissionsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_permissions`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_policies": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_policiesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_policiesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_policiesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_policiesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_policies`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_presets": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_presetsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_presetsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_presetsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_presetsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_presets`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_relations": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_relationsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_relationsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_relationsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_relationsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_relations`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_revisions": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_revisionsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_revisionsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_revisionsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_revisionsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_revisions`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_roles": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_rolesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_rolesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_rolesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_rolesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_roles`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_sessions": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_sessionsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_sessionsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_sessionsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_sessionsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_sessions`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_settings": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_settingsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_settingsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_settingsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_settingsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_settings`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_shares": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_sharesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_sharesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_sharesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_sharesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_shares`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_translations": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_translationsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_translationsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_translationsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_translationsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_translations`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_users": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_usersFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_usersOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_usersCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_usersConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_users`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_versions": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_versionsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_versionsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_versionsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_versionsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_versions`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "directus_webhooks": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "directus_webhooksFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "directus_webhooksOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "directus_webhooksCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "directus_webhooksConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `directus_webhooks`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "drivers": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "driversFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "driversOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "driversCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "driversConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `drivers`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "dynamic_sku_index": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "dynamic_sku_indexFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "dynamic_sku_indexOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "dynamic_sku_indexCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "dynamic_sku_indexConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `dynamic_sku_index`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "frame_colors": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "frame_colorsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "frame_colorsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "frame_colorsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "frame_colorsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `frame_colors`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "frame_thicknesses": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "frame_thicknessesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "frame_thicknessesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "frame_thicknessesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "frame_thicknessesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `frame_thicknesses`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "hanging_techniques": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "hanging_techniquesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "hanging_techniquesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "hanging_techniquesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "hanging_techniquesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `hanging_techniques`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "kv_store_7a15d1c5": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "kv_store_7a15d1c5Filter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "kv_store_7a15d1c5OrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "kv_store_7a15d1c5Collection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "kv_store_7a15d1c5Connection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `kv_store_7a15d1c5`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "kv_store_8bb96920": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "kv_store_8bb96920Filter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "kv_store_8bb96920OrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "kv_store_8bb96920Collection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "kv_store_8bb96920Connection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `kv_store_8bb96920`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "kv_store_bfa1f56b": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "kv_store_bfa1f56bFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "kv_store_bfa1f56bOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "kv_store_bfa1f56bCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "kv_store_bfa1f56bConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `kv_store_bfa1f56b`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "light_directions": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "light_directionsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "light_directionsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "light_directionsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "light_directionsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `light_directions`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "light_outputs": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "light_outputsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "light_outputsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "light_outputsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "light_outputsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `light_outputs`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "mirror_styles": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "mirror_stylesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "mirror_stylesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "mirror_stylesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "mirror_stylesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `mirror_styles`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "mounting_options": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "mounting_optionsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "mounting_optionsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "mounting_optionsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "mounting_optionsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `mounting_options`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "option_compatibility": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "option_compatibilityFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "option_compatibilityOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "option_compatibilityCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "option_compatibilityConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `option_compatibility`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "product_configurations": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "product_configurationsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "product_configurationsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "product_configurationsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "product_configurationsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `product_configurations`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "product_line_configurations": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "product_line_configurationsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "product_line_configurationsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "product_line_configurationsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "product_line_configurationsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `product_line_configurations`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "product_lines": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "product_linesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "product_linesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "product_linesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "product_linesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `product_lines`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "product_lines_default_options": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "product_lines_default_optionsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "product_lines_default_optionsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "product_lines_default_optionsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "product_lines_default_optionsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `product_lines_default_options`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "product_option_cache": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "product_option_cacheFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "product_option_cacheOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "product_option_cacheCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "product_option_cacheConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `product_option_cache`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "products": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "productsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "productsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "productsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "productsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `products`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "products_files_1": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "products_files_1Filter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "products_files_1OrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "products_files_1Collection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "products_files_1Connection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `products_files_1`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "products_options_overrides": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "products_options_overridesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "products_options_overridesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "products_options_overridesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "products_options_overridesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `products_options_overrides`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "quote_items": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "quote_itemsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "quote_itemsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "quote_itemsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "quote_itemsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `quote_items`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "quotes": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "quotesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "quotesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "quotesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "quotesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `quotes`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "rules": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "rulesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "rulesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "rulesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "rulesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `rules`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "sizes": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "sizesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "sizesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "sizesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "sizesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `sizes`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "sku_code_order": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "sku_code_orderFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "sku_code_orderOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "sku_code_orderCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "sku_code_orderConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `sku_code_order`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "sku_generation_rules": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "sku_generation_rulesFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "sku_generation_rulesOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "sku_generation_rulesCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "sku_generation_rulesConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `sku_generation_rules`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "sku_index": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "sku_indexFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "sku_indexOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "sku_indexCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "sku_indexConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `sku_index`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "spatial_ref_sys": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "spatial_ref_sysFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "spatial_ref_sysOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "spatial_ref_sysCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "spatial_ref_sysConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `spatial_ref_sys`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "test_data": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "test_dataFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "test_dataOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "test_dataCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "test_dataConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `test_data`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  },
+  "working_diagnostics": {
+    "args": [
+      {
+        "name": "first",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the first `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "last",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Query the last `n` records in the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "before",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection before the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "after",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Cursor",
+          "ofType": null
+        },
+        "description": "Query values in the collection after the provided cursor",
+        "defaultValue": null
+      },
+      {
+        "name": "offset",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+        },
+        "description": "Skip n values from the after cursor. Alternative to cursor pagination. Backward pagination not supported.",
+        "defaultValue": null
+      },
+      {
+        "name": "filter",
+        "type": {
+          "kind": "INPUT_OBJECT",
+          "name": "working_diagnosticsFilter",
+          "ofType": null
+        },
+        "description": "Filters to apply to the results set when querying from the collection",
+        "defaultValue": null
+      },
+      {
+        "name": "orderBy",
+        "type": {
+          "kind": "LIST",
+          "name": null,
+          "ofType": {
+            "kind": "NON_NULL",
+            "name": null,
+            "ofType": {
+              "kind": "INPUT_OBJECT",
+              "name": "working_diagnosticsOrderBy",
+              "ofType": null
+            }
+          }
+        },
+        "description": "Sort order to apply to the collection",
+        "defaultValue": null
+      }
+    ],
+    "name": "working_diagnosticsCollection",
+    "type": {
+      "kind": "OBJECT",
+      "name": "working_diagnosticsConnection",
+      "ofType": null
+    },
+    "description": "A pagable collection of type `working_diagnostics`",
+    "isDeprecated": false,
+    "deprecationReason": null
+  }
+}
