@@ -325,7 +325,7 @@ const UITypeRenderers = {
             currentConfig={currentConfig}
             onSelect={(id) => onAccessoryToggle(id.toString())}
             isSelected={isSelected}
-            isDisabled={isDisabled}
+            isDisabled={isDisabled || (disabledOptionIds[collection]?.includes(option.id) || false)}
           />
         )})}
       </div>
