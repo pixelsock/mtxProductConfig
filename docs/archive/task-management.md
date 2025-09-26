@@ -2,6 +2,8 @@
 
 ## CRITICAL UPDATE: App.tsx Already Using API!
 
+> **Archived Note (2025-09 Supabase Migration):** This task management log predates the Supabase-only rewrite. Directus references remain for history only.
+
 **MAJOR DISCOVERY**: The application is already configured to use the Directus service layer, NOT static data files!
 
 - ✅ App.tsx imports from `./services/directus` (lines 33-47)

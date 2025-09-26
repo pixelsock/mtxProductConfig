@@ -8,7 +8,7 @@
 
 import { UISlice, StoreSet, StoreGet } from '../types';
 
-export const createUISlice = (set: StoreSet, get: StoreGet): UISlice => ({
+export const createUISlice = (set: StoreSet, _get: StoreGet): UISlice => ({
   // State
   showQuoteForm: false,
   showFloatingBar: false,

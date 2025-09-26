@@ -30,7 +30,6 @@ interface OptionButtonProps {
   // UI customization (optional)
   variant?: 'default' | 'color' | 'size' | 'accessory';
   icon?: React.ReactNode;
-  layout?: 'grid' | 'list';
 }
 
 export const OptionButton: React.FC<OptionButtonProps> = ({
@@ -39,11 +38,10 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
   currentSelection,
   onSelect,
   variant = 'default',
-  icon,
-  layout = 'list'
+  icon
 }) => {
   const optionManager = useOptionState(currentSelection);
-  const { isDisabled, isSelected, isAvailable } = optionManager.getOptionState(collection, option.id);
+  const { isDisabled, isSelected } = optionManager.getOptionState(collection, option.id);
 
   const handleClick = () => {
     if (!isDisabled) {
@@ -185,7 +183,6 @@ export const OptionSection: React.FC<OptionSectionProps> = ({
             currentSelection={currentSelection}
             onSelect={onSelect}
             variant={variant}
-            layout={layout}
             icon={typeof icon === 'function' ? icon(option) : icon}
           />
         ))}

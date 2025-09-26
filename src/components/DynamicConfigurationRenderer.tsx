@@ -13,8 +13,7 @@ import { OptionButton } from './OptionButton';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Input } from './ui/input';
-import { Badge } from './ui/badge';
-import { Check, Zap, Lightbulb, RotateCcw, RotateCw } from 'lucide-react';
+import { Zap, Lightbulb, RotateCcw, RotateCw } from 'lucide-react';
 
 interface ConfigUIItem {
   id: string;
@@ -30,7 +29,6 @@ interface DynamicConfigurationRendererProps {
   onAccessoryToggle: (accessoryId: string) => void;
   useCustomSize: boolean;
   setCustomSizeEnabled: (enabled: boolean) => void;
-  getCurrentSizeId: () => string;
 }
 
 // Icon mapping for different option types
@@ -88,20 +86,19 @@ const UITypeRenderers = {
       <h3 className="text-xl font-semibold text-gray-900 mb-6">{title}</h3>
       <div className={`grid gap-4 ${columns === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
         {options.map((option: any) => (
-          <OptionButton
-            key={option.id}
-            option={option}
-            collection={collection}
-            currentSelection={currentConfig}
-            onSelect={onSelect}
-            variant="default"
-            layout="grid"
-            icon={collection === 'light_directions' ? (() => {
-              const Icon = iconMapping[option.name?.toLowerCase()] || Zap;
-              return <Icon />;
-            })() : collection === 'mounting_options' || collection === 'hanging_techniques' ? (() => {
-              const Icon = iconMapping[option.name?.toLowerCase()] || RotateCcw;
-              return <Icon />;
+            <OptionButton
+              key={option.id}
+              option={option}
+              collection={collection}
+              currentSelection={currentConfig}
+              onSelect={onSelect}
+              variant="default"
+              icon={collection === 'light_directions' ? (() => {
+                const Icon = iconMapping[option.name?.toLowerCase()] || Zap;
+                return <Icon />;
+              })() : collection === 'mounting_options' || collection === 'hanging_techniques' ? (() => {
+                const Icon = iconMapping[option.name?.toLowerCase()] || RotateCcw;
+                return <Icon />;
             })() : undefined}
           />
         ))}
@@ -120,15 +117,14 @@ const UITypeRenderers = {
       <h3 className="text-xl font-semibold text-gray-900 mb-6">{title}</h3>
       <div className="grid grid-cols-2 gap-4">
         {options.map((option: any) => (
-          <OptionButton
-            key={option.id}
-            option={option}
-            collection={collection}
-            currentSelection={currentConfig}
-            onSelect={onSelect}
-            variant="color"
-            layout="grid"
-          />
+            <OptionButton
+              key={option.id}
+              option={option}
+              collection={collection}
+              currentSelection={currentConfig}
+              onSelect={onSelect}
+              variant="color"
+            />
         ))}
       </div>
     </div>
@@ -138,11 +134,9 @@ const UITypeRenderers = {
     collection, 
     options, 
     currentConfig, 
-    onSelect, 
     title,
     useCustomSize,
     setCustomSizeEnabled,
-    getCurrentSizeId,
     onSizePresetSelect,
     onConfigChange
   }: any) => (
@@ -211,7 +205,6 @@ const UITypeRenderers = {
                 if (size) onSizePresetSelect(size);
               }}
               variant="size"
-              layout="grid"
             />
           ))}
         </div>
@@ -223,7 +216,6 @@ const UITypeRenderers = {
     collection, 
     options, 
     currentConfig, 
-    onSelect, 
     title,
     onAccessoryToggle 
   }: any) => (
@@ -231,15 +223,14 @@ const UITypeRenderers = {
       <h3 className="text-xl font-semibold text-gray-900 mb-6">{title}</h3>
       <div className="space-y-3">
         {options.map((option: any) => (
-          <OptionButton
-            key={option.id}
-            option={option}
-            collection={collection}
-            currentSelection={currentConfig}
-            onSelect={(id) => onAccessoryToggle(id.toString())}
-            variant="accessory"
-            layout="list"
-          />
+            <OptionButton
+              key={option.id}
+              option={option}
+              collection={collection}
+              currentSelection={currentConfig}
+              onSelect={(id) => onAccessoryToggle(id.toString())}
+              variant="accessory"
+            />
         ))}
       </div>
     </div>
@@ -274,8 +265,7 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
   onSizePresetSelect,
   onAccessoryToggle,
   useCustomSize,
-  setCustomSizeEnabled,
-  getCurrentSizeId
+  setCustomSizeEnabled
 }) => {
   const { productOptions } = useAPIState();
   const { currentConfig } = useConfigurationState();
@@ -335,7 +325,6 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
               title={title}
               useCustomSize={useCustomSize}
               setCustomSizeEnabled={setCustomSizeEnabled}
-              getCurrentSizeId={getCurrentSizeId}
               onSizePresetSelect={onSizePresetSelect}
               onAccessoryToggle={onAccessoryToggle}
               onConfigChange={onConfigChange}

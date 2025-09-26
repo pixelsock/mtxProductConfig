@@ -1,5 +1,7 @@
 # Static Data Files Audit & Directus Mapping
 
+> **Archived Note (2025-09 Supabase Migration):** Directus mapping is no longer in use. Supabase now supplies all product data.
+
 ## 📊 Complete Static Data Inventory
 
 **Total Files**: 14 static data files in `/data` directory

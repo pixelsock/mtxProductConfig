@@ -1,6 +1,8 @@
 
 # Implementation Plan: Product Line Default Options Integration
 
+> **Supabase-Only Update (2025-09):** This plan now assumes the Supabase-backed `product-options` service as the source of option data. Any references to the retired Directus/dynamic-filtering layers should be interpreted as Supabase equivalents.
+
 **Branch**: `001-i-want-to` | **Date**: 2025-09-25 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/Users/nick/Sites/mtxProductConfig/specs/001-i-want-to/spec.md`
 
@@ -105,7 +107,7 @@ src/
 
 scripts/
 ├── introspect-schema.js    # Schema validation utilities
-└── rules-phase2-validate.sh # Rules validation
+└── rules-phase2-validate.ts # Rules validation
 
 specs/001-i-want-to/
 ├── plan.md             # This file (/plan command output)  

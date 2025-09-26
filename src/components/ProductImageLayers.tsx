@@ -8,7 +8,7 @@ export interface ConfigImageRule {
 export interface ConfigurationImage {
   id: string;
   name: string;
-  image: string; // Directus file ID
+  image: string; // Supabase storage file ID (directus_files table)
   z_index: number | string; // API returns as string, convert to number during processing
   image_rules: ConfigImageRule;
 }
@@ -98,7 +98,7 @@ function evaluateRule(rule: ConfigImageRule, config: Record<string, any>): boole
         value = enhancedConfig[camelCaseField] || enhancedConfig[snakeCaseField];
       }
       
-      // Handle expanded relation fields from Directus (only extract ID, not name)
+      // Handle expanded relation fields from Supabase (directus_files relation)
       if (typeof value === 'object' && value !== null) {
         // Always use the id property for rule evaluation, not name
         if ('id' in value) {

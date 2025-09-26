@@ -1,3 +1,5 @@
+> **Supabase Context (2025-09):** Validation and queries described here map to Supabase tables (`accessories`, `product_lines_default_options`).
+
 # Accessories Filtering Issue Fix
 
 ## Problem Summary

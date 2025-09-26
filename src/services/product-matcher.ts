@@ -8,7 +8,6 @@ import { Database } from '../../supabase';
 type DecoProduct = Database['public']['Tables']['products']['Row'];
 type ProductLine = Database['public']['Tables']['product_lines']['Row'];
 type LightDirection = Database['public']['Tables']['light_directions']['Row'];
-import { generateSKUVariations } from './sku-generator';
 
 export interface ProductMatchCriteria {
   sku?: string;
@@ -141,14 +140,13 @@ export function validateProductMatch(
   product: DecoProduct,
   criteria: ProductMatchCriteria
 ): boolean {
-  // Check SKU match
+  // Basic SKU match
   if (criteria.sku && product.name) {
-    const variations = generateSKUVariations(criteria.sku);
-    const productName = product.name.toUpperCase();
-    const skuMatches = variations.some(v => 
-      productName === v || productName.includes(v)
-    );
-    if (!skuMatches) return false;
+    const expected = criteria.sku.trim().toUpperCase();
+    const actual = product.name.trim().toUpperCase();
+    if (expected && actual && !actual.includes(expected)) {
+      return false;
+    }
   }
   
   // Check product line

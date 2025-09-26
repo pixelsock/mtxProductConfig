@@ -19,21 +19,6 @@ export default defineConfig({
       interval: 100,
     },
     proxy: {
-      "/api/directus": {
-        target: "https://pim.dude.digital",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api\/directus/, ""),
-        configure: (proxy, options) => {
-          proxy.on("proxyReq", (proxyReq, req, res) => {
-            // Add the authorization header
-            proxyReq.setHeader(
-              "Authorization",
-              "Bearer SatmtC2cTo-k-V17usWeYpBcc6hbtXjC",
-            );
-          });
-        },
-      },
       "/api": {
         target: "http://localhost:8056",
         changeOrigin: true,

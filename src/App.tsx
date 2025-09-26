@@ -13,7 +13,17 @@ import {
   useQuoteActions,
   useComputedValues,
 } from "./store";
-import type { ProductLine } from "./store/types";
+import type {
+  ProductLine,
+  ProductConfig,
+  ProductOption,
+  DecoProduct,
+  FrameThickness,
+  MirrorStyle,
+  LightDirection,
+  MountingOption,
+  ConfigurationUIItem
+} from "./store/types";
 import { Button } from "./components/ui/button";
 import { Card } from "./components/ui/card";
 import { Input } from "./components/ui/input";
@@ -22,18 +32,12 @@ import { Separator } from "./components/ui/separator";
 import { Badge } from "./components/ui/badge";
 import { Skeleton } from "./components/ui/skeleton";
 import { Alert, AlertDescription } from "./components/ui/alert";
-import { Switch } from "./components/ui/switch";
 import AdjustmentNotificationBar from "./components/AdjustmentNotificationBar";
 import {
   Trash2,
   Plus,
   Send,
   Minus,
-  Check,
-  Monitor,
-  Zap,
-  ZapOff,
-  Lightbulb,
   Loader2,
   AlertCircle,
   ShoppingCart,
@@ -41,37 +45,12 @@ import {
   ChevronUp,
   ChevronLeft,
   ChevronRight,
-  RotateCw,
-  RotateCcw,
 } from "lucide-react";
 
 // Import Dynamic Supabase service layer
-import {
-  initializeDynamicService,
-  getDynamicProductLines,
-  getSchemaInfo
-} from "./services/dynamic-supabase";
-
-// Import filtering functionality
-import {
-  initializeFiltering,
-  getFilteredOptions
-} from "./services/dynamic-filtering";
-// Import types from database type definitions
-import type { Database } from "../supabase";
-
-// Type aliases for convenience
-type DecoProduct = Database['public']['Tables']['products']['Row'];
-type FrameThickness = Database['public']['Tables']['frame_thicknesses']['Row'];
-type MirrorStyle = Database['public']['Tables']['mirror_styles']['Row'];
-type LightDirection = Database['public']['Tables']['light_directions']['Row'];
-type MountingOption = Database['public']['Tables']['mounting_options']['Row'];
-
-// Import rules and product matching services
-import { processRules } from "./services/rules-engine";
-import { generateProductSKU } from "./services/sku-generator";
+import { fetchProductLines } from "./services/product-options";
 import { findBestMatchingProduct } from "./services/product-matcher";
-import { selectProductImage, constructDirectusAssetUrl } from "./services/image-selector";
+import { selectProductImage, constructSupabaseAssetUrl } from "./services/image-selector";
 
 // Import API validation and test suite
 // Dev-only validators are noisy; omit in production build
@@ -81,21 +60,6 @@ import { ProductLineSelector } from "./components/ui/product-line-selector";
 import { CurrentConfiguration } from "./components/ui/current-configuration";
 import { EnvironmentIndicator } from "./components/ui/environment-indicator";
 import { DynamicConfigurationRenderer } from "./components/DynamicConfigurationRenderer";
-
-// Interfaces moved to store/types.ts
-
-// Icon mapping for different option types
-const iconMapping: { [key: string]: any } = {
-  direct: Zap,
-  indirect: Lightbulb,
-  "both direct and indirect": Zap,
-  zap: Zap,
-  "zap-off": ZapOff,
-  lightbulb: Lightbulb,
-  monitor: Monitor,
-  portrait: RotateCcw,
-  landscape: RotateCw,
-};
 
 const App: React.FC = () => {
   // Zustand store state
@@ -113,10 +77,8 @@ const App: React.FC = () => {
     productOptions,
     availableProductLines,
     configurationUI,
-    disabledOptionIds,
     isLoadingApp,
     isLoadingProductLine,
-    isComputingAvailability,
     error
   } = useAPIState();
   const { quoteItems, customerInfo } = useQuoteState();
@@ -143,13 +105,10 @@ const App: React.FC = () => {
   } = useUIActions();
 
   const {
-    setProductOptions,
     setAvailableProductLines,
     setConfigurationUI,
-    setDisabledOptions,
     setLoadingApp,
     setLoadingProductLine,
-    setComputingAvailability,
     setError,
     loadProductLineOptions,
     recomputeFiltering,
@@ -160,7 +119,6 @@ const App: React.FC = () => {
     removeFromQuote,
     clearQuote,
     updateCustomerInfo,
-    setCustomerInfo,
     resetCustomerInfo,
   } = useQuoteActions();
 
@@ -273,8 +231,8 @@ const App: React.FC = () => {
     if (Array.isArray(product.additional_images)) {
       for (const item of product.additional_images) {
         const file = (item as any)?.directus_files_id;
-        const id = typeof file === 'string' ? file : file?.id;
-        if (id) pushUnique(constructDirectusAssetUrl(id));
+        const url = constructSupabaseAssetUrl(file);
+        if (url) pushUnique(url);
       }
     }
     return urls;
@@ -331,24 +289,25 @@ const App: React.FC = () => {
 
       console.log('Loading real product data...');
 
-      // Initialize Dynamic Supabase service first
-      await initializeDynamicService();
-
-      // Initialize filtering system
-      await initializeFiltering();
-
       // Load configuration UI settings
       const { getConfigurationUI } = await import('./services/supabase');
       const configUI = await getConfigurationUI();
-      setConfigurationUI(configUI || []);
-      console.log('🎨 Configuration UI loaded:', configUI?.length || 0, 'items');
+      const normalizedConfigUI: ConfigurationUIItem[] = (configUI ?? [])
+        .filter((item: any): item is ConfigurationUIItem => !!item && !!item.collection && !!item.ui_type)
+        .map((item: any) => ({
+          id: item.id,
+          collection: item.collection as string,
+          ui_type: item.ui_type as string,
+          sort: item.sort ?? 0,
+          date_updated: item.date_updated ?? undefined
+        }));
+
+      setConfigurationUI(normalizedConfigUI);
+      console.log('🎨 Configuration UI loaded:', normalizedConfigUI.length, 'items');
 
       // Show schema information
-      const schemaInfo = getSchemaInfo();
-      console.log('📊 Database Schema Info:', schemaInfo);
-
       // Load all product lines
-      const productLines = await getDynamicProductLines();
+      const productLines = await fetchProductLines();
       setAvailableProductLines(productLines);
 
       // Get first product line as default, or look for one named "Deco" if available
@@ -382,7 +341,7 @@ const App: React.FC = () => {
   };
 
   // Handle product line change
-  const handleProductLineChange = async (newProductLine: any) => {
+  const handleProductLineChange = async (newProductLine: ProductLine) => {
     console.log(`handleProductLineChange called with:`, newProductLine);
     console.log(`Current isLoadingProductLine state:`, isLoadingProductLine);
 
@@ -431,18 +390,6 @@ const App: React.FC = () => {
 
   const handleSizePresetSelectLocal = (size: ProductOption) => {
     handleSizePresetSelect(size);
-  };
-
-  const getCurrentSizeId = () => {
-    if (!currentConfig || !productOptions) return "";
-
-    const matchingSize = productOptions.sizes.find(
-      (size) =>
-        size.width?.toString() === currentConfig.width &&
-        size.height?.toString() === currentConfig.height
-    );
-
-    return matchingSize ? (matchingSize.sku_code || matchingSize.id.toString()) : "";
   };
 
   const handleAccessoryToggleLocal = (accessoryId: string) => {
@@ -912,7 +859,7 @@ const App: React.FC = () => {
                   config={currentConfig}
                   productOptions={productOptions}
                   onQuantityChange={(quantity) => handleConfigChange("quantity", quantity)}
-                  onAddToQuote={addToQuote}
+                  onAddToQuote={addToQuoteLocal}
                 />
               )}
             </div>
@@ -926,7 +873,6 @@ const App: React.FC = () => {
                 onAccessoryToggle={handleAccessoryToggleLocal}
                 useCustomSize={useCustomSize}
                 setCustomSizeEnabled={setCustomSizeEnabled}
-                getCurrentSizeId={getCurrentSizeId}
               />
             )}
           </div>

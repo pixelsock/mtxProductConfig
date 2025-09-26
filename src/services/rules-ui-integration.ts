@@ -12,7 +12,6 @@
 
 import { evaluateRuleConditions } from "./rules-engine";
 import { getRules } from "./supabase";
-import type { Rule } from "./supabase";
 
 export interface RuleDisabledOptions {
   [collection: string]: number[];
@@ -121,7 +120,7 @@ export async function applyRulesComplete(
     return { disabledOptions, setValues };
   } catch (error) {
     console.error("Failed to apply rules for disabled options:", error);
-    return {};
+    return { disabledOptions: {}, setValues: {} };
   }
 }
 

@@ -7,7 +7,7 @@
 
 import type { Database } from "../../supabase";
 
-// ProductLine type from dynamic-supabase service
+// ProductLine type fetched from Supabase product_lines table
 export interface ProductLine {
   id: number;
   name: string;
@@ -78,7 +78,23 @@ export interface ConfigurationUIItem {
 }
 
 // Supabase type aliases
-export type DecoProduct = Database["public"]["Tables"]["products"]["Row"];
+export interface SupabaseFileAsset {
+  id: string;
+  filename_disk?: string | null;
+  storage?: string | null;
+}
+
+export type DecoProduct = Database["public"]["Tables"]["products"]["Row"] & {
+  vertical_image_file?: SupabaseFileAsset | null;
+  horizontal_image_file?: SupabaseFileAsset | null;
+  additional_images?: Array<{
+    id: number;
+    directus_files_id?: SupabaseFileAsset | null;
+  }> | null;
+  vertical_image?: string | null;
+  horizontal_image?: string | null;
+  applicationImage?: string | null;
+};
 export type FrameThickness =
   Database["public"]["Tables"]["frame_thicknesses"]["Row"];
 export type MirrorStyle = Database["public"]["Tables"]["mirror_styles"]["Row"];
@@ -221,7 +237,7 @@ export type StoreSet = (
     | ((
         state: ConfiguratorStore,
       ) => ConfiguratorStore | Partial<ConfiguratorStore>),
-  replace?: boolean | undefined,
+  replace?: false | undefined,
 ) => void;
 
 export type StoreGet = () => ConfiguratorStore;

@@ -1,6 +1,8 @@
 # Phase 2 Complete - Enhanced Data Integration ✅
 
 ## Summary
+> **Archived Note (2025-09 Supabase Migration):** Phase 2 tracked Directus-specific work that has since been replaced. Supabase is now the sole backend; use this document only for historical context.
+
 Phase 2 has been successfully completed with significant enhancements to the Directus integration beyond the original scope.
 
 ## What Was Accomplished

@@ -23,8 +23,6 @@ interface HeaderProps {
   onShowAnalytics?: () => void;
   onShowProductLineDebugger?: () => void;
   onShowConfiguratorTest?: () => void;
-  onShowDynamicConfiguratorV2?: () => void;
-  onShowDynamicConfiguratorV3?: () => void;
   connectionStatus?: string;
   productLines?: ProductLine[];
   productLinesLoading?: boolean;
@@ -42,8 +40,6 @@ export function Header({
   onShowAnalytics,
   onShowProductLineDebugger,
   onShowConfiguratorTest,
-  onShowDynamicConfiguratorV2,
-  onShowDynamicConfiguratorV3,
   connectionStatus = 'disconnected',
   productLines = [],
   productLinesLoading = false,
@@ -159,28 +155,6 @@ export function Header({
               className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
             >
               🧪 API Test
-            </Button>
-          )}
-
-          {connectionStatus === 'connected' && onShowDynamicConfiguratorV2 && (
-            <Button
-              variant="outline"
-              onClick={onShowDynamicConfiguratorV2}
-              size="sm"
-              className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
-            >
-              🚀 Dynamic V2
-            </Button>
-          )}
-
-          {connectionStatus === 'connected' && onShowDynamicConfiguratorV3 && (
-            <Button
-              variant="outline"
-              onClick={onShowDynamicConfiguratorV3}
-              size="sm"
-              className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
-            >
-              ⚡ Dynamic V3
             </Button>
           )}
 

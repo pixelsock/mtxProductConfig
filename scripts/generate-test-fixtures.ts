@@ -3,12 +3,8 @@
  * Run this occasionally to keep test data in sync with reality
  */
 
-import {
-  initializeDynamicService,
-  getDynamicProductLines,
-  getDynamicProducts,
-  getDynamicRules,
-} from "../src/services/dynamic-supabase";
+import { fetchProductLines } from "../src/services/product-options";
+import { supabase } from "../src/services/supabase";
 import fs from "fs/promises";
 import path from "path";
 
@@ -16,18 +12,34 @@ async function generateFixtures() {
   console.log("🔄 Fetching real data from Supabase...");
 
   try {
-    await initializeDynamicService();
-
     // Fetch real data
-    const productLines = await getDynamicProductLines();
-    const products = await getDynamicProducts();
-    const rules = await getDynamicRules();
+    const productLines = await fetchProductLines();
+
+    const { data: products, error: productsError } = await supabase
+      .from('products')
+      .select('*')
+      .order('id', { ascending: true })
+      .limit(20);
+
+    if (productsError) {
+      throw new Error(`Failed to load products: ${productsError.message}`);
+    }
+
+    const { data: rules, error: rulesError } = await supabase
+      .from('rules')
+      .select('*')
+      .order('priority', { ascending: true })
+      .limit(20);
+
+    if (rulesError) {
+      throw new Error(`Failed to load rules: ${rulesError.message}`);
+    }
 
     // Create fixtures object
     const fixtures = {
       productLines: productLines.slice(0, 3), // Limit for test performance
-      products: products.slice(0, 10),
-      rules: rules.slice(0, 5),
+      products: (products ?? []).slice(0, 10),
+      rules: (rules ?? []).slice(0, 5),
       generatedAt: new Date().toISOString(),
       note: "Generated from live Supabase data - contains real structure and relationships",
     };

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
-import { ProductLine } from '../../services/directus';
+import type { ProductLine } from '@/store/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {

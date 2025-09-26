@@ -11,14 +11,22 @@ Object.defineProperty(import.meta, "env", {
   },
 });
 
-// Mock Supabase client to prevent real API calls during tests
-vi.mock("../services/dynamic-supabase", () => ({
-  initializeDynamicService: vi.fn(),
-  getProductLines: vi.fn(),
-  getProducts: vi.fn(),
-  getProductOptions: vi.fn(),
-  getRules: vi.fn(),
-  getConfigurationUI: vi.fn(),
+// Mock Supabase-backed option loaders to prevent real API calls during tests
+vi.mock("../services/product-options", () => ({
+  fetchProductLines: vi.fn().mockResolvedValue([]),
+  fetchProductOptions: vi.fn().mockResolvedValue({
+    mirrorControls: [],
+    frameColors: [],
+    frameThickness: [],
+    mirrorStyles: [],
+    mountingOptions: [],
+    lightingOptions: [],
+    colorTemperatures: [],
+    lightOutputs: [],
+    drivers: [],
+    accessoryOptions: [],
+    sizes: [],
+  }),
 }));
 
 // Mock Zustand store to provide test data

@@ -1,5 +1,7 @@
 # MTX Product Configurator - Directus Migration Complete ✅
 
+> **Archived Note (2025-09 Supabase Migration):** The configurator now sources all data from Supabase only. This document is retained for historical reference of the earlier Directus migration and no longer reflects the current integration.
+
 ## Summary
 Successfully migrated the React product configurator from static TypeScript data files to real-time Directus CMS API integration. The migration was completed much faster than estimated with zero functionality regressions.
 

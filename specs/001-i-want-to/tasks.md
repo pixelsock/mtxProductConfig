@@ -1,5 +1,7 @@
 # Tasks: Product Line Default Options Integration
 
+> **Supabase-Only Update (2025-09):** Tasks referencing legacy dynamic filter layers now map to the Supabase `product-options` + rules workflow. Treat older file paths (e.g. `dynamic-filtering.ts`) as historical.
+
 **Input**: Design documents from `/Users/nick/Sites/mtxProductConfig/specs/001-i-want-to/`
 **Prerequisites**: plan.md (✅), data-model.md (✅), contracts/ (✅), quickstart.md (✅)
 

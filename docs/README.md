@@ -3,6 +3,7 @@
 ## Current Documentation
 - **[CLAUDE.md](../CLAUDE.md)** - Primary SOD rules and guidelines for Claude Code
 - **[projectplan.md](../projectplan.md)** - Active project planning and Phase 3 roadmap
+- **[ACCESSORIES_FILTERING_FIX.md](ACCESSORIES_FILTERING_FIX.md)** - Current filtering guidance (validated against Supabase data)
 
 ## Archive
 The `archive/` directory contains historical documentation from completed phases:

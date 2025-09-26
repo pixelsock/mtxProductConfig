@@ -1,5 +1,7 @@
 # MCP Dependency Removal - Implementation Guide
 
+> **Archived Note (2025-09 Supabase Migration):** MCP/Directus guidance is obsolete after the Supabase-only rewrite. Retained for reference.
+
 ## 🚨 CRITICAL TASK: Remove MCP Wrapper and Implement Direct Directus SDK
 
 **Priority**: CRITICAL (Production Blocker)

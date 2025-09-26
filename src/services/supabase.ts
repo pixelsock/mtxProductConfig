@@ -2,14 +2,16 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../../supabase';
 
 // Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const resolvedSupabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL)
+  || process.env.VITE_SUPABASE_URL;
+const resolvedSupabaseKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY)
+  || process.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase environment variables');
+if (!resolvedSupabaseUrl || !resolvedSupabaseKey) {
+  throw new Error('Missing Supabase environment variables: set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+export const supabase = createClient<Database>(resolvedSupabaseUrl, resolvedSupabaseKey);
 
 // Get the UI configuration
 export async function getConfigurationUi() {
@@ -21,13 +23,40 @@ export async function getConfigurationUi() {
   return data;
 }
 
-// Get all products
+const PRODUCT_FIELDS = `
+  *,
+  vertical_image_file:directus_files!products_vertical_image_foreign(
+    id,
+    filename_disk,
+    storage
+  ),
+  horizontal_image_file:directus_files!products_horizontal_image_foreign(
+    id,
+    filename_disk,
+    storage
+  ),
+  additional_images:products_files_1(
+    id,
+    directus_files_id(
+      id,
+      filename_disk,
+      storage
+    )
+  )
+`;
+
+// Get all active products with asset metadata
 export async function getProducts() {
-  const { data, error } = await supabase.from('products').select('*');
+  const { data, error } = await supabase
+    .from('products')
+    .select(PRODUCT_FIELDS)
+    .eq('active', true);
+
   if (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching products from Supabase:', error);
     throw error;
   }
+
   return data;
 }
 
