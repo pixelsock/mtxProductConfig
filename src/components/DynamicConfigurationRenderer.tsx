@@ -525,7 +525,6 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
             productLineId={currentProductLine.id}
             currentConfig={currentConfig}
             disabledOptionIds={disabledOptionIds}
-            isDisabled={isDisabled || (disabledOptionIds[collection]?.includes(option.id) || false)}
             onSizePresetSelect={onSizePresetSelect}
             onAccessoryToggle={onAccessoryToggle}
             useCustomSize={useCustomSize}
