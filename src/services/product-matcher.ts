@@ -47,6 +47,16 @@ export async function findBestMatchingProduct(criteria: ProductMatchCriteria): P
     if (import.meta.env.DEV) {
       console.log('🔍 Product Matcher: Starting search with criteria:', criteria);
       console.log('🔍 Product Matcher: Total products available:', allProducts.length);
+
+      // Sample the first few products to see data structure
+      console.log('🔍 Product Matcher: Sample products (first 3):', allProducts.slice(0, 3).map(p => ({
+        name: p.name,
+        product_line: p.product_line,
+        mirror_style: p.mirror_style,
+        light_direction: p.light_direction,
+        frame_thickness: p.frame_thickness,
+        frame_thickness_type: typeof p.frame_thickness
+      })));
     }
 
     // SIMPLIFIED: Find products that match the current selections
@@ -55,28 +65,46 @@ export async function findBestMatchingProduct(criteria: ProductMatchCriteria): P
       if (criteria.productLineId !== undefined && p.product_line !== criteria.productLineId) {
         return false;
       }
-      
+
       // Must match light direction if specified
       if (criteria.lightDirectionId !== undefined && p.light_direction !== criteria.lightDirectionId) {
         return false;
       }
-      
-      // Must match mirror style if specified  
+
+      // Must match mirror style if specified
       if (criteria.mirrorStyleId !== undefined && p.mirror_style !== criteria.mirrorStyleId) {
         return false;
       }
-      
+
       // Must match frame thickness if specified
       if (criteria.frameThicknessId !== undefined) {
         // Handle both direct ID and JSON object format
-        const productFrameThickness = typeof p.frame_thickness === 'object' && p.frame_thickness !== null
-          ? (p.frame_thickness as any).key
-          : p.frame_thickness;
+        // Database stores frame_thickness as: {"key": 2, "collection": "frame_thicknesses"}
+        let productFrameThickness: number | null = null;
+
+        if (typeof p.frame_thickness === 'object' && p.frame_thickness !== null) {
+          // Extract key from JSON object
+          productFrameThickness = (p.frame_thickness as any).key;
+        } else if (typeof p.frame_thickness === 'number') {
+          // Direct numeric ID
+          productFrameThickness = p.frame_thickness;
+        }
+
+        if (import.meta.env.DEV) {
+          console.log('🔍 Frame thickness comparison:', {
+            productName: p.name,
+            rawFrameThickness: p.frame_thickness,
+            extractedFrameThickness: productFrameThickness,
+            criteriaFrameThickness: criteria.frameThicknessId,
+            match: productFrameThickness === criteria.frameThicknessId
+          });
+        }
+
         if (productFrameThickness !== criteria.frameThicknessId) {
           return false;
         }
       }
-      
+
       return true;
     });
     

@@ -50,7 +50,7 @@ import {
 // Import Dynamic Supabase service layer
 import { fetchProductLines } from "./services/product-options";
 import { findBestMatchingProduct } from "./services/product-matcher";
-import { selectProductImage, constructSupabaseAssetUrl } from "./services/image-selector";
+import { selectProductImage, constructProductAssetUrl } from "./services/image-selector";
 
 // Import API validation and test suite
 // Dev-only validators are noisy; omit in production build
@@ -227,11 +227,23 @@ const App: React.FC = () => {
       if (!url) return;
       if (!urls.includes(url)) urls.push(url);
     };
-    // Additional images only (exclude vertical/horizontal primary images)
+
+    // Include vertical and horizontal primary images
+    const verticalUrl = constructProductAssetUrl(
+      (product as any).vertical_image_file ?? (product as any).vertical_image
+    );
+    const horizontalUrl = constructProductAssetUrl(
+      (product as any).horizontal_image_file ?? (product as any).horizontal_image
+    );
+
+    pushUnique(verticalUrl);
+    pushUnique(horizontalUrl);
+
+    // Additional images
     if (Array.isArray(product.additional_images)) {
       for (const item of product.additional_images) {
         const file = (item as any)?.directus_files_id;
-        const url = constructSupabaseAssetUrl(file);
+        const url = constructProductAssetUrl(file);
         if (url) pushUnique(url);
       }
     }
@@ -588,9 +600,17 @@ const App: React.FC = () => {
                 console.log('🖼️ Image Selection Debug:', {
                   productName: currentProduct?.name,
                   mountingOrientation: mountingOption?.name,
+                  selectedOrientation: imageSelection.orientation,
                   hasVerticalImage: !!currentProduct?.vertical_image,
                   hasHorizontalImage: !!currentProduct?.horizontal_image,
-                  imageUrl
+                  hasVerticalImageFile: !!(currentProduct as any)?.vertical_image_file,
+                  hasHorizontalImageFile: !!(currentProduct as any)?.horizontal_image_file,
+                  verticalImageValue: currentProduct?.vertical_image,
+                  horizontalImageValue: currentProduct?.horizontal_image,
+                  verticalImageFileValue: (currentProduct as any)?.vertical_image_file,
+                  horizontalImageFileValue: (currentProduct as any)?.horizontal_image_file,
+                  imageUrl,
+                  imageSource: imageSelection.source
                 });
                 
                 if (imageUrl) {
@@ -600,6 +620,21 @@ const App: React.FC = () => {
                         src={imageUrl}
                         alt={generateProductName()}
                         className="w-full h-full object-contain"
+                        onError={(e) => {
+                          console.error('🖼️ Image Load Error:', {
+                            imageUrl,
+                            productName: currentProduct?.name,
+                            orientation: imageSelection.orientation,
+                            error: e
+                          });
+                        }}
+                        onLoad={() => {
+                          console.log('🖼️ Image Loaded Successfully:', {
+                            imageUrl,
+                            productName: currentProduct?.name,
+                            orientation: imageSelection.orientation
+                          });
+                        }}
                       />
                       <div className="absolute inset-x-0 bottom-0 pointer-events-none bg-gradient-to-t from-white/60 to-transparent h-10"></div>
                     </>
@@ -626,6 +661,11 @@ const App: React.FC = () => {
               <div className="w-full">
                 {(() => {
                   const thumbs = getProductThumbnails(currentProduct);
+                  console.log('🖼️ Thumbnail Debug:', {
+                    productName: currentProduct?.name,
+                    thumbnailCount: thumbs.length,
+                    thumbnailUrls: thumbs
+                  });
                   if (thumbs.length === 0) return null;
                   return (
                     <div className="relative flex items-center gap-3 w-full max-w-full min-w-0">
@@ -653,7 +693,26 @@ const App: React.FC = () => {
                                   className="shrink-0 w-20 h-20 rounded-lg bg-white border border-gray-200 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 overflow-hidden"
                                   title="View image"
                                 >
-                                  <img src={url} alt="Thumbnail" className="w-full h-full object-cover" />
+                                  <img
+                                    src={url}
+                                    alt="Thumbnail"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      console.error('🖼️ Thumbnail Load Error:', {
+                                        thumbnailUrl: url,
+                                        thumbnailIndex: i,
+                                        productName: currentProduct?.name,
+                                        error: e
+                                      });
+                                    }}
+                                    onLoad={() => {
+                                      console.log('🖼️ Thumbnail Loaded Successfully:', {
+                                        thumbnailUrl: url,
+                                        thumbnailIndex: i,
+                                        productName: currentProduct?.name
+                                      });
+                                    }}
+                                  />
                                 </button>
                               );
                             })}
@@ -712,7 +771,26 @@ const App: React.FC = () => {
                       <div className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-black/40 to-transparent"></div>
                       <div className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-black/40 to-transparent"></div>
                       {currentUrl && (
-                        <img src={currentUrl} alt="Gallery image" className="w-full h-full object-contain" />
+                        <img
+                          src={currentUrl}
+                          alt="Gallery image"
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            console.error('🖼️ Lightbox Image Load Error:', {
+                              lightboxUrl: currentUrl,
+                              lightboxIndex,
+                              productName: currentProduct?.name,
+                              error: e
+                            });
+                          }}
+                          onLoad={() => {
+                            console.log('🖼️ Lightbox Image Loaded Successfully:', {
+                              lightboxUrl: currentUrl,
+                              lightboxIndex,
+                              productName: currentProduct?.name
+                            });
+                          }}
+                        />
                       )}
                     </div>
                     {count > 1 && (

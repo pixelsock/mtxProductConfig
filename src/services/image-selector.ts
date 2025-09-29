@@ -4,18 +4,18 @@ import type {
   MountingOption,
   SupabaseFileAsset,
 } from '@/store/types';
-import { supabase } from './supabase';
 
 type FileReference = string | SupabaseFileAsset | null | undefined;
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '');
-const DEFAULT_STORAGE_BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'assets';
-const STORAGE_BUCKET_ALIASES: Record<string, string> = {
-  local: DEFAULT_STORAGE_BUCKET,
-  s3: DEFAULT_STORAGE_BUCKET,
-};
+const resolvedDirectusUrl =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DIRECTUS_URL) ||
+  process.env.VITE_DIRECTUS_URL ||
+  'https://pim.dude.digital';
 
-const assetLookupCache = new Map<string, { bucket: string; path: string }>();
+const resolvedAssetBase =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DIRECTUS_ASSET_URL) ||
+  process.env.VITE_DIRECTUS_ASSET_URL ||
+  `${resolvedDirectusUrl.replace(/\/$/, '')}/assets`;
 
 export interface ImageSelectionResult {
   primaryImage: string | null;
@@ -111,62 +111,41 @@ function getProductOrientationImage(
   const fileField = orientation === 'vertical' ? 'vertical_image_file' : 'horizontal_image_file';
   const fallbackField = orientation === 'vertical' ? 'vertical_image' : 'horizontal_image';
 
-  const fileRef: FileReference = (product as any)[fileField] ?? (product as any)[fallbackField];
-  return constructSupabaseAssetUrl(fileRef);
-}
+  // Try to get the file metadata first (joined from directus_files)
+  let fileRef: FileReference = (product as any)[fileField];
 
-function resolveBucket(storage?: string | null): string {
-  if (!storage) return DEFAULT_STORAGE_BUCKET;
-  return STORAGE_BUCKET_ALIASES[storage] || storage;
-}
-
-function buildPublicUrl(bucket: string, path: string): string | null {
-  try {
-    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-    if (data?.publicUrl) {
-      return data.publicUrl;
-    }
-  } catch (error) {
-    console.warn('[image-selector] Failed to generate Supabase public URL:', error);
+  // If no file metadata, fall back to the UUID field
+  if (!fileRef) {
+    fileRef = (product as any)[fallbackField];
   }
 
-  if (!SUPABASE_URL) {
-    return null;
+  if (import.meta.env.DEV) {
+    console.log('🖼️ Image field access:', {
+      productName: product.name,
+      orientation,
+      fileField,
+      fallbackField,
+      fileFieldValue: (product as any)[fileField],
+      fallbackFieldValue: (product as any)[fallbackField],
+      finalFileRef: fileRef
+    });
   }
 
-  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
+  return constructProductAssetUrl(fileRef);
 }
 
 /**
- * Constructs a Supabase asset URL
+ * Constructs a Directus asset URL
  * @param reference File reference object or ID
  * @returns Public URL or null if unavailable
  */
-export function constructSupabaseAssetUrl(reference: FileReference): string | null {
+export function constructProductAssetUrl(reference: FileReference): string | null {
   if (!reference) return null;
-
-  if (typeof reference !== 'string' && reference.filename_disk) {
-    const bucket = resolveBucket(reference.storage);
-    const path = reference.filename_disk;
-    const url = buildPublicUrl(bucket, path);
-
-    if (url && reference.id) {
-      assetLookupCache.set(reference.id, { bucket, path });
-    }
-
-    return url;
-  }
 
   const id = typeof reference === 'string' ? reference : reference.id;
   if (!id) return null;
 
-  const cached = assetLookupCache.get(id);
-  if (cached) {
-    return buildPublicUrl(cached.bucket, cached.path);
-  }
-
-  console.warn(`[image-selector] Asset metadata missing for file id ${id}`);
-  return null;
+  return `${resolvedAssetBase}/${id}`;
 }
 
 
