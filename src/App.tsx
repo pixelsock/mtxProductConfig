@@ -615,13 +615,11 @@ const App: React.FC = () => {
                   return (
                     <div className="relative w-full h-full">
                       {isImageLoading && (
-                        <div className="absolute inset-0 w-full h-full flex items-center justify-center p-8">
-                          <div className="flex flex-col space-y-4 w-full max-w-md">
-                            <Skeleton className="h-[300px] w-full rounded-xl" />
-                            <div className="space-y-2">
-                              <Skeleton className="h-4 w-full" />
-                              <Skeleton className="h-4 w-3/4" />
-                            </div>
+                        <div className="absolute inset-0 w-full h-full flex flex-col justify-center space-y-4">
+                          <Skeleton className="flex-1 w-full" />
+                          <div className="space-y-2 px-4 pb-4">
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-3/4" />
                           </div>
                         </div>
                       )}
@@ -657,13 +655,11 @@ const App: React.FC = () => {
                 } else {
                   // Show skeleton card while waiting for image URL or initial load
                   return (
-                    <div className="w-full h-full flex items-center justify-center p-8">
-                      <div className="flex flex-col space-y-4 w-full max-w-md">
-                        <Skeleton className="h-[300px] w-full rounded-xl" />
-                        <div className="space-y-2">
-                          <Skeleton className="h-4 w-full" />
-                          <Skeleton className="h-4 w-3/4" />
-                        </div>
+                    <div className="w-full h-full flex flex-col justify-center space-y-4">
+                      <Skeleton className="flex-1 w-full" />
+                      <div className="space-y-2 px-4 pb-4">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
                       </div>
                     </div>
                   );
