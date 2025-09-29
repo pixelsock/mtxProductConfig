@@ -37,11 +37,12 @@ export function useOptionState(currentSelection: Record<string, string>): Option
     // Map collection names to their corresponding disabledOptionIds keys
     const collectionMappings: Record<string, string> = {
       'mirrorControls': 'mirror_controls',
-      'frameColors': 'frame_colors', 
+      'frameColors': 'frame_colors',
       'frameThickness': 'frame_thicknesses',
       'mirrorStyles': 'mirror_styles',
       'lightingOptions': 'light_directions',
       'mountingOptions': 'mounting_options',
+      'hangingTechniques': 'hanging_techniques',
       'sizes': 'sizes',
       'accessoryOptions': 'accessories',
       'colorTemperatures': 'color_temperatures',
@@ -53,10 +54,11 @@ export function useOptionState(currentSelection: Record<string, string>): Option
     const selectionMappings: Record<string, string> = {
       'mirrorControls': 'mirrorControls',
       'frameColor': 'frameColors',
-      'frameThickness': 'frameThickness', 
+      'frameThickness': 'frameThickness',
       'mirrorStyle': 'mirrorStyles',
       'lighting': 'lightingOptions',
       'mounting': 'mountingOptions',
+      'hangingTechnique': 'hangingTechniques',
       'colorTemperature': 'colorTemperatures',
       'lightOutput': 'lightOutputs',
       'driver': 'drivers'
