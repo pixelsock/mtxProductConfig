@@ -646,19 +646,9 @@ const App: React.FC = () => {
                       )}
                     </div>
                   );
-                } else if (currentConfig) {
-                  return (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="text-center text-gray-500">
-                        <AlertCircle className="w-12 h-12 mx-auto mb-2" />
-                        <p className="text-sm">No product image available</p>
-                        <p className="text-xs mt-1">SKU: {currentProduct?.name || 'Not found'}</p>
-                        <p className="text-xs mt-1">Orientation: {imageSelection.orientation}</p>
-                      </div>
-                    </div>
-                  );
                 } else {
-                  return <Spinner className="w-full h-full" size="lg" />;
+                  // Show skeleton while waiting for image URL or initial load
+                  return <Skeleton className="w-full h-full" />;
                 }
               })()}
             </div>
