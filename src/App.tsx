@@ -584,7 +584,7 @@ const App: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-11 gap-16 mt-[0px] mr-[0px] mb-[80px] ml-[0px]">
           {/* Product Visualization - Sticky on Desktop */}
           <div className="space-y-4 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto lg:col-span-5">
-            <div className="relative w-full aspect-square bg-white rounded-xl border shadow-sm overflow-hidden">
+            <div className="relative w-full aspect-square bg-white rounded-xl shadow-sm overflow-hidden">
               {(() => {
                 // Get mounting option for image selection
                 const mountingOption = productOptions?.mountingOptions?.find(
