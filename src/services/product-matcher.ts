@@ -100,7 +100,9 @@ export async function findBestMatchingProduct(criteria: ProductMatchCriteria): P
           });
         }
 
-        if (productFrameThickness !== criteria.frameThicknessId) {
+        // Only enforce frame_thickness match if product actually has a frame_thickness value
+        // Products with null frame_thickness (like Future line) should match any criteria
+        if (productFrameThickness !== null && productFrameThickness !== criteria.frameThicknessId) {
           return false;
         }
       }

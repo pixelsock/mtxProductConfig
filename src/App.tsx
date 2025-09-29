@@ -219,7 +219,7 @@ const App: React.FC = () => {
     };
   }, [isLightboxOpen, lightboxIndex]);
 
-  // Build thumbnail URLs from product images + additional_images
+  // Build thumbnail URLs from additional_images only (excluding primary vertical/horizontal images)
   const getProductThumbnails = (product: DecoProduct | null): string[] => {
     if (!product) return [];
     const urls: string[] = [];
@@ -228,18 +228,7 @@ const App: React.FC = () => {
       if (!urls.includes(url)) urls.push(url);
     };
 
-    // Include vertical and horizontal primary images
-    const verticalUrl = constructProductAssetUrl(
-      (product as any).vertical_image_file ?? (product as any).vertical_image
-    );
-    const horizontalUrl = constructProductAssetUrl(
-      (product as any).horizontal_image_file ?? (product as any).horizontal_image
-    );
-
-    pushUnique(verticalUrl);
-    pushUnique(horizontalUrl);
-
-    // Additional images
+    // Only include additional images (NOT the primary vertical/horizontal images)
     if (Array.isArray(product.additional_images)) {
       for (const item of product.additional_images) {
         const file = (item as any)?.directus_files_id;
