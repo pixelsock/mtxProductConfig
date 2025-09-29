@@ -7,17 +7,15 @@ import type {
 
 type FileReference = string | SupabaseFileAsset | null | undefined;
 
-const resolvedSupabaseUrl =
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
-  process.env.VITE_SUPABASE_URL ||
-  'https://akwhptzlqgtlcpzvcnjl.supabase.co';
+const resolvedDirectusUrl =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DIRECTUS_URL) ||
+  process.env.VITE_DIRECTUS_URL ||
+  'https://pim.dude.digital';
 
-const resolvedStorageBucket =
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_STORAGE_BUCKET) ||
-  process.env.VITE_SUPABASE_STORAGE_BUCKET ||
-  'directus-uploads';
-
-const resolvedAssetBase = `${resolvedSupabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${resolvedStorageBucket}`;
+const resolvedAssetBase =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DIRECTUS_ASSET_URL) ||
+  process.env.VITE_DIRECTUS_ASSET_URL ||
+  `${resolvedDirectusUrl.replace(/\/$/, '')}/assets`;
 
 export interface ImageSelectionResult {
   primaryImage: string | null;
@@ -137,8 +135,8 @@ function getProductOrientationImage(
 }
 
 /**
- * Constructs a Supabase Storage asset URL
- * @param reference File reference object or ID (Directus UUID)
+ * Constructs a Directus asset URL
+ * @param reference File reference object or ID
  * @returns Public URL or null if unavailable
  */
 export function constructProductAssetUrl(reference: FileReference): string | null {
@@ -147,11 +145,7 @@ export function constructProductAssetUrl(reference: FileReference): string | nul
   const id = typeof reference === 'string' ? reference : reference.id;
   if (!id) return null;
 
-  // Images in Supabase Storage are named with patterns:
-  // {uuid}.jpg, {uuid}.png, {uuid}.webp, or {uuid}__{hash}.avif
-  // We'll try common extensions and let the browser handle 404s
-  // The most common format appears to be {uuid}.jpg
-  return `${resolvedAssetBase}/${id}.jpg`;
+  return `${resolvedAssetBase}/${id}`;
 }
 
 
