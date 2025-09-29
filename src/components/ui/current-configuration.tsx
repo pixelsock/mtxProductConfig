@@ -26,6 +26,7 @@ interface ProductOptions {
   lightOutputs: ProductOption[];
   drivers: ProductOption[];
   mountingOptions: ProductOption[];
+  hangingTechniques: ProductOption[];
   mirrorControls: ProductOption[];
   accessoryOptions: ProductOption[];
   sizes: ProductOption[];
@@ -42,6 +43,7 @@ interface ProductConfig {
   width: string;
   height: string;
   mounting: string;
+  hangingTechnique: string;
   lighting: string;
   colorTemperature: string;
   lightOutput: string;
@@ -166,6 +168,21 @@ export function CurrentConfiguration({
                 </div>
                 <span className="text-sm font-semibold text-foreground truncate">
                   {getOptionName(productOptions.mountingOptions, config.mounting)}
+                </span>
+              </div>
+            )}
+
+            {/* Hanging Technique - Only show if available */}
+            {shouldDisplayOption(productOptions.hangingTechniques, config.hangingTechnique) && (
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Hanging Technique</span>
+                  <Badge variant="outline" className="bg-muted text-muted-foreground border-none rounded px-1.5 py-0.5 text-xs font-mono">
+                    {getOptionSku(productOptions.hangingTechniques, config.hangingTechnique)}
+                  </Badge>
+                </div>
+                <span className="text-sm font-semibold text-foreground truncate">
+                  {getOptionName(productOptions.hangingTechniques, config.hangingTechnique)}
                 </span>
               </div>
             )}
