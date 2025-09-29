@@ -108,7 +108,7 @@ export function CurrentConfiguration({
       
       <CardContent className="space-y-4">
         {/* Configuration Details Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-6">
           {/* Left Column */}
           <div className="space-y-4">
             {/* Dimensions - Always show */}
