@@ -615,7 +615,15 @@ const App: React.FC = () => {
                   return (
                     <div className="relative w-full h-full">
                       {isImageLoading && (
-                        <Skeleton className="absolute inset-0 w-full h-full" />
+                        <div className="absolute inset-0 w-full h-full flex items-center justify-center p-8">
+                          <div className="flex flex-col space-y-4 w-full max-w-md">
+                            <Skeleton className="h-[300px] w-full rounded-xl" />
+                            <div className="space-y-2">
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-4 w-3/4" />
+                            </div>
+                          </div>
+                        </div>
                       )}
                       <img
                         src={imageUrl}
@@ -647,8 +655,18 @@ const App: React.FC = () => {
                     </div>
                   );
                 } else {
-                  // Show skeleton while waiting for image URL or initial load
-                  return <Skeleton className="w-full h-full" />;
+                  // Show skeleton card while waiting for image URL or initial load
+                  return (
+                    <div className="w-full h-full flex items-center justify-center p-8">
+                      <div className="flex flex-col space-y-4 w-full max-w-md">
+                        <Skeleton className="h-[300px] w-full rounded-xl" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-4 w-3/4" />
+                        </div>
+                      </div>
+                    </div>
+                  );
                 }
               })()}
             </div>
