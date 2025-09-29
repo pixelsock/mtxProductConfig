@@ -88,6 +88,8 @@ export const useIsLoadingProductLine = () => useConfiguratorStore((state) => sta
 export const useIsComputingAvailability = () => useConfiguratorStore((state) => state.isComputingAvailability);
 export const useError = () => useConfiguratorStore((state) => state.error);
 
+export const useRuleImageOverrides = () => useConfiguratorStore((state) => state.ruleImageOverrides);
+
 export const useAPIState = () => {
   const productOptions = useProductOptions();
   const availableProductLines = useAvailableProductLines();
@@ -97,6 +99,7 @@ export const useAPIState = () => {
   const isLoadingProductLine = useIsLoadingProductLine();
   const isComputingAvailability = useIsComputingAvailability();
   const error = useError();
+  const ruleImageOverrides = useRuleImageOverrides();
 
   return useMemo(() => ({
     productOptions,
@@ -107,7 +110,8 @@ export const useAPIState = () => {
     isLoadingProductLine,
     isComputingAvailability,
     error,
-  }), [productOptions, availableProductLines, configurationUI, disabledOptionIds, isLoadingApp, isLoadingProductLine, isComputingAvailability, error]);
+    ruleImageOverrides,
+  }), [productOptions, availableProductLines, configurationUI, disabledOptionIds, isLoadingApp, isLoadingProductLine, isComputingAvailability, error, ruleImageOverrides]);
 };
 
 export const useQuoteItems = () => useConfiguratorStore((state) => state.quoteItems);

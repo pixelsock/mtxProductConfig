@@ -27,12 +27,41 @@ export interface ImageSelectionResult {
  * Selects the appropriate product image based on mounting orientation
  * @param product The product to get image for
  * @param mountingOption The selected mounting option
+ * @param ruleImageOverrides Optional image overrides from rules (vertical_image and horizontal_image UUIDs)
  * @returns Image selection result
  */
 export function selectProductImage(
   product: DecoProduct | null,
-  mountingOption?: MountingOption
+  mountingOption?: MountingOption,
+  ruleImageOverrides?: { vertical_image?: string; horizontal_image?: string }
 ): ImageSelectionResult {
+  // Apply rule image overrides to product (temporarily)
+  if (import.meta.env.DEV) {
+    console.log('🎨 selectProductImage called with:', {
+      hasProduct: !!product,
+      productName: product?.name,
+      ruleImageOverrides,
+      hasOverrides: !!(ruleImageOverrides && (ruleImageOverrides.vertical_image || ruleImageOverrides.horizontal_image))
+    });
+  }
+
+  // If no product but we have rule image overrides, create a synthetic product with those images
+  if (!product && ruleImageOverrides && (ruleImageOverrides.vertical_image || ruleImageOverrides.horizontal_image)) {
+    if (import.meta.env.DEV) {
+      console.log('🎨 No product but rule overrides exist - creating synthetic product for image display');
+    }
+    product = {
+      id: 0,
+      name: 'Rule-Based Product',
+      sku_code: '',
+      active: true,
+      product_line: 0,
+      vertical_image: ruleImageOverrides.vertical_image || null,
+      horizontal_image: ruleImageOverrides.horizontal_image || null,
+    } as DecoProduct;
+  }
+
+  // If still no product, return null
   if (!product) {
     return {
       primaryImage: null,
@@ -41,11 +70,30 @@ export function selectProductImage(
     };
   }
 
+  let effectiveProduct = product;
+  if (ruleImageOverrides && (ruleImageOverrides.vertical_image || ruleImageOverrides.horizontal_image)) {
+    effectiveProduct = {
+      ...product,
+      vertical_image: ruleImageOverrides.vertical_image || product.vertical_image,
+      horizontal_image: ruleImageOverrides.horizontal_image || product.horizontal_image,
+    };
+    if (import.meta.env.DEV) {
+      console.log('🎨 Applying rule image overrides:', {
+        original_vertical: product.vertical_image,
+        original_horizontal: product.horizontal_image,
+        override_vertical: ruleImageOverrides.vertical_image,
+        override_horizontal: ruleImageOverrides.horizontal_image,
+        effective_vertical: effectiveProduct.vertical_image,
+        effective_horizontal: effectiveProduct.horizontal_image,
+      });
+    }
+  }
+
   // Determine orientation from mounting option
   const orientation = getMountingOrientation(mountingOption);
-  
-  // Try to get product-specific images
-  const productImage = getProductOrientationImage(product, orientation);
+
+  // Try to get product-specific images (using effective product with overrides)
+  const productImage = getProductOrientationImage(effectiveProduct, orientation);
   if (productImage) {
     return {
       primaryImage: productImage,
@@ -55,7 +103,7 @@ export function selectProductImage(
   }
   
   // Try opposite orientation if preferred not available
-  const oppositeImage = getProductOrientationImage(product, getOppositeOrientation(orientation));
+  const oppositeImage = getProductOrientationImage(effectiveProduct, getOppositeOrientation(orientation));
   if (oppositeImage) {
     return {
       primaryImage: oppositeImage,
@@ -63,10 +111,10 @@ export function selectProductImage(
       source: 'product'
     };
   }
-  
+
   // Use application image if available
   return {
-    primaryImage: product.applicationImage || null,
+    primaryImage: effectiveProduct.applicationImage || null,
     orientation,
     source: 'product'
   };

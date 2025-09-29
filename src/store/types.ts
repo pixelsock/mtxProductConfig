@@ -174,6 +174,7 @@ export interface APISlice {
   availableProductLines: ProductLine[];
   configurationUI: ConfigurationUIItem[];
   disabledOptionIds: Record<string, number[]>;
+  ruleImageOverrides: { vertical_image?: string; horizontal_image?: string };
 
   // Loading States
   isLoadingApp: boolean;
@@ -188,6 +189,7 @@ export interface APISlice {
   setAvailableProductLines: (lines: ProductLine[]) => void;
   setConfigurationUI: (configUI: ConfigurationUIItem[]) => void;
   setDisabledOptions: (disabled: Record<string, number[]>) => void;
+  setRuleImageOverrides: (overrides: { vertical_image?: string; horizontal_image?: string }) => void;
   setLoadingApp: (loading: boolean) => void;
   setLoadingProductLine: (loading: boolean) => void;
   setComputingAvailability: (computing: boolean) => void;

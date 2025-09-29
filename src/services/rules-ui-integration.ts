@@ -17,9 +17,15 @@ export interface RuleDisabledOptions {
   [collection: string]: number[];
 }
 
+export interface RuleImageOverrides {
+  vertical_image?: string;
+  horizontal_image?: string;
+}
+
 export interface RuleApplicationResult {
   disabledOptions: RuleDisabledOptions;
   setValues: Record<string, number>; // Values that rules want to set
+  imageOverrides: RuleImageOverrides; // Image UUIDs that rules want to set
 }
 
 /**
@@ -45,6 +51,7 @@ export async function applyRulesComplete(
     const rules = await getRules();
     const disabledOptions: RuleDisabledOptions = {};
     const setValues: Record<string, number> = {}; // Track values that rules want to set
+    const imageOverrides: RuleImageOverrides = {}; // Track image overrides from rules
 
     // Build rule evaluation context
     const ruleContext = {
@@ -102,7 +109,7 @@ export async function applyRulesComplete(
         const actions = rule.then_that;
         if (actions && typeof actions === "object") {
           // Extract both disabled options and set values from rule actions
-          extractRuleActionsResults(actions, disabledOptions, setValues);
+          extractRuleActionsResults(actions, disabledOptions, setValues, imageOverrides);
         }
       } else {
         if (import.meta.env.DEV) {
@@ -120,21 +127,23 @@ export async function applyRulesComplete(
       }
     }
 
-    return { disabledOptions, setValues };
+    return { disabledOptions, setValues, imageOverrides };
   } catch (error) {
     console.error("Failed to apply rules for disabled options:", error);
-    return { disabledOptions: {}, setValues: {} };
+    return { disabledOptions: {}, setValues: {}, imageOverrides: {} };
   }
 }
 
 /**
  * Extract both disabled options and set values from rule actions
  * When a rule sets a value (_eq), it both SETS that value and disables alternatives
+ * Also extracts product image overrides from product.vertical_image and product.horizontal_image
  */
 function extractRuleActionsResults(
   actions: any,
   disabledOptions: RuleDisabledOptions,
   setValues: Record<string, number>,
+  imageOverrides: RuleImageOverrides,
   path: string[] = [],
 ): void {
   if (!actions || typeof actions !== "object") return;
@@ -142,7 +151,7 @@ function extractRuleActionsResults(
   // Handle _and arrays
   if (actions._and && Array.isArray(actions._and)) {
     for (const item of actions._and) {
-      extractRuleActionsResults(item, disabledOptions, setValues, path);
+      extractRuleActionsResults(item, disabledOptions, setValues, imageOverrides, path);
     }
     return;
   }
@@ -150,14 +159,39 @@ function extractRuleActionsResults(
   // Handle _or arrays (less common in rules)
   if (actions._or && Array.isArray(actions._or)) {
     for (const item of actions._or) {
-      extractRuleActionsResults(item, disabledOptions, setValues, path);
+      extractRuleActionsResults(item, disabledOptions, setValues, imageOverrides, path);
     }
     return;
+  }
+
+  // Handle product image overrides (e.g., product.vertical_image._eq)
+  if (actions.product && typeof actions.product === "object") {
+    const productActions = actions.product;
+    if (productActions.vertical_image && typeof productActions.vertical_image === "object") {
+      const verticalImageValue = (productActions.vertical_image as any)._eq;
+      if (verticalImageValue) {
+        imageOverrides.vertical_image = verticalImageValue;
+        if (import.meta.env.DEV) {
+          console.log(`⚙️ Rule sets vertical_image = ${verticalImageValue}`);
+        }
+      }
+    }
+    if (productActions.horizontal_image && typeof productActions.horizontal_image === "object") {
+      const horizontalImageValue = (productActions.horizontal_image as any)._eq;
+      if (horizontalImageValue) {
+        imageOverrides.horizontal_image = horizontalImageValue;
+        if (import.meta.env.DEV) {
+          console.log(`⚙️ Rule sets horizontal_image = ${horizontalImageValue}`);
+        }
+      }
+    }
+    // Don't return - continue processing other fields
   }
 
   // Handle field assignments
   for (const [key, value] of Object.entries(actions)) {
     if (key.startsWith("_")) continue; // Skip operators
+    if (key === "product") continue; // Already handled above
 
     if (value && typeof value === "object") {
       // Handle both _eq (sets value) and _neq (excludes value) operators

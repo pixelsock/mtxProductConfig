@@ -80,7 +80,8 @@ const App: React.FC = () => {
     configurationUI,
     isLoadingApp,
     isLoadingProductLine,
-    error
+    error,
+    ruleImageOverrides
   } = useAPIState();
   const { quoteItems, customerInfo } = useQuoteState();
 
@@ -592,7 +593,7 @@ const App: React.FC = () => {
                 ) as MountingOption | undefined;
                 
                 // Select appropriate image based on mounting orientation
-                const imageSelection = selectProductImage(currentProduct, mountingOption);
+                const imageSelection = selectProductImage(currentProduct, mountingOption, ruleImageOverrides);
                 const imageUrl = imageSelection.primaryImage;
                 
                 console.log('🖼️ Image Selection Debug:', {
@@ -830,7 +831,7 @@ const App: React.FC = () => {
                     const mountingOption = productOptions?.mountingOptions?.find(
                       (mo: ProductOption) => mo.id.toString() === currentConfig?.mounting
                     ) as MountingOption | undefined;
-                    const imageSelection = selectProductImage(currentProduct, mountingOption);
+                    const imageSelection = selectProductImage(currentProduct, mountingOption, ruleImageOverrides);
                     
                     return (
                       <>

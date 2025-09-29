@@ -28,6 +28,7 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
   availableProductLines: [],
   configurationUI: [],
   disabledOptionIds: {},
+  ruleImageOverrides: {},
   isLoadingApp: true,
   isLoadingProductLine: false,
   isComputingAvailability: false,
@@ -58,6 +59,13 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
     set((state) => ({
       ...state,
       disabledOptionIds: disabled,
+    }));
+  },
+
+  setRuleImageOverrides: (overrides: { vertical_image?: string; horizontal_image?: string }) => {
+    set((state) => ({
+      ...state,
+      ruleImageOverrides: overrides,
     }));
   },
 
@@ -117,7 +125,8 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
       setProductOptions(options);
       setDisabledOptions({});
 
-      const { setCurrentProductLine, resetConfiguration } = get();
+      const { setCurrentProductLine, resetConfiguration, setRuleImageOverrides } = get();
+      setRuleImageOverrides({}); // Clear any previous image overrides
       setCurrentProductLine(productLine);
       await resetConfiguration();
 
@@ -197,6 +206,18 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
 
       // Apply merged disabled options
       setDisabledOptions(mergedDisabled);
+
+      // Step 3.5: Apply rule image overrides
+      const { setRuleImageOverrides } = get();
+      if (rulesResult.imageOverrides && (rulesResult.imageOverrides.vertical_image || rulesResult.imageOverrides.horizontal_image)) {
+        if (import.meta.env.DEV) {
+          console.log('⚙️ Applying rule image overrides:', rulesResult.imageOverrides);
+        }
+        setRuleImageOverrides(rulesResult.imageOverrides);
+      } else {
+        // Clear image overrides if no rules set them
+        setRuleImageOverrides({});
+      }
 
       // Step 4: Apply rule-set values to configuration automatically
       if (rulesResult.setValues && Object.keys(rulesResult.setValues).length > 0) {
