@@ -112,6 +112,7 @@ export const createConfigurationSlice = (
       width: defaultSize?.width?.toString() || "24",
       height: defaultSize?.height?.toString() || "36",
       mounting: productOptions.mountingOptions[0]?.id.toString() || "",
+      hangingTechnique: productOptions.hangingTechniques[0]?.id.toString() || "",
       lighting: productOptions.lightingOptions[0]?.id.toString() || "",
       colorTemperature:
         productOptions.colorTemperatures[0]?.id.toString() || "",

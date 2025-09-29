@@ -36,6 +36,7 @@ function createEmptyProductOptions(): ProductOptions {
     frameThickness: [],
     mirrorStyles: [],
     mountingOptions: [],
+    hangingTechniques: [],
     lightingOptions: [],
     colorTemperatures: [],
     lightOutputs: [],

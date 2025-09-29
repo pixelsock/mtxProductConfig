@@ -28,6 +28,7 @@ export interface ProductConfig {
   width: string;
   height: string;
   mounting: string;
+  hangingTechnique: string;
   lighting: string;
   colorTemperature: string;
   lightOutput: string;
@@ -53,6 +54,7 @@ export interface ProductOptions {
   frameThickness: ProductOption[];
   mirrorStyles: ProductOption[];
   mountingOptions: ProductOption[];
+  hangingTechniques: ProductOption[];
   lightingOptions: ProductOption[];
   colorTemperatures: ProductOption[];
   lightOutputs: ProductOption[];

@@ -45,31 +45,31 @@ const iconMapping: { [key: string]: any } = {
 // Collection to product options mapping
 const COLLECTION_MAPPINGS = {
   mirror_styles: 'mirrorStyles',
-  frame_colors: 'frameColors', 
+  frame_colors: 'frameColors',
   frame_thicknesses: 'frameThickness',
   light_directions: 'lightingOptions',
   mounting_options: 'mountingOptions',
+  hanging_techniques: 'hangingTechniques',
   drivers: 'drivers',
   color_temperatures: 'colorTemperatures',
   light_outputs: 'lightOutputs',
   sizes: 'sizes',
   accessories: 'accessoryOptions',
-  hanging_techniques: 'mountingOptions', // Map hanging techniques to mounting options
 } as const;
 
 // Collection to configuration field mapping
 const CONFIG_FIELD_MAPPINGS = {
   mirror_styles: 'mirrorStyle',
   frame_colors: 'frameColor',
-  frame_thicknesses: 'frameThickness', 
+  frame_thicknesses: 'frameThickness',
   light_directions: 'lighting',
   mounting_options: 'mounting',
+  hanging_techniques: 'hangingTechnique',
   drivers: 'driver',
   color_temperatures: 'colorTemperature',
   light_outputs: 'lightOutput',
   sizes: 'size', // Special handling
   accessories: 'accessories', // Special handling
-  hanging_techniques: 'mounting',
 } as const;
 
 // UI Type rendering components
