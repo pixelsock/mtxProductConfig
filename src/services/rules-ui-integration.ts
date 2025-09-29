@@ -61,6 +61,9 @@ export async function applyRulesComplete(
       mounting: currentConfig.mounting
         ? parseInt(currentConfig.mounting)
         : undefined,
+      hanging_techniques: currentConfig.hangingTechnique
+        ? parseInt(currentConfig.hangingTechnique)
+        : undefined,
       driver: currentConfig.driver ? parseInt(currentConfig.driver) : undefined,
       frame_color: currentConfig.frameColor
         ? parseInt(currentConfig.frameColor)
@@ -190,6 +193,7 @@ function extractRuleActionsResults(
             frame_thickness: "frameThickness",
             mounting_option: "mounting",
             mounting: "mounting",
+            hanging_techniques: "hangingTechnique",
             frame_color: "frameColor",
             color_temperature: "colorTemperature",
             light_output: "lightOutput",
