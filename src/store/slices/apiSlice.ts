@@ -142,7 +142,7 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
     productLine: ProductLine,
     config: ProductConfig,
   ) => {
-    const { setComputingAvailability, setDisabledOptions } = get();
+    const { setComputingAvailability, setDisabledOptions, updateConfiguration, validateAndAdjustSelections } = get();
 
     try {
       setComputingAvailability(true);
@@ -152,7 +152,23 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
       );
 
       const result = await applyRulesComplete(config, productLine.id);
+
+      // Apply disabled options
       setDisabledOptions(result.disabledOptions || {});
+
+      // Apply rule-set values to configuration automatically
+      if (result.setValues && Object.keys(result.setValues).length > 0) {
+        if (import.meta.env.DEV) {
+          console.log('⚙️ Applying rule-set values to configuration:', result.setValues);
+        }
+
+        for (const [field, value] of Object.entries(result.setValues)) {
+          updateConfiguration(field as any, value.toString());
+        }
+      }
+
+      // After updating disabled options and rule values, validate and auto-adjust selections
+      await validateAndAdjustSelections();
     } catch (error) {
       console.error('❌ Failed to recompute filtering:', error);
     } finally {

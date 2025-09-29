@@ -67,9 +67,21 @@ export function useOptionState(currentSelection: Record<string, string>): Option
       // Get the disabled option IDs for this collection from API
       const disabledKey = collectionMappings[collection];
       const disabledIds = disabledKey ? disabledOptionIds[disabledKey] || [] : [];
-      
+
+      // Check if a rule set a specific value (which disables all alternatives)
+      const ruleSetKey = `${disabledKey}_rule_set`;
+      const ruleSetIds = disabledKey ? disabledOptionIds[ruleSetKey] || [] : [];
+
       // Determine if this option is disabled based on API data
-      const isDisabled = disabledIds.includes(optionId);
+      let isDisabled = false;
+
+      if (ruleSetIds.length > 0) {
+        // If a rule set a value, disable everything except that value
+        isDisabled = !ruleSetIds.includes(optionId);
+      } else {
+        // Otherwise check if it's in the direct disabled list
+        isDisabled = disabledIds.includes(optionId);
+      }
       
       // Determine if this option is currently selected
       let isSelected = false;
@@ -110,27 +122,39 @@ export function useOptionState(currentSelection: Record<string, string>): Option
     const getCollectionState = (collection: string) => {
       const disabledKey = collectionMappings[collection];
       const disabledIds = disabledKey ? disabledOptionIds[disabledKey] || [] : [];
-      
+
+      // Check if a rule set a specific value
+      const ruleSetKey = `${disabledKey}_rule_set`;
+      const ruleSetIds = disabledKey ? disabledOptionIds[ruleSetKey] || [] : [];
+
       // Get total count from productOptions
       let totalCount = 0;
       if (productOptions && productOptions[collection as keyof typeof productOptions]) {
         const options = productOptions[collection as keyof typeof productOptions] as any[];
         totalCount = options.length;
       }
-      
+
       // Get all option IDs for this collection
       const allIds: number[] = [];
       if (productOptions && productOptions[collection as keyof typeof productOptions]) {
         const options = productOptions[collection as keyof typeof productOptions] as any[];
         allIds.push(...options.map(option => option.id));
       }
-      
-      const availableIds = allIds.filter(id => !disabledIds.includes(id));
-      
+
+      // Calculate available IDs based on rule-set or disabled list
+      let availableIds: number[];
+      if (ruleSetIds.length > 0) {
+        // If rule set a value, only that value is available
+        availableIds = ruleSetIds;
+      } else {
+        // Otherwise exclude disabled IDs
+        availableIds = allIds.filter(id => !disabledIds.includes(id));
+      }
+
       return {
         availableIds,
         disabledIds,
-        hasDisabled: disabledIds.length > 0,
+        hasDisabled: availableIds.length < totalCount,
         totalCount
       };
     };
