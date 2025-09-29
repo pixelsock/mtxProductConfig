@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 // Import Zustand store hooks
@@ -31,6 +31,7 @@ import { Label } from "./components/ui/label";
 import { Separator } from "./components/ui/separator";
 import { Badge } from "./components/ui/badge";
 import { Spinner } from "./components/ui/spinner";
+import { Skeleton } from "./components/ui/skeleton";
 import { Alert, AlertDescription } from "./components/ui/alert";
 import AdjustmentNotificationBar from "./components/AdjustmentNotificationBar";
 import {
@@ -82,6 +83,9 @@ const App: React.FC = () => {
     error
   } = useAPIState();
   const { quoteItems, customerInfo } = useQuoteState();
+
+  // Local component state
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
   // Zustand store actions
   const {
@@ -218,6 +222,11 @@ const App: React.FC = () => {
       document.body.style.overflow = prevOverflow;
     };
   }, [isLightboxOpen, lightboxIndex]);
+
+  // Reset image loading state when product or mounting changes
+  useEffect(() => {
+    setIsImageLoading(true);
+  }, [currentProduct?.id, currentConfig?.mounting]);
 
   // Build thumbnail URLs from additional_images only (excluding primary vertical/horizontal images)
   const getProductThumbnails = (product: DecoProduct | null): string[] => {
@@ -604,12 +613,18 @@ const App: React.FC = () => {
                 
                 if (imageUrl) {
                   return (
-                    <>
+                    <div className="relative w-full h-full">
+                      {isImageLoading && (
+                        <Skeleton className="absolute inset-0 w-full h-full" />
+                      )}
                       <img
                         src={imageUrl}
                         alt={generateProductName()}
-                        className="w-full h-full object-contain"
+                        className={`w-full h-full object-contain transition-opacity duration-300 ${
+                          isImageLoading ? 'opacity-0' : 'opacity-100'
+                        }`}
                         onError={(e) => {
+                          setIsImageLoading(false);
                           console.error('🖼️ Image Load Error:', {
                             imageUrl,
                             productName: currentProduct?.name,
@@ -618,6 +633,7 @@ const App: React.FC = () => {
                           });
                         }}
                         onLoad={() => {
+                          setIsImageLoading(false);
                           console.log('🖼️ Image Loaded Successfully:', {
                             imageUrl,
                             productName: currentProduct?.name,
@@ -625,8 +641,10 @@ const App: React.FC = () => {
                           });
                         }}
                       />
-                      <div className="absolute inset-x-0 bottom-0 pointer-events-none bg-gradient-to-t from-white/60 to-transparent h-10"></div>
-                    </>
+                      {!isImageLoading && (
+                        <div className="absolute inset-x-0 bottom-0 pointer-events-none bg-gradient-to-t from-white/60 to-transparent h-10"></div>
+                      )}
+                    </div>
                   );
                 } else if (currentConfig) {
                   return (
