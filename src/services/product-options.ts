@@ -20,6 +20,7 @@ const COLLECTION_TO_FIELD: Record<string, keyof ProductOptions> = {
   frame_thicknesses: 'frameThickness',
   mirror_styles: 'mirrorStyles',
   mounting_options: 'mountingOptions',
+  hanging_techniques: 'hangingTechniques',
   light_directions: 'lightingOptions',
   light_outputs: 'lightOutputs',
   color_temperatures: 'colorTemperatures',
