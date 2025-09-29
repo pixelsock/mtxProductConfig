@@ -142,32 +142,73 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
     productLine: ProductLine,
     config: ProductConfig,
   ) => {
-    const { setComputingAvailability, setDisabledOptions, updateConfiguration, validateAndAdjustSelections } = get();
+    const { setComputingAvailability, setDisabledOptions, updateConfiguration, validateAndAdjustSelections, productOptions } = get();
 
     try {
       setComputingAvailability(true);
 
+      // Step 1: Compute product availability (dynamic filtering)
+      const { computeProductAvailability, computeUnavailableOptions } = await import(
+        '../../services/product-availability'
+      );
+
+      const availability = await computeProductAvailability(productLine.id, config);
+
+      // Convert available options to disabled options (unavailable = disabled)
+      const unavailableFromProducts = productOptions
+        ? computeUnavailableOptions(availability.availableOptions, productOptions as any)
+        : {};
+
+      if (import.meta.env.DEV) {
+        console.log('🔍 Product Availability:', {
+          matchingProducts: availability.matchingProductCount,
+          unavailable: unavailableFromProducts,
+        });
+      }
+
+      // Step 2: Apply rules
       const { applyRulesComplete } = await import(
         '../../services/rules-ui-integration'
       );
 
-      const result = await applyRulesComplete(config, productLine.id);
+      const rulesResult = await applyRulesComplete(config, productLine.id);
 
-      // Apply disabled options
-      setDisabledOptions(result.disabledOptions || {});
+      // Step 3: Merge disabled options from both sources
+      // Rules take precedence over availability (rules can force values)
+      const mergedDisabled: Record<string, number[]> = { ...unavailableFromProducts };
 
-      // Apply rule-set values to configuration automatically
-      if (result.setValues && Object.keys(result.setValues).length > 0) {
+      for (const [collection, disabledIds] of Object.entries(rulesResult.disabledOptions)) {
+        if (collection.endsWith('_rule_set')) {
+          // Rule-set values override everything
+          mergedDisabled[collection] = disabledIds;
+        } else {
+          // Merge direct disabled lists (union of both sources)
+          const existing = mergedDisabled[collection] || [];
+          mergedDisabled[collection] = Array.from(
+            new Set([...existing, ...disabledIds])
+          );
+        }
+      }
+
+      if (import.meta.env.DEV) {
+        console.log('⚙️ Merged Disabled Options:', mergedDisabled);
+      }
+
+      // Apply merged disabled options
+      setDisabledOptions(mergedDisabled);
+
+      // Step 4: Apply rule-set values to configuration automatically
+      if (rulesResult.setValues && Object.keys(rulesResult.setValues).length > 0) {
         if (import.meta.env.DEV) {
-          console.log('⚙️ Applying rule-set values to configuration:', result.setValues);
+          console.log('⚙️ Applying rule-set values to configuration:', rulesResult.setValues);
         }
 
-        for (const [field, value] of Object.entries(result.setValues)) {
+        for (const [field, value] of Object.entries(rulesResult.setValues)) {
           updateConfiguration(field as any, value.toString());
         }
       }
 
-      // After updating disabled options and rule values, validate and auto-adjust selections
+      // Step 5: Validate and auto-adjust selections
       await validateAndAdjustSelections();
     } catch (error) {
       console.error('❌ Failed to recompute filtering:', error);
