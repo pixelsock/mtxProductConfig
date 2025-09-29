@@ -30,7 +30,7 @@ import { Input } from "./components/ui/input";
 import { Label } from "./components/ui/label";
 import { Separator } from "./components/ui/separator";
 import { Badge } from "./components/ui/badge";
-import { Skeleton } from "./components/ui/skeleton";
+import { Spinner } from "./components/ui/spinner";
 import { Alert, AlertDescription } from "./components/ui/alert";
 import AdjustmentNotificationBar from "./components/AdjustmentNotificationBar";
 import {
@@ -501,7 +501,7 @@ const App: React.FC = () => {
                 Product Configurator
               </div>
               <div className="flex items-center space-x-4">
-                <Skeleton className="h-10 w-32" />
+                <Spinner size="md" />
               </div>
             </div>
           </div>
@@ -640,7 +640,7 @@ const App: React.FC = () => {
                     </div>
                   );
                 } else {
-                  return <Skeleton className="w-full h-full" />;
+                  return <Spinner className="w-full h-full" size="lg" />;
                 }
               })()}
             </div>
