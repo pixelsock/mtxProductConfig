@@ -62,37 +62,36 @@ export async function computeProductAvailability(
       });
     }
 
-    // 2. Filter scope based on current selections
-    scope = filterProductsBySelections(scope, currentConfig);
-
-    if (import.meta.env.DEV) {
-      console.log('🔍 Dynamic Filtering: After selection filters', {
-        matchingProducts: scope.length,
-        selections: extractSelections(currentConfig),
-      });
-    }
-
-    // 3. Compute facet counts for each attribute
-    const facets = computeFacets(scope);
-
-    if (import.meta.env.DEV) {
-      console.log('🔍 Dynamic Filtering: Computed facets', facets);
-    }
-
-    // 4. Build availability result
+    // 2-4. For each field we want to compute availability for,
+    // filter by OTHER selections (not the field itself) and compute facets
     const availableOptions: Record<string, number[]> = {};
     const unavailableOptions: Record<string, number[]> = {};
 
     for (const [configField, collection] of Object.entries(CONFIG_TO_COLLECTION)) {
       const productField = CONFIG_TO_PRODUCT_FIELD[configField];
-      if (!productField || !facets[productField]) continue;
+      if (!productField) continue;
 
-      const availableIds = Array.from(facets[productField]);
-      availableOptions[collection] = availableIds;
+      // Filter by all OTHER selections (exclude the field we're computing for)
+      const scopeForField = filterProductsBySelections(scope, currentConfig, configField);
 
-      // Note: We don't compute unavailableOptions here because we don't have
-      // the full list of options. That will be handled in the calling code
-      // by comparing against productOptions
+      if (import.meta.env.DEV) {
+        console.log(`🔍 Dynamic Filtering: Computing ${collection}`, {
+          field: configField,
+          matchingProducts: scopeForField.length,
+        });
+      }
+
+      // Compute facets for this specific field
+      const facets = computeFacets(scopeForField);
+
+      if (facets[productField]) {
+        const availableIds = Array.from(facets[productField]);
+        availableOptions[collection] = availableIds;
+
+        if (import.meta.env.DEV) {
+          console.log(`✅ ${collection} available IDs:`, availableIds);
+        }
+      }
     }
 
     return {
@@ -113,22 +112,38 @@ export async function computeProductAvailability(
 /**
  * Filter products based on current configuration selections
  *
- * IMPORTANT: Only filters by selections that exist in CONFIG_TO_COLLECTION
- * (i.e., fields that CAN be disabled by dynamic filtering)
- * Mirror styles are included in filtering but NOT in disabled computation
+ * @param products - Array of products to filter
+ * @param config - Current configuration selections
+ * @param excludeField - Optional field to exclude from filtering (used when computing availability for that field)
+ *
+ * IMPORTANT: When computing availability for a field, we exclude that field from filtering
+ * to avoid catch-22 where filtering by a field prevents discovering what values are available for that field
  */
 function filterProductsBySelections(
   products: any[],
-  config: ProductConfig
+  config: ProductConfig,
+  excludeField?: string
 ): any[] {
   let filtered = products;
 
   // Apply each selection as a filter
   for (const [configField, productField] of Object.entries(CONFIG_TO_PRODUCT_FIELD)) {
+    // Skip the field we're computing availability for
+    if (excludeField && configField === excludeField) {
+      if (import.meta.env.DEV) {
+        console.log(`⏭️  Skipping filter for ${configField} (computing availability for it)`);
+      }
+      continue;
+    }
+
     const value = config[configField as keyof ProductConfig];
     if (!value) continue; // Skip unset fields
 
     const valueId = parseInt(value as string);
+
+    if (import.meta.env.DEV) {
+      console.log(`🔍 Filtering by ${configField} = ${valueId}`);
+    }
 
     filtered = filtered.filter((p) => {
       const productValue = p[productField];
@@ -179,22 +194,6 @@ function computeFacets(products: any[]): Record<string, Set<number>> {
   }
 
   return facets;
-}
-
-/**
- * Extract current selections for debugging
- */
-function extractSelections(config: ProductConfig): Record<string, any> {
-  const selections: Record<string, any> = {};
-
-  for (const [configField, productField] of Object.entries(CONFIG_TO_PRODUCT_FIELD)) {
-    const value = config[configField as keyof ProductConfig];
-    if (value) {
-      selections[productField] = value;
-    }
-  }
-
-  return selections;
 }
 
 /**
