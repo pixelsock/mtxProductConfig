@@ -34,7 +34,8 @@ const CONFIG_TO_PRODUCT_FIELD: Record<string, string> = {
 
 // Map config fields to collection names for disabled options
 const CONFIG_TO_COLLECTION: Record<string, string> = {
-  mirrorStyle: 'mirror_styles',
+  // Note: mirror_styles explicitly excluded - they should NEVER be disabled by dynamic filtering
+  // Per CLAUDE.md: "Mirror Styles should not be disabled by dynamic filtering"
   frameThickness: 'frame_thicknesses',
   lighting: 'light_directions',
 };
@@ -111,6 +112,10 @@ export async function computeProductAvailability(
 
 /**
  * Filter products based on current configuration selections
+ *
+ * IMPORTANT: Only filters by selections that exist in CONFIG_TO_COLLECTION
+ * (i.e., fields that CAN be disabled by dynamic filtering)
+ * Mirror styles are included in filtering but NOT in disabled computation
  */
 function filterProductsBySelections(
   products: any[],
@@ -195,6 +200,9 @@ function extractSelections(config: ProductConfig): Record<string, any> {
 /**
  * Compute unavailable options by comparing available against all options
  * This is called by the store to build the disabled list
+ *
+ * IMPORTANT: mirror_styles are explicitly excluded from dynamic filtering
+ * per CLAUDE.md specification. They can only be disabled by rules or hidden by overrides.
  */
 export function computeUnavailableOptions(
   availableOptions: Record<string, number[]>,
@@ -203,8 +211,8 @@ export function computeUnavailableOptions(
   const unavailable: Record<string, number[]> = {};
 
   // Map productOptions keys to collection names
+  // Note: mirror_styles explicitly excluded - they should NEVER be disabled by dynamic filtering
   const optionsKeyToCollection: Record<string, string> = {
-    mirrorStyles: 'mirror_styles',
     frameThickness: 'frame_thicknesses',
     lightingOptions: 'light_directions',
   };
