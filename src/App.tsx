@@ -47,6 +47,7 @@ import {
   ChevronUp,
   ChevronLeft,
   ChevronRight,
+  Search,
 } from "lucide-react";
 
 // Import Dynamic Supabase service layer
@@ -63,6 +64,13 @@ import { CurrentConfiguration } from "./components/ui/current-configuration";
 import { EnvironmentIndicator } from "./components/ui/environment-indicator";
 import { DynamicConfigurationRenderer } from "./components/DynamicConfigurationRenderer";
 import { SkuSearchInput } from "./components/ui/sku-search-input";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "./components/ui/sheet";
 
 const App: React.FC = () => {
   // Zustand store state
@@ -90,6 +98,7 @@ const App: React.FC = () => {
   // Local component state
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [generatedSku, setGeneratedSku] = useState<string | null>(null);
+  const [isSkuSearchOpen, setIsSkuSearchOpen] = useState(false);
 
   // Get SKU generator from store
   const getGeneratedSKU = useConfiguratorStore((state) => state.getGeneratedSKU);
@@ -553,6 +562,23 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
+      <Sheet open={isSkuSearchOpen} onOpenChange={setIsSkuSearchOpen}>
+        <SheetContent
+          side="right"
+          className="w-full gap-0 border-l border-slate-200 bg-white p-0 sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
+        >
+          <SheetHeader className="border-b border-slate-200 px-6 py-4">
+            <SheetTitle className="text-xl font-semibold">AI SKU Search</SheetTitle>
+            <SheetDescription>
+              Search by SKU or natural language to jump straight to the closest configuration.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto px-6 pb-8 pt-6">
+            <SkuSearchInput onApplied={() => setIsSkuSearchOpen(false)} />
+          </div>
+        </SheetContent>
+      </Sheet>
+
       <nav className="border-b border-gray-200 bg-white sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -570,6 +596,14 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsSkuSearchOpen(true)}
+                className="flex items-center gap-2 border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+              >
+                <Search className="h-4 w-4" />
+                Search by SKU
+              </Button>
               <Button
                 onClick={() => setQuoteFormVisible(true)}
                 disabled={quoteItems.length === 0}
@@ -599,9 +633,6 @@ const App: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="mb-10">
-          <SkuSearchInput />
-        </div>
         <div className="grid grid-cols-1 lg:grid-cols-11 gap-16 mt-[0px] mr-[0px] mb-[80px] ml-[0px]">
           {/* Product Visualization - Sticky on Desktop */}
           <div className="space-y-4 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto lg:col-span-5">
