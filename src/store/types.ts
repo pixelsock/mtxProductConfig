@@ -63,6 +63,67 @@ export interface ProductOptions {
   sizes: ProductOption[];
 }
 
+export type SkuSegmentStatus =
+  | "exact"
+  | "partial"
+  | "ambiguous"
+  | "not_found"
+  | "missing"
+  | "skipped";
+
+export type SkuSegmentField = keyof ProductConfig | "productBase";
+
+export interface SkuSegmentOption {
+  id: string;
+  name: string | null;
+  skuCode: string;
+}
+
+export interface SkuSegmentMatch {
+  order: number;
+  tableName: string;
+  field?: SkuSegmentField;
+  segment: string | null;
+  status: SkuSegmentStatus;
+  options: SkuSegmentOption[];
+  message?: string;
+}
+
+export type SkuSearchConfidence = "exact" | "partial" | "ambiguous" | "invalid";
+
+export interface SkuSearchResult {
+  id: string;
+  productId?: number;
+  productLineId?: number | null;
+  productSku?: string | null;
+  productName?: string | null;
+  configuration: Partial<ProductConfig>;
+  segments: SkuSegmentMatch[];
+  issues: string[];
+  confidence: SkuSearchConfidence;
+}
+
+export interface SkuParseResponse {
+  query: string;
+  segments: string[];
+  results: SkuSearchResult[];
+  warnings: string[];
+  errors: string[];
+}
+
+export interface SkuSearchOptions {
+  productLineId?: number;
+  limit?: number;
+}
+
+export interface SkuSuggestion {
+  id: string;
+  productId: number;
+  productSku: string;
+  productName: string | null;
+  productLineId: number | null;
+}
+
 export interface CustomerInfo {
   name: string;
   email: string;
@@ -123,6 +184,10 @@ export interface ConfigurationSlice {
   isAdjustingSelections: boolean;
   isProcessingProductUpdate: boolean;
   adjustmentNotifications: AdjustmentNotification[];
+  skuSearchQuery: string;
+  skuSearchResults: SkuSearchResult[];
+  isSearchingSku: boolean;
+  skuSearchError: string | null;
 
   // Actions
   updateConfiguration: (field: keyof ProductConfig, value: any) => void;
@@ -135,6 +200,9 @@ export interface ConfigurationSlice {
   validateAndAdjustSelections: () => Promise<boolean>;
   addAdjustmentNotification: (notification: AdjustmentNotification) => void;
   clearAdjustmentNotifications: () => void;
+  searchBySku: (query: string) => Promise<SkuSearchResult[]>;
+  applySkuResult: (result: SkuSearchResult) => Promise<void>;
+  clearSkuSearch: () => void;
 
   // Computed (implemented as functions that can access get())
   isConfigurationValid: () => boolean;
@@ -188,7 +256,10 @@ export interface APISlice {
   setAvailableProductLines: (lines: ProductLine[]) => void;
   setConfigurationUI: (configUI: ConfigurationUIItem[]) => void;
   setDisabledOptions: (disabled: Record<string, number[]>) => void;
-  setRuleImageOverrides: (overrides: { vertical_image?: string; horizontal_image?: string }) => void;
+  setRuleImageOverrides: (overrides: {
+    vertical_image?: string;
+    horizontal_image?: string;
+  }) => void;
   setLoadingApp: (loading: boolean) => void;
   setLoadingProductLine: (loading: boolean) => void;
   setComputingAvailability: (computing: boolean) => void;

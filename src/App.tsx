@@ -62,6 +62,7 @@ import { ProductLineSelector } from "./components/ui/product-line-selector";
 import { CurrentConfiguration } from "./components/ui/current-configuration";
 import { EnvironmentIndicator } from "./components/ui/environment-indicator";
 import { DynamicConfigurationRenderer } from "./components/DynamicConfigurationRenderer";
+import { SkuSearchInput } from "./components/ui/sku-search-input";
 
 const App: React.FC = () => {
   // Zustand store state
@@ -598,6 +599,9 @@ const App: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="mb-10">
+          <SkuSearchInput />
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-11 gap-16 mt-[0px] mr-[0px] mb-[80px] ml-[0px]">
           {/* Product Visualization - Sticky on Desktop */}
           <div className="space-y-4 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto lg:col-span-5">

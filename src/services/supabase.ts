@@ -60,6 +60,21 @@ export async function getProducts() {
   return data;
 }
 
+export async function getProductById(id: number) {
+  const { data, error } = await supabase
+    .from('products')
+    .select(PRODUCT_FIELDS)
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error(`Error fetching product ${id} from Supabase:`, error);
+    throw error;
+  }
+
+  return data;
+}
+
 // Get all product lines
 export async function getProductLines() {
   const { data, error } = await supabase.from('product_lines').select('*');

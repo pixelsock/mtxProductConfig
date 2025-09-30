@@ -201,6 +201,7 @@ function extractRuleActionsResults(
         frame_thickness: "frame_thicknesses",
         mounting_option: "mounting_options", // Note: mounting_option in rules maps to mounting_options
         mounting: "mounting_options",
+        hanging_techniques: "hanging_techniques",
         frame_color: "frame_colors",
         color_temperature: "color_temperatures",
         light_output: "light_outputs",
