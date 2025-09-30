@@ -157,118 +157,128 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
     try {
       setComputingAvailability(true);
 
-      // Step 1: Compute product availability (dynamic filtering)
+      // Import once at the start
       const { computeProductAvailability, computeUnavailableOptions } = await import(
         '../../services/product-availability'
       );
-
-      const availability = await computeProductAvailability(productLine.id, config);
-
-      // Convert available options to disabled options (unavailable = disabled)
-      const unavailableFromProducts = productOptions
-        ? computeUnavailableOptions(availability.availableOptions, productOptions as any)
-        : {};
-
-      if (import.meta.env.DEV) {
-        console.log('🔍 Product Availability:', {
-          matchingProducts: availability.matchingProductCount,
-          unavailable: unavailableFromProducts,
-        });
-      }
-
-      // Step 2: Apply rules
       const { applyRulesComplete } = await import(
         '../../services/rules-ui-integration'
       );
 
-      const rulesResult = await applyRulesComplete(config, productLine.id);
+      // Iterative recomputation: Keep adjusting until config is stable
+      // This ensures that when a selection becomes invalid due to dynamic filtering,
+      // we auto-adjust it and then recompute with the new value
+      const MAX_ITERATIONS = 3;
+      let iteration = 0;
+      let configStabilized = false;
+      let currentConfig = config;
 
-      // Step 3: Merge disabled options from both sources
-      // Rules take precedence over availability (rules can force values)
-      const mergedDisabled: Record<string, number[]> = { ...unavailableFromProducts };
+      while (!configStabilized && iteration < MAX_ITERATIONS) {
+        iteration++;
 
-      for (const [collection, disabledIds] of Object.entries(rulesResult.disabledOptions)) {
-        if (collection.endsWith('_rule_set')) {
-          // Rule-set values override everything
-          mergedDisabled[collection] = disabledIds;
+        if (import.meta.env.DEV && iteration > 1) {
+          console.log(`🔄 Iteration ${iteration}: Recomputing with adjusted config`);
+        }
+
+        // Step 1: Compute product availability (dynamic filtering)
+        const availability = await computeProductAvailability(productLine.id, currentConfig);
+
+        // Convert available options to disabled options (unavailable = disabled)
+        const unavailableFromProducts = productOptions
+          ? computeUnavailableOptions(availability.availableOptions, productOptions as any)
+          : {};
+
+        if (import.meta.env.DEV) {
+          console.log('🔍 Product Availability:', {
+            iteration,
+            matchingProducts: availability.matchingProductCount,
+            unavailable: unavailableFromProducts,
+          });
+        }
+
+        // Step 2: Apply rules
+        const rulesResult = await applyRulesComplete(currentConfig, productLine.id);
+
+        // Step 3: Merge disabled options from both sources
+        // Rules take precedence over availability (rules can force values)
+        const mergedDisabled: Record<string, number[]> = { ...unavailableFromProducts };
+
+        for (const [collection, disabledIds] of Object.entries(rulesResult.disabledOptions)) {
+          if (collection.endsWith('_rule_set')) {
+            // Rule-set values override everything
+            mergedDisabled[collection] = disabledIds;
+          } else {
+            // Merge direct disabled lists (union of both sources)
+            const existing = mergedDisabled[collection] || [];
+            mergedDisabled[collection] = Array.from(
+              new Set([...existing, ...disabledIds])
+            );
+          }
+        }
+
+        if (import.meta.env.DEV) {
+          console.log('⚙️ Merged Disabled Options:', mergedDisabled);
+        }
+
+        // Apply merged disabled options
+        setDisabledOptions(mergedDisabled);
+
+        // Step 3.5: Apply rule image overrides
+        const { setRuleImageOverrides } = get();
+        if (rulesResult.imageOverrides && (rulesResult.imageOverrides.vertical_image || rulesResult.imageOverrides.horizontal_image)) {
+          if (import.meta.env.DEV) {
+            console.log('⚙️ Applying rule image overrides:', rulesResult.imageOverrides);
+          }
+          setRuleImageOverrides(rulesResult.imageOverrides);
         } else {
-          // Merge direct disabled lists (union of both sources)
-          const existing = mergedDisabled[collection] || [];
-          mergedDisabled[collection] = Array.from(
-            new Set([...existing, ...disabledIds])
-          );
-        }
-      }
-
-      if (import.meta.env.DEV) {
-        console.log('⚙️ Merged Disabled Options:', mergedDisabled);
-      }
-
-      // Apply merged disabled options
-      setDisabledOptions(mergedDisabled);
-
-      // Step 3.5: Apply rule image overrides
-      const { setRuleImageOverrides } = get();
-      if (rulesResult.imageOverrides && (rulesResult.imageOverrides.vertical_image || rulesResult.imageOverrides.horizontal_image)) {
-        if (import.meta.env.DEV) {
-          console.log('⚙️ Applying rule image overrides:', rulesResult.imageOverrides);
-        }
-        setRuleImageOverrides(rulesResult.imageOverrides);
-      } else {
-        // Clear image overrides if no rules set them
-        setRuleImageOverrides({});
-      }
-
-      // Step 4: Apply rule-set values to configuration automatically
-      let configChanged = false;
-      if (rulesResult.setValues && Object.keys(rulesResult.setValues).length > 0) {
-        if (import.meta.env.DEV) {
-          console.log('⚙️ Applying rule-set values to configuration:', rulesResult.setValues);
+          // Clear image overrides if no rules set them
+          setRuleImageOverrides({});
         }
 
-        for (const [field, value] of Object.entries(rulesResult.setValues)) {
-          updateConfiguration(field as any, value.toString());
-        }
-        configChanged = true;
-      }
-
-      // Step 4.5: If rules changed the configuration, recompute availability with the new values
-      if (configChanged) {
-        const updatedConfig = get().currentConfig;
-        if (updatedConfig) {
+        // Step 4: Apply rule-set values to configuration automatically
+        let ruleChangedConfig = false;
+        if (rulesResult.setValues && Object.keys(rulesResult.setValues).length > 0) {
           if (import.meta.env.DEV) {
-            console.log('🔄 Recomputing availability after rule-set values applied');
+            console.log('⚙️ Applying rule-set values to configuration:', rulesResult.setValues);
           }
 
-          const availability = await computeProductAvailability(productLine.id, updatedConfig);
-          const unavailableFromProducts = productOptions
-            ? computeUnavailableOptions(availability.availableOptions, productOptions as any)
-            : {};
-
-          // Merge with rules disabled options again
-          const mergedDisabled: Record<string, number[]> = { ...unavailableFromProducts };
-
-          for (const [collection, disabledIds] of Object.entries(rulesResult.disabledOptions)) {
-            if (collection.endsWith('_rule_set')) {
-              mergedDisabled[collection] = disabledIds;
-            } else {
-              const existing = mergedDisabled[collection] || [];
-              mergedDisabled[collection] = Array.from(
-                new Set([...existing, ...disabledIds])
-              );
-            }
+          for (const [field, value] of Object.entries(rulesResult.setValues)) {
+            updateConfiguration(field as any, value.toString());
           }
+          ruleChangedConfig = true;
+        }
 
-          setDisabledOptions(mergedDisabled);
+        // Step 5: Check if any current selections are now disabled and need adjustment
+        // This is the key fix: validate WITHIN the loop, not just at the end
+        const configBeforeValidation = get().currentConfig;
+        await validateAndAdjustSelections();
+        const configAfterValidation = get().currentConfig;
+
+        // Check if anything changed (either by rules or by validation)
+        const somethingChanged = ruleChangedConfig ||
+          JSON.stringify(configBeforeValidation) !== JSON.stringify(configAfterValidation);
+
+        if (somethingChanged) {
+          // Config changed, need another iteration with the new config
+          currentConfig = get().currentConfig!;
+          configStabilized = false;
 
           if (import.meta.env.DEV) {
-            console.log('⚙️ Recomputed disabled options after rule changes:', mergedDisabled);
+            console.log('🔄 Config changed, will iterate again');
+          }
+        } else {
+          // Config is stable, we're done
+          configStabilized = true;
+
+          if (import.meta.env.DEV) {
+            console.log('✅ Config stabilized after', iteration, 'iteration(s)');
           }
         }
       }
 
-      // Step 5: Validate and auto-adjust selections
-      await validateAndAdjustSelections();
+      if (iteration >= MAX_ITERATIONS && !configStabilized) {
+        console.warn('⚠️ Max iterations reached without config stabilization');
+      }
     } catch (error) {
       console.error('❌ Failed to recompute filtering:', error);
     } finally {
