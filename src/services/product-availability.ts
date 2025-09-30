@@ -40,6 +40,13 @@ const CONFIG_TO_COLLECTION: Record<string, string> = {
   lighting: 'light_directions',
 };
 
+// Define dependency chain: fields should only filter by their "upstream" dependencies
+// Mirror Style → Frame Thickness → Light Direction
+const FIELD_DEPENDENCIES: Record<string, string[]> = {
+  frameThickness: ['mirrorStyle'],  // Only filter by mirror style when computing frame thickness availability
+  lighting: ['mirrorStyle', 'frameThickness'],  // Filter by both when computing lighting availability
+};
+
 /**
  * Compute available options based on actual product inventory
  * This is the core dynamic filtering logic
@@ -71,13 +78,21 @@ export async function computeProductAvailability(
       const productField = CONFIG_TO_PRODUCT_FIELD[configField];
       if (!productField) continue;
 
+      if (import.meta.env.DEV) {
+        console.log(`\n🔍 Computing availability for ${collection}:`, {
+          configField,
+          productField,
+          currentConfigValue: currentConfig[configField as keyof ProductConfig],
+        });
+      }
+
       // Filter by all OTHER selections (exclude the field we're computing for)
       const scopeForField = filterProductsBySelections(scope, currentConfig, configField);
 
       if (import.meta.env.DEV) {
-        console.log(`🔍 Dynamic Filtering: Computing ${collection}`, {
-          field: configField,
+        console.log(`   After filtering by OTHER selections:`, {
           matchingProducts: scopeForField.length,
+          productNames: scopeForField.map(p => p.name),
         });
       }
 
@@ -89,7 +104,15 @@ export async function computeProductAvailability(
         availableOptions[collection] = availableIds;
 
         if (import.meta.env.DEV) {
-          console.log(`✅ ${collection} available IDs:`, availableIds);
+          console.log(`✅ Available ${collection} IDs:`, availableIds);
+          console.log(`   Values in products:`, scopeForField.map(p => ({
+            name: p.name,
+            [productField]: p[productField]
+          })));
+        }
+      } else {
+        if (import.meta.env.DEV) {
+          console.log(`⚠️ No facets found for ${productField}`);
         }
       }
     }
@@ -114,24 +137,35 @@ export async function computeProductAvailability(
  *
  * @param products - Array of products to filter
  * @param config - Current configuration selections
- * @param excludeField - Optional field to exclude from filtering (used when computing availability for that field)
+ * @param fieldToCompute - The field we're computing availability for
  *
- * IMPORTANT: When computing availability for a field, we exclude that field from filtering
- * to avoid catch-22 where filtering by a field prevents discovering what values are available for that field
+ * IMPORTANT: When computing availability for a field, we only filter by its "upstream" dependencies
+ * to avoid circular dependencies. For example:
+ * - When computing frame_thickness availability, only filter by mirror_style
+ * - When computing light_direction availability, filter by mirror_style AND frame_thickness
  */
 function filterProductsBySelections(
   products: any[],
   config: ProductConfig,
-  excludeField?: string
+  fieldToCompute?: string
 ): any[] {
   let filtered = products;
 
-  // Apply each selection as a filter
+  // Determine which fields to filter by based on dependency chain
+  const fieldsToFilterBy = fieldToCompute && FIELD_DEPENDENCIES[fieldToCompute]
+    ? new Set(FIELD_DEPENDENCIES[fieldToCompute])
+    : new Set(Object.keys(CONFIG_TO_PRODUCT_FIELD));
+
+  if (import.meta.env.DEV && fieldToCompute) {
+    console.log(`   For ${fieldToCompute}, filtering by:`, Array.from(fieldsToFilterBy));
+  }
+
+  // Apply each selection as a filter (only for allowed fields)
   for (const [configField, productField] of Object.entries(CONFIG_TO_PRODUCT_FIELD)) {
-    // Skip the field we're computing availability for
-    if (excludeField && configField === excludeField) {
+    // Skip fields not in the dependency chain for this computation
+    if (fieldToCompute && !fieldsToFilterBy.has(configField)) {
       if (import.meta.env.DEV) {
-        console.log(`⏭️  Skipping filter for ${configField} (computing availability for it)`);
+        console.log(`   ⏭️  Skipping ${configField} (not in dependency chain)`);
       }
       continue;
     }
@@ -142,7 +176,7 @@ function filterProductsBySelections(
     const valueId = parseInt(value as string);
 
     if (import.meta.env.DEV) {
-      console.log(`🔍 Filtering by ${configField} = ${valueId}`);
+      console.log(`   🔍 Filtering by ${configField} = ${valueId}`);
     }
 
     filtered = filtered.filter((p) => {

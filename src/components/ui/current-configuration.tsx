@@ -1,10 +1,12 @@
-import React from 'react';
-import { Plus, Minus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Minus, Copy, Check } from 'lucide-react';
 import { Button } from './button';
 import { Badge } from './badge';
 import { Input } from './input';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './card';
 import { cn } from '@/lib/utils';
+import { parseSkuSegments } from '@/services/sku-generator';
+import { useConfiguratorStore } from '@/store';
 
 interface ProductOption {
   id: number;
@@ -67,6 +69,36 @@ export function CurrentConfiguration({
   onAddToQuote,
   className
 }: CurrentConfigurationProps) {
+  const [generatedSku, setGeneratedSku] = useState<string | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
+  const getGeneratedSKU = useConfiguratorStore((state) => state.getGeneratedSKU);
+  const currentProduct = useConfiguratorStore((state) => state.currentProduct);
+
+  // Generate SKU whenever config or product changes
+  useEffect(() => {
+    let mounted = true;
+
+    const generateSku = async () => {
+      try {
+        const sku = await getGeneratedSKU();
+        if (mounted) {
+          setGeneratedSku(sku);
+        }
+      } catch (error) {
+        console.error('Error generating SKU:', error);
+        if (mounted) {
+          setGeneratedSku(null);
+        }
+      }
+    };
+
+    generateSku();
+
+    return () => {
+      mounted = false;
+    };
+  }, [config, currentProduct, getGeneratedSKU]);
+
   const incrementQuantity = () => {
     onQuantityChange(Math.min(config.quantity + 1, 100));
   };
@@ -78,6 +110,18 @@ export function CurrentConfiguration({
   const handleQuantityInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.max(1, Math.min(100, parseInt(e.target.value) || 1));
     onQuantityChange(value);
+  };
+
+  const handleCopySku = async () => {
+    if (!generatedSku) return;
+
+    try {
+      await navigator.clipboard.writeText(generatedSku);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy SKU:', error);
+    }
   };
 
   // Helper function to find option name by ID
@@ -313,6 +357,38 @@ export function CurrentConfiguration({
 
         {/* Accessories - Only show if an accessory is selected AND accessory options are available */}
         {renderAccessory()}
+
+        {/* Product SKU Display */}
+        {generatedSku && (
+          <div className="pt-4 border-t border-border mt-4">
+            <div className="flex flex-col space-y-2">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Product SKU</span>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 bg-muted/50 rounded-lg px-4 py-3 font-mono text-sm font-semibold text-foreground overflow-x-auto">
+                  {parseSkuSegments(generatedSku).map((segment, index) => (
+                    <React.Fragment key={index}>
+                      {index > 0 && <span className="text-muted-foreground mx-1">-</span>}
+                      <span className="text-foreground">{segment}</span>
+                    </React.Fragment>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleCopySku}
+                  className="h-10 w-10 shrink-0 border-border hover:bg-muted/80 transition-colors"
+                  title="Copy SKU to clipboard"
+                >
+                  {isCopied ? (
+                    <Check className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
 
       <CardFooter className="flex items-center justify-between pt-6 border-t border-border">

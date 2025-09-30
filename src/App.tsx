@@ -12,6 +12,7 @@ import {
   useAPIActions,
   useQuoteActions,
   useComputedValues,
+  useConfiguratorStore,
 } from "./store";
 import type {
   ProductLine,
@@ -87,6 +88,10 @@ const App: React.FC = () => {
 
   // Local component state
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const [generatedSku, setGeneratedSku] = useState<string | null>(null);
+
+  // Get SKU generator from store
+  const getGeneratedSKU = useConfiguratorStore((state) => state.getGeneratedSKU);
 
   // Zustand store actions
   const {
@@ -227,6 +232,22 @@ const App: React.FC = () => {
   useEffect(() => {
     setIsImageLoading(true);
   }, [currentProduct?.id, currentConfig?.mounting]);
+
+  // Generate SKU when configuration or product changes
+  useEffect(() => {
+    let mounted = true;
+    const generateSku = async () => {
+      try {
+        const sku = await getGeneratedSKU();
+        if (mounted) setGeneratedSku(sku);
+      } catch (error) {
+        console.error('Error generating SKU:', error);
+        if (mounted) setGeneratedSku(null);
+      }
+    };
+    generateSku();
+    return () => { mounted = false; };
+  }, [currentConfig, currentProduct, getGeneratedSKU]);
 
   // Build thumbnail URLs from additional_images only (excluding primary vertical/horizontal images)
   const getProductThumbnails = (product: DecoProduct | null): string[] => {
@@ -821,7 +842,7 @@ const App: React.FC = () => {
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-1">Current Product</p>
                   <p className="font-medium text-gray-900">{generateProductName()}</p>
-                  <p className="text-xs text-gray-500 mt-1">SKU: {currentProduct.name}</p>
+                  <p className="text-xs text-gray-500 mt-1">SKU: {generatedSku || currentProduct.name}</p>
                   {(() => {
                     const mountingOption = productOptions?.mountingOptions?.find(
                       (mo: ProductOption) => mo.id.toString() === currentConfig?.mounting
@@ -997,6 +1018,14 @@ const App: React.FC = () => {
                         (l) => l.id.toString() === currentConfig.lighting
                       )?.name}
                     </span>
+                    {generatedSku && (
+                      <>
+                        <span className="text-gray-400">•</span>
+                        <span className="font-mono text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                          {generatedSku}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 

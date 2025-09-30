@@ -138,7 +138,7 @@ export interface ConfigurationSlice {
 
   // Computed (implemented as functions that can access get())
   isConfigurationValid: () => boolean;
-  getGeneratedSKU: () => string | null;
+  getGeneratedSKU: () => Promise<string | null>;
   generateProductName: () => string;
 }
 

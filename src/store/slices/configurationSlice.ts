@@ -16,6 +16,7 @@ import {
   DecoProduct,
   AdjustmentNotification,
 } from "../types";
+import { generateSku } from "@/services/sku-generator";
 
 export const createConfigurationSlice = (
   set: StoreSet,
@@ -144,6 +145,43 @@ export const createConfigurationSlice = (
       console.log(
         "✅ Initial configuration dynamic filtering and validation complete",
       );
+
+      // Set initial product after configuration is fully initialized
+      const finalConfig = get().currentConfig;
+      if (finalConfig && productOptions) {
+        try {
+          const { findBestMatchingProduct } = await import('../../services/product-matcher');
+
+          const frameThickness = productOptions.frameThickness?.find(
+            (ft: any) => ft.id.toString() === finalConfig.frameThickness
+          );
+
+          const mirrorStyle = productOptions.mirrorStyles?.find(
+            (ms: any) => ms.id.toString() === finalConfig.mirrorStyle
+          );
+
+          const lightDirection = productOptions.lightingOptions?.find(
+            (ld: any) => ld.id.toString() === finalConfig.lighting
+          );
+
+          if (mirrorStyle && lightDirection) {
+            const product = await findBestMatchingProduct({
+              productLineId: finalConfig.productLineId,
+              mirrorStyleId: mirrorStyle.id,
+              lightDirectionId: lightDirection.id,
+              frameThicknessId: frameThickness?.id
+            });
+
+            if (product) {
+              const { setCurrentProduct } = get();
+              setCurrentProduct(product);
+              console.log('✅ Initial product set:', product.name);
+            }
+          }
+        } catch (productError) {
+          console.error('❌ Failed to set initial product:', productError);
+        }
+      }
     } catch (error) {
       console.error("❌ Failed to apply initial dynamic filtering:", error);
     }
@@ -211,13 +249,18 @@ export const createConfigurationSlice = (
     );
   },
 
-  getGeneratedSKU: () => {
-    const { currentConfig, currentProduct } = get();
-    if (!currentConfig || !currentProduct) return null;
+  getGeneratedSKU: async () => {
+    const { currentConfig, currentProduct, productOptions } = get();
+    if (!currentConfig || !currentProduct || !productOptions) return null;
 
-    // This would integrate with existing SKU generation logic
-    // For now, return the product name as a placeholder
-    return currentProduct.name || null;
+    try {
+      const sku = await generateSku(currentProduct, currentConfig, productOptions);
+      return sku || null;
+    } catch (error) {
+      console.error('Error in getGeneratedSKU:', error);
+      // Fallback to product name if SKU generation fails
+      return currentProduct.name || null;
+    }
   },
 
   generateProductName: () => {

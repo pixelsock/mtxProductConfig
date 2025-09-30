@@ -154,9 +154,12 @@ async function getFirstAvailableOption(
     return ruleSetIds[0].toString();
   }
 
-  // Otherwise find first non-disabled option
-  const availableOption = options.find((opt: any) => !disabledIds.includes(opt.id));
-  return availableOption ? availableOption.id.toString() : null;
+  // Otherwise find first non-disabled option (sorted by id for consistency)
+  const availableOptions = options
+    .filter((opt: any) => !disabledIds.includes(opt.id))
+    .sort((a: any, b: any) => a.sort !== undefined ? a.sort - b.sort : a.id - b.id);
+
+  return availableOptions.length > 0 ? availableOptions[0].id.toString() : null;
 }
 
 export async function createAdjustmentSuggestions(
