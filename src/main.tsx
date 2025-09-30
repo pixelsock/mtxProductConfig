@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { NuqsAdapter } from 'nuqs/adapters/react'
 import App from './App.tsx'
 import './styles/globals.css'
 import { initializeEnvironment } from './utils/environment'
@@ -18,7 +19,9 @@ function initializeConfigurator(containerId: string = 'product-configurator') {
   const root = ReactDOM.createRoot(container)
   root.render(
     <React.StrictMode>
-      <App />
+      <NuqsAdapter>
+        <App />
+      </NuqsAdapter>
     </React.StrictMode>,
   )
 }
@@ -32,7 +35,9 @@ if (typeof window !== 'undefined') {
       const root = ReactDOM.createRoot(container)
       root.render(
         <React.StrictMode>
-          <App />
+          <NuqsAdapter>
+            <App />
+          </NuqsAdapter>
         </React.StrictMode>,
       )
     }

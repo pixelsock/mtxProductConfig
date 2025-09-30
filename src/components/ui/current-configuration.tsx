@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Minus, Copy, Check } from 'lucide-react';
+import { Plus, Minus, Copy, Check, Link2 } from 'lucide-react';
 import { Button } from './button';
 import { Badge } from './badge';
 import { Input } from './input';
@@ -70,7 +70,8 @@ export function CurrentConfiguration({
   className
 }: CurrentConfigurationProps) {
   const [generatedSku, setGeneratedSku] = useState<string | null>(null);
-  const [isCopied, setIsCopied] = useState(false);
+  const [isSkuCopied, setIsSkuCopied] = useState(false);
+  const [isLinkCopied, setIsLinkCopied] = useState(false);
   const getGeneratedSKU = useConfiguratorStore((state) => state.getGeneratedSKU);
   const currentProduct = useConfiguratorStore((state) => state.currentProduct);
 
@@ -117,10 +118,27 @@ export function CurrentConfiguration({
 
     try {
       await navigator.clipboard.writeText(generatedSku);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      setIsSkuCopied(true);
+      setTimeout(() => setIsSkuCopied(false), 2000);
     } catch (error) {
       console.error('Failed to copy SKU:', error);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!generatedSku) return;
+
+    try {
+      // Build the full URL with SKU parameter
+      const url = new URL(window.location.href);
+      url.searchParams.set('sku', generatedSku);
+      const shareableUrl = url.toString();
+
+      await navigator.clipboard.writeText(shareableUrl);
+      setIsLinkCopied(true);
+      setTimeout(() => setIsLinkCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy link:', error);
     }
   };
 
@@ -372,19 +390,34 @@ export function CurrentConfiguration({
                     </React.Fragment>
                   ))}
                 </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleCopySku}
-                  className="h-10 w-10 shrink-0 border-border hover:bg-muted/80 transition-colors"
-                  title="Copy SKU to clipboard"
-                >
-                  {isCopied ? (
-                    <Check className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </Button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopySku}
+                    className="h-10 w-10 border-border hover:bg-muted/80 transition-colors"
+                    title="Copy SKU to clipboard"
+                  >
+                    {isSkuCopied ? (
+                      <Check className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopyLink}
+                    className="h-10 w-10 border-border hover:bg-muted/80 transition-colors"
+                    title="Copy shareable link to clipboard"
+                  >
+                    {isLinkCopied ? (
+                      <Check className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <Link2 className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

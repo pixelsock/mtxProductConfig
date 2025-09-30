@@ -14,6 +14,7 @@ import {
   useComputedValues,
   useConfiguratorStore,
 } from "./store";
+import { useSkuUrlSync } from "./hooks/useSkuUrlSync";
 import type {
   ProductLine,
   ProductConfig,
@@ -99,9 +100,15 @@ const App: React.FC = () => {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [generatedSku, setGeneratedSku] = useState<string | null>(null);
   const [isSkuSearchOpen, setIsSkuSearchOpen] = useState(false);
+  const [hasAppliedInitialSku, setHasAppliedInitialSku] = useState(false);
 
   // Get SKU generator from store
   const getGeneratedSKU = useConfiguratorStore((state) => state.getGeneratedSKU);
+  const searchBySku = useConfiguratorStore((state) => state.searchBySku);
+  const applySkuResult = useConfiguratorStore((state) => state.applySkuResult);
+
+  // URL synchronization using nuqs
+  const { skuParam, updateSkuInUrl, getInitialSku, hasInitialSku } = useSkuUrlSync();
 
   // Zustand store actions
   const {
@@ -150,6 +157,41 @@ const App: React.FC = () => {
   useEffect(() => {
     initializeApp();
   }, []);
+
+  // Apply SKU from URL on initial load (after app is initialized)
+  // CRITICAL: Only run this ONCE when app first loads with a SKU parameter
+  useEffect(() => {
+    const applySku = async () => {
+      const initialSku = getInitialSku();
+
+      // Only apply if:
+      // 1. We have an initial SKU from URL
+      // 2. Product line and options are loaded
+      // 3. We haven't already applied it (MOST IMPORTANT - prevents re-applying on every change)
+      if (!initialSku || !currentProductLine || !productOptions || hasAppliedInitialSku) {
+        return;
+      }
+
+      console.log('🔗 Applying SKU from URL (ONE TIME ONLY):', initialSku);
+      setHasAppliedInitialSku(true); // Mark as applied immediately to prevent re-runs
+
+      try {
+        const results = await searchBySku(initialSku);
+        if (results.length > 0) {
+          // Apply the best matching result
+          const bestResult = results.find(r => r.confidence === 'exact') || results[0];
+          await applySkuResult(bestResult);
+          console.log('✅ Applied SKU from URL successfully');
+        } else {
+          console.warn('⚠️ No results found for URL SKU:', initialSku);
+        }
+      } catch (error) {
+        console.error('❌ Failed to apply SKU from URL:', error);
+      }
+    };
+
+    applySku();
+  }, [currentProductLine, productOptions, hasAppliedInitialSku]); // Include hasAppliedInitialSku in deps
 
   // Update product when configuration changes
   useEffect(() => {
@@ -249,7 +291,14 @@ const App: React.FC = () => {
     const generateSku = async () => {
       try {
         const sku = await getGeneratedSKU();
-        if (mounted) setGeneratedSku(sku);
+        if (mounted) {
+          setGeneratedSku(sku);
+          // Update URL with the new SKU
+          // nuqs handles throttling automatically via throttleMs option
+          if (sku) {
+            updateSkuInUrl(sku);
+          }
+        }
       } catch (error) {
         console.error('Error generating SKU:', error);
         if (mounted) setGeneratedSku(null);
@@ -257,7 +306,7 @@ const App: React.FC = () => {
     };
     generateSku();
     return () => { mounted = false; };
-  }, [currentConfig, currentProduct, getGeneratedSKU]);
+  }, [currentConfig, currentProduct, getGeneratedSKU, updateSkuInUrl]);
 
   // Build thumbnail URLs from additional_images only (excluding primary vertical/horizontal images)
   const getProductThumbnails = (product: DecoProduct | null): string[] => {
