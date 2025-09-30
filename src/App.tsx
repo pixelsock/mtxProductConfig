@@ -33,7 +33,7 @@ import { Badge } from "./components/ui/badge";
 import { Spinner } from "./components/ui/spinner";
 import { Skeleton } from "./components/ui/skeleton";
 import { Alert, AlertDescription } from "./components/ui/alert";
-import AdjustmentNotificationBar from "./components/AdjustmentNotificationBar";
+// import AdjustmentNotificationBar from "./components/AdjustmentNotificationBar";
 import {
   Trash2,
   Plus,
@@ -97,7 +97,6 @@ const App: React.FC = () => {
     incrementQuantity,
     decrementQuantity,
     handleSizePresetSelect,
-    handleAccessoryToggle,
   } = useConfigurationActions();
 
   const {
@@ -401,10 +400,6 @@ const App: React.FC = () => {
 
   const handleSizePresetSelectLocal = (size: ProductOption) => {
     handleSizePresetSelect(size);
-  };
-
-  const handleAccessoryToggleLocal = (accessoryId: string) => {
-    handleAccessoryToggle(accessoryId);
   };
 
   const incrementQuantityLocal = () => {
@@ -960,7 +955,6 @@ const App: React.FC = () => {
                 configurationUI={configurationUI}
                 onConfigChange={handleConfigChange}
                 onSizePresetSelect={handleSizePresetSelectLocal}
-                onAccessoryToggle={handleAccessoryToggleLocal}
                 useCustomSize={useCustomSize}
                 setCustomSizeEnabled={setCustomSizeEnabled}
               />
@@ -1173,7 +1167,7 @@ const App: React.FC = () => {
       <EnvironmentIndicator />
 
       {/* Adjustment Notifications */}
-      <AdjustmentNotificationBar />
+      {/* <AdjustmentNotificationBar /> */}
     </div>
   );
 }

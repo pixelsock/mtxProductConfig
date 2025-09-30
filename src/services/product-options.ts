@@ -102,9 +102,48 @@ export async function fetchProductLines(): Promise<ProductLine[]> {
   }));
 }
 
-export async function fetchProductOptions(productLineId: number): Promise<ProductOptions> {
+export async function fetchProductOptions(
+  productLineId: number,
+  productId?: number | null
+): Promise<ProductOptions> {
   const options = createEmptyProductOptions();
 
+  // Check if product has specific overrides
+  let productOverrides: Map<string, number[]> | null = null;
+  if (productId) {
+    console.log(`📦 Checking for product overrides for product ID: ${productId}`);
+    const { data: overrideData, error: overrideError } = await supabase
+      .from('products_options_overrides')
+      .select('collection, item')
+      .eq('products_id', productId);
+
+    if (!overrideError && overrideData && overrideData.length > 0) {
+      productOverrides = new Map<string, number[]>();
+      overrideData.forEach((record) => {
+        if (!record.collection || record.item === null || record.item === undefined) {
+          return;
+        }
+
+        const collection = normalizeCollectionName(String(record.collection));
+        const id = Number(record.item);
+
+        if (Number.isNaN(id)) {
+          return;
+        }
+
+        if (!productOverrides!.has(collection)) {
+          productOverrides!.set(collection, []);
+        }
+
+        productOverrides!.get(collection)!.push(id);
+      });
+      console.log(`✅ Product overrides found for ${productOverrides.size} collections`);
+    } else {
+      console.log('ℹ️  No product overrides found');
+    }
+  }
+
+  // Load product line defaults
   const { data, error } = await supabase
     .from('product_lines_default_options')
     .select('collection, item')
@@ -135,6 +174,14 @@ export async function fetchProductOptions(productLineId: number): Promise<Produc
     grouped.get(collection)!.push(id);
   });
 
+  // Apply product overrides: replace defaults for collections with overrides
+  if (productOverrides) {
+    productOverrides.forEach((overrideIds, collection) => {
+      console.log(`🔄 Applying override for ${collection}: replacing defaults with ${overrideIds.length} items`);
+      grouped.set(collection, overrideIds);
+    });
+  }
+
   await Promise.all(
     Array.from(grouped.entries()).map(async ([collection, ids]) => {
       if (ids.length === 0) return;
@@ -144,7 +191,7 @@ export async function fetchProductOptions(productLineId: number): Promise<Produc
         return;
       }
 
-      const { data: tableRows, error: tableError } = await (supabase as any)
+      const { data: tableRows, error: tableError} = await (supabase as any)
         .from(tableName)
         .select('*')
         .in('id', ids)
@@ -163,9 +210,8 @@ export async function fetchProductOptions(productLineId: number): Promise<Produc
       const normalizedRows = ((tableRows ?? []) as Record<string, any>[])
         .map((row) => normalizeOption(row));
 
-      (options[field] as ProductOption[]) = normalizedRows.sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
+      // Preserve database sort order from query (line 151)
+      (options[field] as ProductOption[]) = normalizedRows;
     })
   );
 

@@ -57,20 +57,26 @@ export const createConfigurationSlice = (
       currentProduct: product,
     }));
 
-    // When a specific product is selected, recompute filtering to apply product-specific overrides
+    // When a specific product is selected, reload options with product-specific overrides
     // BUT avoid triggering during selection adjustments or repeated calls to prevent infinite loops
     const { isAdjustingSelections, isProcessingProductUpdate } = get();
     if (product && !isAdjustingSelections && !isProcessingProductUpdate) {
-      const { recomputeFiltering, currentProductLine, currentConfig } = get();
+      const { recomputeFiltering, currentProductLine, currentConfig, setProductOptions } = get();
       if (currentProductLine && currentConfig) {
         console.log(
-          `🔄 Product selected (${product.id}), recomputing filtering for overrides...`,
+          `🔄 Product selected (${product.id}), reloading options with overrides...`,
         );
 
         // Set flag to prevent re-entry
         set((state) => ({ ...state, isProcessingProductUpdate: true }));
 
         try {
+          // Reload product options with product-specific overrides
+          const { fetchProductOptions } = await import('../../services/product-options');
+          const options = await fetchProductOptions(currentProductLine.id, product.id);
+          setProductOptions(options);
+
+          // Then recompute filtering with the new options
           await recomputeFiltering(currentProductLine, currentConfig);
           console.log("✅ Product-specific overrides applied");
         } catch (error) {
@@ -118,7 +124,7 @@ export const createConfigurationSlice = (
         productOptions.colorTemperatures[0]?.id.toString() || "",
       lightOutput: productOptions.lightOutputs[0]?.id.toString() || "",
       driver: productOptions.drivers[0]?.id.toString() || "",
-      accessories: [],
+      accessories: productOptions.accessoryOptions[0]?.id.toString() || "",
       quantity: 1,
     };
 
@@ -186,28 +192,7 @@ export const createConfigurationSlice = (
     });
   },
 
-  handleAccessoryToggle: (accessoryId: string) => {
-    set((state) => {
-      if (!state.currentConfig) return state;
-
-      const accessories = [...(state.currentConfig.accessories || [])];
-      const index = accessories.indexOf(accessoryId);
-
-      if (index > -1) {
-        accessories.splice(index, 1);
-      } else {
-        accessories.push(accessoryId);
-      }
-
-      return {
-        ...state,
-        currentConfig: {
-          ...state.currentConfig,
-          accessories,
-        },
-      };
-    });
-  },
+  // Removed handleAccessoryToggle - accessories is now single-select using updateConfiguration
 
   // Computed functions (accessing current state)
   isConfigurationValid: () => {

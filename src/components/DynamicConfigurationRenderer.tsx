@@ -26,7 +26,6 @@ interface DynamicConfigurationRendererProps {
   configurationUI: ConfigUIItem[];
   onConfigChange: (field: string, value: any) => void;
   onSizePresetSelect: (size: any) => void;
-  onAccessoryToggle: (accessoryId: string) => void;
   useCustomSize: boolean;
   setCustomSizeEnabled: (enabled: boolean) => void;
 }
@@ -212,29 +211,7 @@ const UITypeRenderers = {
     </div>
   ),
 
-  single: ({ 
-    collection, 
-    options, 
-    currentConfig, 
-    title,
-    onAccessoryToggle 
-  }: any) => (
-    <div>
-      <h3 className="text-xl font-semibold text-gray-900 mb-6">{title}</h3>
-      <div className="space-y-3">
-        {options.map((option: any) => (
-            <OptionButton
-              key={option.id}
-              option={option}
-              collection={collection}
-              currentSelection={currentConfig}
-              onSelect={(id) => onAccessoryToggle(id.toString())}
-              variant="accessory"
-            />
-        ))}
-      </div>
-    </div>
-  ),
+  // Removed 'single' renderer - accessories now use button_grid for single-select
 };
 
 // Helper function to get human-readable title from collection name
@@ -263,7 +240,6 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
   configurationUI,
   onConfigChange,
   onSizePresetSelect,
-  onAccessoryToggle,
   useCustomSize,
   setCustomSizeEnabled
 }) => {
@@ -283,7 +259,11 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
     <div className="space-y-10">
       {sortedConfigUI.map((configItem) => {
         const { collection, ui_type } = configItem;
-        
+
+        if (import.meta.env.DEV && collection === 'accessories') {
+          console.log(`📦 Rendering accessories with ui_type: ${ui_type}`, configItem);
+        }
+
         // Get the corresponding options from productOptions
         const productOptionsKey = COLLECTION_MAPPINGS[collection as keyof typeof COLLECTION_MAPPINGS];
         if (!productOptionsKey) {
@@ -300,7 +280,7 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
         // Get the UI renderer for this UI type
         const UIRenderer = UITypeRenderers[ui_type as keyof typeof UITypeRenderers];
         if (!UIRenderer) {
-          console.warn(`No UI renderer found for ui_type: ${ui_type}`);
+          console.warn(`No UI renderer found for ui_type: ${ui_type}, collection: ${collection}`);
           return null;
         }
 
@@ -326,7 +306,6 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
               useCustomSize={useCustomSize}
               setCustomSizeEnabled={setCustomSizeEnabled}
               onSizePresetSelect={onSizePresetSelect}
-              onAccessoryToggle={onAccessoryToggle}
               onConfigChange={onConfigChange}
               columns={collection === 'mirror_styles' ? 2 : 1}
             />

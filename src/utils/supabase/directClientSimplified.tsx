@@ -527,6 +527,45 @@ export class SimplifiedDirectSupabaseClient {
     return cacheEntry
   }
 
+  async getProductOverrides(productId: number): Promise<Record<string, number[]>> {
+    console.log('SimplifiedDirectClient: Fetching product overrides for product:', productId)
+
+    try {
+      const { data, error } = await supabase
+        .from('products_options_overrides')
+        .select('collection, item')
+        .eq('products_id', productId)
+
+      if (error) {
+        console.error('SimplifiedDirectClient: Error fetching product overrides:', error)
+        return {}
+      }
+
+      // Group by collection
+      const overrides: Record<string, number[]> = {}
+
+      (data || []).forEach((row: any) => {
+        if (!row.collection || !row.item) return
+
+        if (!overrides[row.collection]) {
+          overrides[row.collection] = []
+        }
+
+        const itemId = parseInt(row.item, 10)
+        if (!Number.isNaN(itemId)) {
+          overrides[row.collection].push(itemId)
+        }
+      })
+
+      console.log('SimplifiedDirectClient: Product overrides loaded:', overrides)
+      return overrides
+
+    } catch (error) {
+      console.error('SimplifiedDirectClient: Exception in getProductOverrides:', error)
+      return {}
+    }
+  }
+
   async getProductLineContext(productLineId: number): Promise<ProductLineContext> {
     const cache = await this.loadProductLineCache(productLineId)
     return {
@@ -574,7 +613,41 @@ export class SimplifiedDirectSupabaseClient {
 
       const normalizedSelections = this.normalizeSelections(currentSelections)
       const filteredSkus = this.filterSkus(cache.skuIndexRows, normalizedSelections)
-      const availableOptions = this.buildAvailableOptions(cache, filteredSkus)
+      let availableOptions = this.buildAvailableOptions(cache, filteredSkus)
+
+      // Apply product-specific overrides if a product is selected
+      const selectedProductId = currentSelections.product_id
+      if (selectedProductId && typeof selectedProductId === 'number') {
+        console.log('SimplifiedDirectClient: Product selected, applying overrides for product:', selectedProductId)
+        const productOverrides = await this.getProductOverrides(selectedProductId)
+
+        // For each collection that has overrides, replace the options
+        for (const [collection, itemIds] of Object.entries(productOverrides)) {
+          if (itemIds.length > 0) {
+            console.log(`SimplifiedDirectClient: Applying override for ${collection}: ${itemIds.length} items`)
+
+            // Fetch the actual option data with sort order
+            try {
+              const { data: overrideOptions, error: overrideError } = await supabase
+                .from(collection as any)
+                .select('*')
+                .in('id', itemIds)
+                .eq('active', true)
+                .order('sort', { ascending: true, nullsFirst: false })
+
+              if (!overrideError && overrideOptions) {
+                // Replace the options for this collection
+                availableOptions[collection] = overrideOptions
+                console.log(`SimplifiedDirectClient: Replaced ${collection} with ${overrideOptions.length} override options`)
+              } else if (overrideError) {
+                console.warn(`SimplifiedDirectClient: Error fetching override options for ${collection}:`, overrideError.message)
+              }
+            } catch (err) {
+              console.warn(`SimplifiedDirectClient: Exception fetching override options for ${collection}:`, err)
+            }
+          }
+        }
+      }
 
       const uniqueProductIds = new Set<number>()
       filteredSkus.forEach(sku => {

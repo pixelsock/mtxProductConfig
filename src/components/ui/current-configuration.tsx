@@ -48,7 +48,7 @@ interface ProductConfig {
   colorTemperature: string;
   lightOutput: string;
   driver: string;
-  accessories: string[];
+  accessories: string;
   quantity: number;
 }
 
@@ -98,6 +98,35 @@ export function CurrentConfiguration({
   // Helper function to check if an option category has available options
   const hasAvailableOptions = (options: ProductOption[]) => {
     return options && options.length > 0;
+  };
+
+  // Helper function to render accessory if selected
+  const renderAccessory = () => {
+    if (!config.accessories || !hasAvailableOptions(productOptions.accessoryOptions)) {
+      return null;
+    }
+
+    const accessory = productOptions.accessoryOptions.find(
+      a => a.id.toString() === config.accessories
+    );
+
+    if (!accessory) return null;
+
+    return (
+      <div className="pt-4 border-t border-border">
+        <div className="flex flex-col space-y-2">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Accessories</span>
+          <div className="flex flex-wrap gap-2">
+            <div className="flex items-center space-x-2 bg-muted/50 rounded-lg px-3 py-2">
+              <span className="text-sm font-medium text-foreground">{accessory.name}</span>
+              <Badge variant="outline" className="bg-muted text-muted-foreground border-none rounded px-1.5 py-0.5 text-xs font-mono">
+                {accessory.sku_code}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -282,27 +311,8 @@ export function CurrentConfiguration({
           </div>
         </div>
 
-        {/* Accessories - Only show if accessories are selected AND accessory options are available */}
-        {config.accessories.length > 0 && hasAvailableOptions(productOptions.accessoryOptions) && (
-          <div className="pt-4 border-t border-border">
-            <div className="flex flex-col space-y-2">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Accessories</span>
-              <div className="flex flex-wrap gap-2">
-                {config.accessories.map((accessoryId) => {
-                  const accessory = productOptions.accessoryOptions.find(a => a.id.toString() === accessoryId);
-                  return accessory ? (
-                    <div key={accessoryId} className="flex items-center space-x-2 bg-muted/50 rounded-lg px-3 py-2">
-                      <span className="text-sm font-medium text-foreground">{accessory.name}</span>
-                      <Badge variant="outline" className="bg-muted text-muted-foreground border-none rounded px-1.5 py-0.5 text-xs font-mono">
-                        {accessory.sku_code}
-                      </Badge>
-                    </div>
-                  ) : null;
-                })}
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Accessories - Only show if an accessory is selected AND accessory options are available */}
+        {renderAccessory()}
       </CardContent>
 
       <CardFooter className="flex items-center justify-between pt-6 border-t border-border">

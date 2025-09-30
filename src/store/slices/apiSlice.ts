@@ -220,6 +220,7 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
       }
 
       // Step 4: Apply rule-set values to configuration automatically
+      let configChanged = false;
       if (rulesResult.setValues && Object.keys(rulesResult.setValues).length > 0) {
         if (import.meta.env.DEV) {
           console.log('⚙️ Applying rule-set values to configuration:', rulesResult.setValues);
@@ -227,6 +228,42 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
 
         for (const [field, value] of Object.entries(rulesResult.setValues)) {
           updateConfiguration(field as any, value.toString());
+        }
+        configChanged = true;
+      }
+
+      // Step 4.5: If rules changed the configuration, recompute availability with the new values
+      if (configChanged) {
+        const updatedConfig = get().currentConfig;
+        if (updatedConfig) {
+          if (import.meta.env.DEV) {
+            console.log('🔄 Recomputing availability after rule-set values applied');
+          }
+
+          const availability = await computeProductAvailability(productLine.id, updatedConfig);
+          const unavailableFromProducts = productOptions
+            ? computeUnavailableOptions(availability.availableOptions, productOptions as any)
+            : {};
+
+          // Merge with rules disabled options again
+          const mergedDisabled: Record<string, number[]> = { ...unavailableFromProducts };
+
+          for (const [collection, disabledIds] of Object.entries(rulesResult.disabledOptions)) {
+            if (collection.endsWith('_rule_set')) {
+              mergedDisabled[collection] = disabledIds;
+            } else {
+              const existing = mergedDisabled[collection] || [];
+              mergedDisabled[collection] = Array.from(
+                new Set([...existing, ...disabledIds])
+              );
+            }
+          }
+
+          setDisabledOptions(mergedDisabled);
+
+          if (import.meta.env.DEV) {
+            console.log('⚙️ Recomputed disabled options after rule changes:', mergedDisabled);
+          }
         }
       }
 

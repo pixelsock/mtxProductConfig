@@ -33,7 +33,7 @@ export interface ProductConfig {
   colorTemperature: string;
   lightOutput: string;
   driver: string;
-  accessories: string[];
+  accessories: string;
   quantity: number;
 }
 
@@ -132,7 +132,6 @@ export interface ConfigurationSlice {
   incrementQuantity: () => void;
   decrementQuantity: () => void;
   handleSizePresetSelect: (size: ProductOption) => void;
-  handleAccessoryToggle: (accessoryId: string) => void;
   validateAndAdjustSelections: () => Promise<boolean>;
   addAdjustmentNotification: (notification: AdjustmentNotification) => void;
   clearAdjustmentNotifications: () => void;
