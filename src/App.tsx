@@ -143,6 +143,7 @@ const App: React.FC = () => {
   const {
     addToQuote,
     removeFromQuote,
+    updateQuoteItemQuantity,
     clearQuote,
     updateCustomerInfo,
     resetCustomerInfo,
@@ -490,13 +491,31 @@ const App: React.FC = () => {
     decrementQuantity();
   };
 
-  const addToQuoteLocal = () => {
-    if (!currentConfig) return;
+  const addToQuoteLocal = async () => {
+    if (!currentConfig || !currentProduct || !productOptions) {
+      console.error('[App.addToQuoteLocal] Missing required data');
+      return;
+    }
 
-    // Add to quote using store action
+    // Generate SKU directly using the service function
+    let sku: string;
+    try {
+      const { generateSku } = await import('./services/sku-generator');
+      sku = await generateSku(currentProduct, currentConfig, productOptions);
+
+      // If SKU generation returns empty string, use fallback
+      if (!sku) {
+        sku = generateProductName();
+      }
+    } catch (error) {
+      console.error('[App.addToQuoteLocal] SKU generation error:', error);
+      sku = generateProductName();
+    }
+
+    // Add to quote using store action with the generated SKU as ID
     addToQuote({
       ...currentConfig,
-      id: generateProductName(),
+      id: sku,
     });
 
     // Reset configuration using store action
@@ -557,14 +576,11 @@ const App: React.FC = () => {
   const getConfigDescription = (config: ProductConfig) => {
     if (!productOptions) return "";
 
-    const frameThickness = productOptions.frameThickness.find(
-      (c) => c.id.toString() === config.frameThickness
-    )?.name;
-    const mounting = productOptions.mountingOptions.find(
-      (m) => m.id.toString() === config.mounting
+    const mirrorStyle = productOptions.mirrorStyles.find(
+      (ms) => ms.id.toString() === config.mirrorStyle
     )?.name;
 
-    return `${config.productLineName} ${frameThickness || ""} ${mounting || ""} ${config.width}"×${config.height}"`;
+    return `${config.productLineName} ${mirrorStyle || ""} ${config.width}"×${config.height}"`;
   };
 
   const scrollToTop = () => {
@@ -684,7 +700,7 @@ const App: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-11 gap-16 mt-[0px] mr-[0px] mb-[80px] ml-[0px]">
           {/* Product Visualization - Sticky on Desktop */}
-          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto lg:col-span-5">
+          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start lg:col-span-5">
             <div className="relative w-full aspect-square bg-white rounded-xl shadow-sm overflow-hidden">
               {(() => {
                 // Get mounting option for image selection
@@ -920,37 +936,6 @@ const App: React.FC = () => {
               document.body
             )}
 
-            {/* Current Product Info */}
-            {currentProduct && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-1">Current Product</p>
-                  <p className="font-medium text-gray-900">{generateProductName()}</p>
-                  <p className="text-xs text-gray-500 mt-1">SKU: {generatedSku || currentProduct.name}</p>
-                  {(() => {
-                    const mountingOption = productOptions?.mountingOptions?.find(
-                      (mo: ProductOption) => mo.id.toString() === currentConfig?.mounting
-                    ) as MountingOption | undefined;
-                    const imageSelection = selectProductImage(currentProduct, mountingOption, ruleImageOverrides);
-                    
-                    return (
-                      <>
-                        {imageSelection.primaryImage && (
-                          <p className="text-xs text-green-600 mt-1">
-                            ✓ {imageSelection.orientation} image loaded ({imageSelection.source})
-                          </p>
-                        )}
-                        {!imageSelection.primaryImage && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            No image available
-                          </p>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            )}
 
             {/* Quote Summary */}
             {quoteItems.length > 0 && (
@@ -962,27 +947,72 @@ const App: React.FC = () => {
                   {quoteItems.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between p-4 bg-white rounded border"
+                      className="p-4 bg-white rounded border"
                     >
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">
-                          {getConfigDescription(item)}
-                        </p>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
-                          <span>Qty: {item.quantity}</span>
-                          {item.accessories.length > 0 && (
-                            <span>+{item.accessories.length} accessories</span>
-                          )}
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-2">
+                          {/* SKU - First line */}
+                          <div className="font-mono text-sm font-semibold text-gray-900">
+                            SKU: {item.id}
+                          </div>
+                          {/* Description - Second line */}
+                          <p className="text-sm text-gray-600">
+                            {getConfigDescription(item)}
+                          </p>
+                          {/* Quantity - Editable */}
+                          <div className="flex items-center space-x-3 pt-1">
+                            <Label htmlFor={`qty-${item.id}`} className="text-xs font-medium text-gray-600">
+                              Quantity:
+                            </Label>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => {
+                                  const newQuantity = Math.max((item.quantity || 1) - 1, 1);
+                                  updateQuoteItemQuantity(item.id, newQuantity);
+                                }}
+                                disabled={(item.quantity || 1) <= 1}
+                                className="h-7 w-7"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </Button>
+                              <Input
+                                id={`qty-${item.id}`}
+                                type="number"
+                                value={item.quantity || 1}
+                                onChange={(e) => {
+                                  const newQuantity = Math.max(1, Math.min(100, parseInt(e.target.value) || 1));
+                                  updateQuoteItemQuantity(item.id, newQuantity);
+                                }}
+                                min="1"
+                                max="100"
+                                className="w-16 text-center text-sm h-7"
+                              />
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => {
+                                  const newQuantity = Math.min((item.quantity || 1) + 1, 100);
+                                  updateQuoteItemQuantity(item.id, newQuantity);
+                                }}
+                                disabled={(item.quantity || 1) >= 100}
+                                className="h-7 w-7"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFromQuoteLocal(item.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFromQuoteLocal(item.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-4"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
                     </div>
                   ))}
                 </div>

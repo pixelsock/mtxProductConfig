@@ -20,16 +20,11 @@ export const createQuoteSlice = (set: StoreSet, get: StoreGet): QuoteSlice => ({
 
   // Actions
   addToQuote: (config: ProductConfig) => {
-    const { generateProductName } = get();
-
     set((state) => ({
       ...state,
       quoteItems: [
         ...state.quoteItems,
-        {
-          ...config,
-          id: generateProductName(),
-        },
+        config, // Use the config as-is, including the id that was passed in
       ],
     }));
   },
@@ -38,6 +33,17 @@ export const createQuoteSlice = (set: StoreSet, get: StoreGet): QuoteSlice => ({
     set((state) => ({
       ...state,
       quoteItems: state.quoteItems.filter((item) => item.id !== configId),
+    }));
+  },
+
+  updateQuoteItemQuantity: (configId: string, quantity: number) => {
+    set((state) => ({
+      ...state,
+      quoteItems: state.quoteItems.map((item) =>
+        item.id === configId
+          ? { ...item, quantity: Math.max(1, Math.min(100, quantity)) }
+          : item
+      ),
     }));
   },
 

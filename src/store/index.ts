@@ -365,6 +365,9 @@ export const useQuoteActions = () => {
   const removeFromQuote = useConfiguratorStore(
     (state) => state.removeFromQuote,
   );
+  const updateQuoteItemQuantity = useConfiguratorStore(
+    (state) => state.updateQuoteItemQuantity,
+  );
   const clearQuote = useConfiguratorStore((state) => state.clearQuote);
   const updateCustomerInfo = useConfiguratorStore(
     (state) => state.updateCustomerInfo,
@@ -380,6 +383,7 @@ export const useQuoteActions = () => {
     () => ({
       addToQuote,
       removeFromQuote,
+      updateQuoteItemQuantity,
       clearQuote,
       updateCustomerInfo,
       setCustomerInfo,
@@ -388,6 +392,7 @@ export const useQuoteActions = () => {
     [
       addToQuote,
       removeFromQuote,
+      updateQuoteItemQuantity,
       clearQuote,
       updateCustomerInfo,
       setCustomerInfo,

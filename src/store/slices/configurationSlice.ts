@@ -269,7 +269,10 @@ export const createConfigurationSlice = (
 
     getGeneratedSKU: async () => {
       const { currentConfig, currentProduct, productOptions } = get();
-      if (!currentConfig || !currentProduct || !productOptions) return null;
+
+      if (!currentConfig || !currentProduct || !productOptions) {
+        return null;
+      }
 
       try {
         const sku = await generateSku(
@@ -280,23 +283,13 @@ export const createConfigurationSlice = (
         return sku || null;
       } catch (error) {
         console.error("Error in getGeneratedSKU:", error);
-        // Fallback to product name if SKU generation fails
-        return currentProduct.name || null;
+        return null;
       }
     },
 
     generateProductName: () => {
-      const { currentConfig } = get();
-      if (!currentConfig) return `quote-item-${Date.now()}`;
-
-      const { productLineName, frameThickness, mirrorStyle, width, height } =
-        currentConfig;
-
-      // Generate codes for specific options (same logic as original)
-      const mirrorStyleCode = mirrorStyle === "Rectangle" ? "R" : "O";
-      const lightingCode = currentConfig.lightOutput ? "L" : "";
-
-      return `${productLineName}-${frameThickness}-${mirrorStyleCode}${lightingCode}-${width}x${height}`;
+      // Fallback ID generator - should rarely be used since we prefer actual SKUs
+      return `quote-item-${Date.now()}`;
     },
 
     validateAndAdjustSelections: async () => {
