@@ -286,6 +286,7 @@ export interface QuoteSlice {
   // Actions
   addToQuote: (config: ProductConfig) => void;
   removeFromQuote: (configId: string) => void;
+  updateQuoteItemQuantity: (configId: string, quantity: number) => void;
   clearQuote: () => void;
   updateCustomerInfo: (field: keyof CustomerInfo, value: string) => void;
   setCustomerInfo: (info: CustomerInfo) => void;
