@@ -342,9 +342,13 @@ export function ProductConfiguration({
                 <Input
                   id="customWidth"
                   type="number"
+                  step="0.25"
                   placeholder="24"
                   value={configuration.customWidth}
-                  onChange={(e) => onUpdateConfiguration('customWidth', e.target.value)}
+                  onChange={(e) => {
+                    onUpdateConfiguration('customWidth', e.target.value);
+                    onUpdateConfiguration('width', e.target.value);
+                  }}
                   className="mt-1"
                 />
               </div>
@@ -353,9 +357,13 @@ export function ProductConfiguration({
                 <Input
                   id="customHeight"
                   type="number"
+                  step="0.25"
                   placeholder="32"
                   value={configuration.customHeight}
-                  onChange={(e) => onUpdateConfiguration('customHeight', e.target.value)}
+                  onChange={(e) => {
+                    onUpdateConfiguration('customHeight', e.target.value);
+                    onUpdateConfiguration('height', e.target.value);
+                  }}
                   className="mt-1"
                 />
               </div>

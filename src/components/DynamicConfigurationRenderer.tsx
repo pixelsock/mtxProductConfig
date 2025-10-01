@@ -162,6 +162,7 @@ const UITypeRenderers = {
             <div className="relative">
               <Input
                 type="number"
+                step="0.25"
                 value={currentConfig.width}
                 onChange={(e) => onConfigChange("width", e.target.value)}
                 min="12"
@@ -178,6 +179,7 @@ const UITypeRenderers = {
             <div className="relative">
               <Input
                 type="number"
+                step="0.25"
                 value={currentConfig.height}
                 onChange={(e) => onConfigChange("height", e.target.value)}
                 min="12"

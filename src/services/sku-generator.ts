@@ -114,7 +114,21 @@ function getOptionSkuCode(
         size.height?.toString() === config.height
       );
     });
-    return matchingSize?.sku_code ?? null;
+
+    // If preset size found, use its SKU code
+    if (matchingSize?.sku_code) {
+      return matchingSize.sku_code;
+    }
+
+    // Generate custom size SKU code if not found in presets
+    // Format: width and height concatenated (e.g., 24.25 x 44 → "24.2544")
+    if (config.width && config.height) {
+      const width = config.width.toString();
+      const height = config.height.toString();
+      return `${width}${height}`;
+    }
+
+    return null;
   }
 
   // Get the appropriate options array

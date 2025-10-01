@@ -64,7 +64,14 @@ function getSizeSkuCode(opts: SimpleOption[], width: string, height: string): st
   const w = Number(width), h = Number(height);
   if (!Number.isFinite(w) || !Number.isFinite(h)) return undefined;
   const preset = opts.find(s => (s.width ? Number(s.width) : NaN) === w && (s.height ? Number(s.height) : NaN) === h);
-  return preset?.sku_code || undefined;
+
+  // If preset found, use its SKU code
+  if (preset?.sku_code) {
+    return preset.sku_code;
+  }
+
+  // Generate custom size SKU code: width and height concatenated (e.g., 24.25 x 44 → "24.2544")
+  return `${width}${height}`;
 }
 
 // Builds the full, human-readable SKU string per template
