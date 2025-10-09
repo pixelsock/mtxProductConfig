@@ -299,6 +299,7 @@ export const createConfigurationSlice = (
         disabledOptionIds,
         isAdjustingSelections,
         addAdjustmentNotification,
+        productOptions,
       } = get();
 
       // Prevent cascading adjustments
@@ -323,6 +324,7 @@ export const createConfigurationSlice = (
           currentConfig,
           currentProductLine,
           disabledOptionIds,
+          productOptions,
         );
 
         // If adjustments needed, apply them

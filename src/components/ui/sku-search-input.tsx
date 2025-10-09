@@ -76,6 +76,7 @@ interface SuggestionItem {
 interface SkuSearchInputProps {
   onApplied?: () => void;
   onClose?: () => void;
+  isOpen?: boolean;
 }
 
 function formatTableName(name: string): string {
@@ -103,8 +104,8 @@ function getConfidenceBadgeStyles(
   }
 }
 
-function buildAiNarrative(result: SkuSearchResult): string {
-  const baseLabel = result.productName ?? result.productSku ?? "This configuration";
+function buildAiNarrative(result: SkuSearchResult, fullSku: string): string {
+  const baseLabel = fullSku;
 
   const segmentSnippets = result.segments
     .filter((segment) => segment.segment)
@@ -136,17 +137,18 @@ function buildAiNarrative(result: SkuSearchResult): string {
     ? ` Attention: ${result.issues.join("; ")}.`
     : "";
 
-  return `${baseLabel} ${confidenceSummary}${segmentSummary}${issueSummary}`.trim();
+  const summary = `${baseLabel} ${confidenceSummary}${segmentSummary}${issueSummary}`.trim();
+  return `${summary} Clicking 'Apply configuration' will adjust your SKU search to the closest possible match.`;
 }
 
-export function SkuSearchInput({ onApplied, onClose }: SkuSearchInputProps): JSX.Element {
+export function SkuSearchInput({ onApplied, onClose, isOpen }: SkuSearchInputProps): JSX.Element {
   const { skuSearchQuery, skuSearchResults, isSearchingSku, skuSearchError } =
     useSkuSearchState();
   const { searchBySku, applySkuResult, clearSkuSearch } = useSkuSearchActions();
   const { currentProductLine } = useConfigurationState();
   const availableProductLines = useAvailableProductLines();
 
-  const [inputValue, setInputValue] = useState(skuSearchQuery);
+  const [inputValue, setInputValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [context, setContext] = useState<SkuAutocompleteContext | null>(null);
@@ -162,6 +164,19 @@ export function SkuSearchInput({ onApplied, onClose }: SkuSearchInputProps): JSX
   useEffect(() => {
     setInputValue(skuSearchQuery);
   }, [skuSearchQuery]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setInputValue("");
+    setIsInputFocused(false);
+    setContext(null);
+    setSuggestions([]);
+    setSuggestionHeading(null);
+    setSuggestionError(null);
+    setHighlightedIndex(-1);
+    suggestionRefs.current = [];
+    clearSkuSearch();
+  }, [isOpen, clearSkuSearch]);
 
   useEffect(() => {
     if (highlightedIndex >= 0) {
@@ -466,15 +481,6 @@ export function SkuSearchInput({ onApplied, onClose }: SkuSearchInputProps): JSX
       suggestionError !== null ||
       suggestions.length > 0);
 
-  const examplePrompts = useMemo(() => {
-    const basePrefix = currentProductLine?.sku_code?.toUpperCase() || "BASE";
-    return [
-      `${basePrefix}-2430`,
-      `${basePrefix}-3036-DIM`,
-      `${basePrefix}-WARM-DRV`,
-    ];
-  }, [currentProductLine]);
-
   const hasResults = skuSearchResults.length > 0;
   suggestionRefs.current = [];
 
@@ -502,12 +508,12 @@ export function SkuSearchInput({ onApplied, onClose }: SkuSearchInputProps): JSX
 
       <div className="flex-1 overflow-y-auto px-6 pb-8 pt-6">
         <div className="space-y-6">
-          <div className="space-y-2">
+          <div className="space-y-4">
             <h2 className="text-2xl font-semibold text-slate-900">
               SKU search assistant
             </h2>
             <p className="text-sm text-slate-600">
-              Enter a full or partial SKU to explore likely matches. Results may adjust certain options after applying while we reconcile configuration rules.
+              Enter a full or partial SKU to explore likely matches. The assistant surfaces likely SKUs based on the segments you enter.
             </p>
           </div>
 
@@ -530,7 +536,7 @@ export function SkuSearchInput({ onApplied, onClose }: SkuSearchInputProps): JSX
                   onFocus={() => setIsInputFocused(true)}
                   onBlur={() => setIsInputFocused(false)}
                   onKeyDown={handleInputKeyDown}
-                  placeholder="Enter a full or partial SKU (e.g. MX-ALP-3036-120DIM)"
+                  placeholder="Enter a full or partial SKU (e.g. L23i-2436-S-27-N-1-AF)"
                   autoComplete="off"
                   className="h-12 rounded-xl border-slate-200 bg-white pl-10 text-base shadow-sm transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200/70"
                 />
@@ -622,6 +628,50 @@ export function SkuSearchInput({ onApplied, onClose }: SkuSearchInputProps): JSX
             </div>
           </form>
 
+          {!hasResults && (
+            <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4">
+              <ol className="space-y-3 text-sm text-slate-600">
+                <li className="flex items-start justify-between gap-3">
+                  <div>
+                    <span className="font-semibold text-slate-900">1. Start with the base segment</span>
+                    <p className="text-xs text-slate-500">
+                      Type the product line prefix or full SKU to begin your search.
+                    </p>
+                  </div>
+                  <kbd className="rounded bg-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                    L23i
+                  </kbd>
+                </li>
+                <li className="flex items-start justify-between gap-3">
+                  <div>
+                    <span className="font-semibold text-slate-900">2. Navigate suggestions</span>
+                    <p className="text-xs text-slate-500">
+                      Use the arrow keys to highlight auto-suggestions as they appear.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] text-slate-700">
+                    <kbd className="rounded bg-slate-200 px-1.5 py-0.5 font-semibold">↑</kbd>
+                    <kbd className="rounded bg-slate-200 px-1.5 py-0.5 font-semibold">↓</kbd>
+                  </div>
+                </li>
+                <li className="flex items-start justify-between gap-3">
+                  <div>
+                    <span className="font-semibold text-slate-900">3. Press Enter to add segments</span>
+                    <p className="text-xs text-slate-500">
+                      After each segment, press Enter to confirm it and move to the next.
+                    </p>
+                  </div>
+                  <kbd className="rounded bg-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                    Enter
+                  </kbd>
+                </li>
+              </ol>
+              <p className="mt-3 text-xs text-slate-500">
+                <span className="font-semibold">*</span> Results may adjust certain options after applying while we reconcile configuration rules.
+              </p>
+            </div>
+          )}
+
           {skuSearchError && (
             <Alert variant="destructive" className="border-rose-200 bg-rose-50/80">
               <AlertDescription>{skuSearchError}</AlertDescription>
@@ -633,17 +683,23 @@ export function SkuSearchInput({ onApplied, onClose }: SkuSearchInputProps): JSX
             aria-live="polite"
             aria-busy={isSearchingSku}
           >
-            {!hasResults && !skuSearchError && !isSearchingSku ? (
-              <div className="rounded-2xl border border-dashed border-slate-200/80 bg-slate-50/60 p-6 text-sm text-slate-500">
-                The assistant surfaces likely SKUs based on the segments you enter. Some selections (for example, light output or color temperature) may be adjusted after applying to satisfy configuration constraints.
-              </div>
-            ) : (
+            {hasResults &&
               skuSearchResults.map((result) => {
                 const confidenceLabel =
                   result.confidence.charAt(0).toUpperCase() +
                   result.confidence.slice(1);
                 const disableApply = disableApplyForResult(result);
-                const narrative = buildAiNarrative(result);
+                const fullSkuLabel =
+                  (skuSearchQuery && skuSearchQuery.trim()) ||
+                  (inputValue && inputValue.trim()) ||
+                  result.productSku ||
+                  "SKU match";
+                const productLineLabel =
+                  (typeof result.productLineId === "number"
+                    ? productLineNameMap.get(result.productLineId)
+                    : undefined) ?? currentProductLine?.name ?? "Product Line";
+
+                const narrative = buildAiNarrative(result, fullSkuLabel);
 
                 return (
                   <article
@@ -655,18 +711,11 @@ export function SkuSearchInput({ onApplied, onClose }: SkuSearchInputProps): JSX
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="space-y-1">
                           <p className="text-sm font-semibold text-slate-900">
-                            {result.productSku ?? "SKU match"}
+                            {fullSkuLabel}
                           </p>
-                          {result.productName && (
-                            <p className="text-xs text-slate-500">
-                              {result.productName}
-                            </p>
-                          )}
-                          {result.productLineId && (
-                            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
-                              Product line • {result.productLineId}
-                            </p>
-                          )}
+                          <p className="text-sm text-slate-500">
+                            Product Line • {productLineLabel}
+                          </p>
                         </div>
                         <Badge
                           className={cn(
@@ -736,8 +785,7 @@ export function SkuSearchInput({ onApplied, onClose }: SkuSearchInputProps): JSX
                     </div>
                   </article>
                 );
-              })
-            )}
+              })}
           </div>
         </div>
       </div>

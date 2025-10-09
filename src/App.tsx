@@ -35,7 +35,6 @@ import { Badge } from "./components/ui/badge";
 import { Spinner } from "./components/ui/spinner";
 import { Skeleton } from "./components/ui/skeleton";
 import { Alert, AlertDescription } from "./components/ui/alert";
-// import AdjustmentNotificationBar from "./components/AdjustmentNotificationBar";
 import {
   Trash2,
   Plus,
@@ -45,7 +44,6 @@ import {
   AlertCircle,
   ShoppingCart,
   Download,
-  FileText,
   ChevronUp,
   ChevronLeft,
   ChevronRight,
@@ -66,13 +64,7 @@ import { CurrentConfiguration } from "./components/ui/current-configuration";
 import { EnvironmentIndicator } from "./components/ui/environment-indicator";
 import { DynamicConfigurationRenderer } from "./components/DynamicConfigurationRenderer";
 import { SkuSearchInput } from "./components/ui/sku-search-input";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "./components/ui/sheet";
+import { Sheet, SheetContent } from "./components/ui/sheet";
 import { generateQuotePdf } from "./utils/quote-pdf";
 
 const App: React.FC = () => {
@@ -532,39 +524,13 @@ const App: React.FC = () => {
     removeFromQuote(configId);
   };
 
-  const downloadConfiguration = () => {
-    if (!productOptions || !currentProductLine) return;
-
-    const configData = {
-      productLine: currentProductLine.name,
-      configuration: currentConfig,
-      quoteItems: quoteItems.map((item) => ({
-        ...item,
-        description: getConfigDescription(item),
-      })),
-      totalItems: quoteItems.length,
-      totalPrice: quoteItems.reduce((sum, item) => sum + (item.quantity || 1), 0) * 100,
-      date: new Date().toISOString(),
-    };
-
-    const dataStr = JSON.stringify(configData, null, 2);
-    const dataUri =
-      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
-
-    const exportFileDefaultName = `mirror-config-${Date.now()}.json`;
-
-    const linkElement = document.createElement("a");
-    linkElement.setAttribute("href", dataUri);
-    linkElement.setAttribute("download", exportFileDefaultName);
-    linkElement.click();
-  };
-
-  const downloadQuotePdf = async () => {
+  const downloadConfiguration = async () => {
     if (!productOptions || quoteItems.length === 0) {
       return;
     }
 
     setIsGeneratingQuotePdf(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     const getOptionName = (options: ProductOption[], id: string | null | undefined) => {
       if (!options || !id) return null;
@@ -599,10 +565,10 @@ const App: React.FC = () => {
       return `Q-${datePart}-${countPart}`;
     })();
 
-    const specifierInfo = [customerInfo.name, customerInfo.email].filter(Boolean).join(" / ");
+    let pdfResult: Awaited<ReturnType<typeof generateQuotePdf>> | null = null;
 
     try {
-      await generateQuotePdf({
+      pdfResult = await generateQuotePdf({
         items: quoteItems.map((config) => ({
           sku: config.id,
           description: getConfigDescription(config),
@@ -611,12 +577,24 @@ const App: React.FC = () => {
         })),
         quoteNumber,
         projectName: currentProductLine?.name ?? "Mirror Configurator",
-        specifierInfo: specifierInfo || undefined,
-        preparedFor: customerInfo.company || undefined,
       });
+
+      const opened = window.open(pdfResult.objectUrl, "_blank", "noopener");
+      if (!opened) {
+        window.location.assign(pdfResult.objectUrl);
+      }
     } catch (error) {
       console.error("Failed to generate quote PDF:", error);
     } finally {
+      if (pdfResult) {
+        setTimeout(() => {
+          try {
+            pdfResult?.cleanup();
+          } catch (cleanupError) {
+            console.warn("Failed to release PDF object URL:", cleanupError);
+          }
+        }, 60_000);
+      }
       setIsGeneratingQuotePdf(false);
     }
   };
@@ -695,17 +673,14 @@ const App: React.FC = () => {
       <Sheet open={isSkuSearchOpen} onOpenChange={setIsSkuSearchOpen}>
         <SheetContent
           side="right"
-          className="w-full gap-0 border-l border-slate-200 bg-white p-0 sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
+          hideDefaultClose
+          className="flex w-full flex-col border-l border-slate-200 bg-white p-0 sm:max-w-xl md:max-w-2xl lg|max-w-3xl"
         >
-          <SheetHeader className="border-b border-slate-200 px-6 py-4">
-            <SheetTitle className="text-xl font-semibold">AI SKU Search</SheetTitle>
-            <SheetDescription>
-              Search by SKU or natural language to jump straight to the closest configuration.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto px-6 pb-8 pt-6">
-            <SkuSearchInput onApplied={() => setIsSkuSearchOpen(false)} />
-          </div>
+          <SkuSearchInput
+            onApplied={() => setIsSkuSearchOpen(false)}
+            onClose={() => setIsSkuSearchOpen(false)}
+            isOpen={isSkuSearchOpen}
+          />
         </SheetContent>
       </Sheet>
 
@@ -1088,16 +1063,7 @@ const App: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={downloadConfiguration}
-                    className="flex items-center space-x-2"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Download Config</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={downloadQuotePdf}
-                    disabled={isGeneratingQuotePdf}
+                    disabled={isGeneratingQuotePdf || quoteItems.length === 0}
                     className="flex items-center space-x-2"
                   >
                     {isGeneratingQuotePdf ? (
@@ -1107,8 +1073,8 @@ const App: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <FileText className="w-4 h-4" />
-                        <span>Download Quote PDF</span>
+                        <Download className="w-4 h-4" />
+                        <span>Download Config</span>
                       </>
                     )}
                   </Button>
@@ -1393,8 +1359,6 @@ const App: React.FC = () => {
       {/* Environment Indicator */}
       <EnvironmentIndicator />
 
-      {/* Adjustment Notifications */}
-      {/* <AdjustmentNotificationBar /> */}
     </div>
   );
 }

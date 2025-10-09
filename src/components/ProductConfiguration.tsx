@@ -125,6 +125,47 @@ export function ProductConfiguration({
     return selectedOption ? selectedOption.label : value;
   };
 
+  const normalizeOptionDescription = (
+    collection: string,
+    option: any,
+  ): string | undefined => {
+    const rawDescription = option?.description;
+    if (!rawDescription) {
+      return undefined;
+    }
+
+    if (collection === 'sizes') {
+      const label = (option?.label || option?.name || '').toString();
+      const normalize = (value: string) =>
+        value.replace(/[^0-9a-z]/gi, '').toLowerCase();
+
+      const labelKey = normalize(label);
+
+      const uniqueLines: string[] = [];
+      const seen = new Set<string>();
+
+      const parts = Array.isArray(rawDescription)
+        ? rawDescription
+        : rawDescription.toString().split(/\r?\n|<br\s*\/>/i);
+
+      parts
+        .map((part: string) => part.trim())
+        .filter(Boolean)
+        .forEach((part: string) => {
+          const key = normalize(part);
+          if (!key || key === labelKey || seen.has(key)) {
+            return;
+          }
+          seen.add(key);
+          uniqueLines.push(part);
+        });
+
+      return uniqueLines.length > 0 ? uniqueLines.join(' • ') : undefined;
+    }
+
+    return typeof rawDescription === 'string' ? rawDescription : undefined;
+  };
+
   return (
     <div className="space-y-12 pb-24 mb-40" style={{ marginBottom: '10rem' }}>
       {/* Product Header */}
@@ -282,7 +323,10 @@ export function ProductConfiguration({
                     sku: `${opt.count || 0} SKUs`,
                     value: opt.value || opt.id,
                     count: opt.count,
-                    description: opt.description,
+                    description: normalizeOptionDescription(
+                      componentConfig.collection,
+                      opt,
+                    ),
                     sampleSkus: opt.sampleSkus
                   }))}
                   selected={configuration[componentConfig.configKey]}

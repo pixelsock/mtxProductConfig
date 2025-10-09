@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Minus, Copy, Check, Link2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, Minus, Copy, Check, Link2, FileText, Building2, Loader2 } from 'lucide-react';
 import { Button } from './button';
 import { Badge } from './badge';
 import { Input } from './input';
@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from './card';
 import { cn } from '@/lib/utils';
 import { parseSkuSegments } from '@/services/sku-generator';
 import { useConfiguratorStore } from '@/store';
+import { constructProductAssetUrl } from '@/services/image-selector';
 
 interface ProductOption {
   id: number;
@@ -72,6 +73,7 @@ export function CurrentConfiguration({
   const [generatedSku, setGeneratedSku] = useState<string | null>(null);
   const [isSkuCopied, setIsSkuCopied] = useState(false);
   const [isLinkCopied, setIsLinkCopied] = useState(false);
+  const [isDownloadingSpec, setIsDownloadingSpec] = useState(false);
   const getGeneratedSKU = useConfiguratorStore((state) => state.getGeneratedSKU);
   const currentProduct = useConfiguratorStore((state) => state.currentProduct);
 
@@ -157,38 +159,85 @@ export function CurrentConfiguration({
     return options.length > 0 && options.find(option => option.id.toString() === id);
   };
 
-  // Helper function to check if an option category has available options
-  const hasAvailableOptions = (options: ProductOption[]) => {
-    return options && options.length > 0;
-  };
-
-  // Helper function to render accessory if selected
-  const renderAccessory = () => {
-    if (!config.accessories || !hasAvailableOptions(productOptions.accessoryOptions)) {
+  const selectedSizeOption = useMemo(() => {
+    if (!productOptions?.sizes || productOptions.sizes.length === 0) {
       return null;
     }
 
-    const accessory = productOptions.accessoryOptions.find(
-      a => a.id.toString() === config.accessories
-    );
-
-    if (!accessory) return null;
+    const widthValue = (config.width || '').trim();
+    const heightValue = (config.height || '').trim();
 
     return (
-      <div className="pt-4 border-t border-border">
-        <div className="flex flex-col space-y-2">
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Accessories</span>
-          <div className="flex flex-wrap gap-2">
-            <div className="flex items-center space-x-2 bg-muted/50 rounded-lg px-3 py-2">
-              <span className="text-sm font-medium text-foreground">{accessory.name}</span>
-              <Badge variant="outline" className="bg-muted text-muted-foreground border-none rounded px-1.5 py-0.5 text-xs font-mono">
-                {accessory.sku_code}
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </div>
+      productOptions.sizes.find((option) => {
+        const optionWidth = option.width !== undefined ? option.width.toString() : '';
+        const optionHeight = option.height !== undefined ? option.height.toString() : '';
+        return optionWidth === widthValue && optionHeight === heightValue;
+      }) || null
     );
+  }, [productOptions.sizes, config.width, config.height]);
+
+  const sizeSkuCode = selectedSizeOption?.sku_code || '';
+  const sizePrimaryLabel = selectedSizeOption?.name || `${config.width}" × ${config.height}"`;
+  const sizeSecondaryLabel = selectedSizeOption?.description && selectedSizeOption.description !== selectedSizeOption.name
+    ? selectedSizeOption.description
+    : undefined;
+
+  const selectedAccessory = useMemo(() => {
+    if (!config.accessories || !productOptions?.accessoryOptions?.length) {
+      return null;
+    }
+
+    return (
+      productOptions.accessoryOptions.find(
+        (option) => option.id.toString() === config.accessories,
+      ) || null
+    );
+  }, [config.accessories, productOptions.accessoryOptions]);
+
+  const resolveDocumentUrl = (reference: any): string | null => {
+    if (!reference) {
+      return null;
+    }
+
+    if (typeof reference === 'string' && reference.startsWith('http')) {
+      return reference;
+    }
+
+    return constructProductAssetUrl(reference) || null;
+  };
+
+  const specSheetUrl = useMemo(() => {
+    const product = currentProduct as any;
+    return resolveDocumentUrl(product?.spec_sheet_file ?? product?.spec_sheet ?? null);
+  }, [currentProduct]);
+
+  const revitFileUrl = useMemo(() => {
+    const product = currentProduct as any;
+    return resolveDocumentUrl(product?.revit_file_file ?? product?.revit_file ?? null);
+  }, [currentProduct]);
+
+  const handleDownloadSpecSheet = async () => {
+    if (!specSheetUrl) {
+      return;
+    }
+
+    try {
+      setIsDownloadingSpec(true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const anchor = document.createElement('a');
+      anchor.href = specSheetUrl;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+    } catch (error) {
+      console.error('Failed to open spec sheet:', error);
+      window.location.assign(specSheetUrl);
+    } finally {
+      setIsDownloadingSpec(false);
+    }
   };
 
   return (
@@ -206,16 +255,16 @@ export function CurrentConfiguration({
             <div className="flex flex-col space-y-1">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Dimensions</span>
-                <Badge variant="outline" className="bg-muted text-muted-foreground border-none rounded px-1.5 py-0.5 text-xs font-mono">
-                  {getOptionSku(productOptions.sizes,
-                    productOptions.sizes.find(s =>
-                      s.width?.toString() === config.width &&
-                      s.height?.toString() === config.height
-                    )?.id.toString() || ''
-                  )}
-                </Badge>
+                {sizeSkuCode && (
+                  <Badge variant="outline" className="bg-muted text-muted-foreground border-none rounded px-1.5 py-0.5 text-xs font-mono">
+                    {sizeSkuCode}
+                  </Badge>
+                )}
               </div>
-              <span className="text-sm font-semibold text-foreground">{config.width}" × {config.height}"</span>
+              <span className="text-sm font-semibold text-foreground">{sizePrimaryLabel}</span>
+              {sizeSecondaryLabel && (
+                <span className="text-xs text-muted-foreground">{sizeSecondaryLabel}</span>
+              )}
             </div>
 
             {/* Frame Color - Only show if available */}
@@ -370,11 +419,24 @@ export function CurrentConfiguration({
                 </span>
               </div>
             )}
+
+            {selectedAccessory && (
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Accessories</span>
+                  {selectedAccessory.sku_code && (
+                    <Badge variant="outline" className="bg-muted text-muted-foreground border-none rounded px-1.5 py-0.5 text-xs font-mono">
+                      {selectedAccessory.sku_code}
+                    </Badge>
+                  )}
+                </div>
+                <span className="text-sm font-semibold text-foreground truncate">
+                  {selectedAccessory.name}
+                </span>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Accessories - Only show if an accessory is selected AND accessory options are available */}
-        {renderAccessory()}
 
         {/* Product SKU Display */}
         {generatedSku && (
@@ -418,6 +480,48 @@ export function CurrentConfiguration({
                     )}
                   </Button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {(specSheetUrl || revitFileUrl) && (
+          <div className="pt-4 border-t border-border mt-4">
+            <div className="flex flex-col space-y-3">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Product Resources</span>
+              <div className="flex flex-wrap gap-3">
+                {specSheetUrl && (
+                  <Button
+                    variant="outline"
+                    className="h-10 px-4 border-border hover:bg-muted/80 transition-colors"
+                    onClick={handleDownloadSpecSheet}
+                    disabled={isDownloadingSpec}
+                  >
+                    {isDownloadingSpec ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Preparing PDF...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-4 h-4" />
+                        Spec Sheet
+                      </>
+                    )}
+                  </Button>
+                )}
+                {revitFileUrl && (
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-10 px-4 border-border hover:bg-muted/80 transition-colors"
+                  >
+                    <a href={revitFileUrl} target="_blank" rel="noopener noreferrer">
+                      <Building2 className="w-4 h-4" />
+                      Revit File
+                    </a>
+                  </Button>
+                )}
               </div>
             </div>
           </div>

@@ -6,6 +6,7 @@ import {
   ConfigurationUIItem,
   StoreSet,
   StoreGet,
+  ProductOption,
 } from '../types';
 
 const emptyProductOptions: ProductOptions = {
@@ -35,10 +36,144 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
   error: null,
 
   setProductOptions: (options: ProductOptions) => {
-    set((state) => ({
-      ...state,
-      productOptions: options,
-    }));
+    set((state) => {
+      const previousOptions = state.productOptions;
+      const currentConfig = state.currentConfig;
+
+      if (!currentConfig) {
+        return {
+          ...state,
+          productOptions: options,
+        };
+      }
+
+      const updatedConfig: ProductConfig = { ...currentConfig };
+      let configChanged = false;
+
+      type SelectableConfigField =
+        | 'mirrorControls'
+        | 'frameColor'
+        | 'frameThickness'
+        | 'mirrorStyle'
+        | 'mounting'
+        | 'hangingTechnique'
+        | 'lighting'
+        | 'colorTemperature'
+        | 'lightOutput'
+        | 'driver'
+        | 'accessories';
+
+      const setFieldValue = (field: SelectableConfigField, value: string) => {
+        if (updatedConfig[field] !== value) {
+          updatedConfig[field] = value;
+          configChanged = true;
+        }
+      };
+
+      const listsDiffer = (
+        previousList: ProductOption[] | undefined | null,
+        nextList: ProductOption[] | undefined | null,
+      ): boolean => {
+        if (!nextList || nextList.length === 0) {
+          return !!(previousList && previousList.length > 0);
+        }
+
+        if (!previousList || previousList.length !== nextList.length) {
+          return true;
+        }
+
+        const prevIds = new Set(previousList.map((opt) => opt.id));
+        for (const option of nextList) {
+          if (!prevIds.has(option.id)) {
+            return true;
+          }
+        }
+
+        return false;
+      };
+
+      const ensureSelection = (
+        collectionKey: keyof ProductOptions,
+        configField: SelectableConfigField,
+      ) => {
+        const nextList = options[collectionKey];
+        const previousList = previousOptions?.[collectionKey];
+        const datasetChanged = listsDiffer(previousList, nextList);
+
+        if (!nextList || nextList.length === 0) {
+          setFieldValue(configField, '');
+          return;
+        }
+
+        const currentValue = updatedConfig[configField];
+        const currentExists = nextList.some(
+          (option) => option.id.toString() === String(currentValue ?? ''),
+        );
+
+        if (datasetChanged || !currentExists) {
+          const newValue = nextList[0]?.id?.toString() ?? '';
+          setFieldValue(configField, newValue);
+        }
+      };
+
+      ensureSelection('mirrorControls', 'mirrorControls');
+      ensureSelection('frameColors', 'frameColor');
+      ensureSelection('frameThickness', 'frameThickness');
+      ensureSelection('mirrorStyles', 'mirrorStyle');
+      ensureSelection('mountingOptions', 'mounting');
+      ensureSelection('hangingTechniques', 'hangingTechnique');
+      ensureSelection('lightingOptions', 'lighting');
+      ensureSelection('colorTemperatures', 'colorTemperature');
+      ensureSelection('lightOutputs', 'lightOutput');
+      ensureSelection('drivers', 'driver');
+      ensureSelection('accessoryOptions', 'accessories');
+
+      const nextSizes = options.sizes;
+      const previousSizes = previousOptions?.sizes;
+      const sizesChanged = listsDiffer(previousSizes, nextSizes);
+
+      if (nextSizes && nextSizes.length > 0) {
+        const currentWidth = updatedConfig.width;
+        const currentHeight = updatedConfig.height;
+        const currentSizeExists = nextSizes.some((option) => {
+          const widthMatches =
+            option.width === undefined || option.width.toString() === currentWidth;
+          const heightMatches =
+            option.height === undefined || option.height.toString() === currentHeight;
+          return widthMatches && heightMatches;
+        });
+
+        if (sizesChanged || !currentSizeExists) {
+          const firstSize = nextSizes[0];
+          const nextWidth = firstSize.width !== undefined
+            ? firstSize.width.toString()
+            : currentWidth;
+          const nextHeight = firstSize.height !== undefined
+            ? firstSize.height.toString()
+            : currentHeight;
+
+          if (nextWidth !== currentWidth) {
+            updatedConfig.width = nextWidth;
+            configChanged = true;
+          }
+
+          if (nextHeight !== currentHeight) {
+            updatedConfig.height = nextHeight;
+            configChanged = true;
+          }
+        }
+      } else if (updatedConfig.width || updatedConfig.height) {
+        updatedConfig.width = '';
+        updatedConfig.height = '';
+        configChanged = true;
+      }
+
+      return {
+        ...state,
+        productOptions: options,
+        currentConfig: configChanged ? updatedConfig : state.currentConfig,
+      };
+    });
   },
 
   setAvailableProductLines: (lines: ProductLine[]) => {
@@ -286,4 +421,3 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
     }
   },
 });
-

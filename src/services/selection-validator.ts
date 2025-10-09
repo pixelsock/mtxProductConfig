@@ -1,4 +1,4 @@
-import { ProductConfig, ProductLine } from '../store/types';
+import { ProductConfig, ProductLine, ProductOptions } from '../store/types';
 import { fetchProductOptions } from './product-options';
 
 export interface ValidationResult {
@@ -43,13 +43,14 @@ export async function validateCurrentSelections(
   config: ProductConfig,
   productLine: ProductLine,
   disabledOptionIds: Record<string, number[]>,
+  availableOptions?: ProductOptions | null,
 ): Promise<ValidationResult> {
   const invalidSelections: InvalidSelection[] = [];
   const adjustedConfig: ProductConfig = { ...config };
   let hasAdjustments = false;
 
   // Load product options dynamically
-  const productOptions = await fetchProductOptions(productLine.id);
+  const productOptions = availableOptions ?? (await fetchProductOptions(productLine.id));
 
   // Check each field that maps to a collection
   for (const [field, collection] of Object.entries(FIELD_TO_COLLECTION_MAP)) {
@@ -166,9 +167,10 @@ export async function createAdjustmentSuggestions(
   config: ProductConfig,
   productLine: ProductLine,
   disabledOptionIds: Record<string, number[]>,
+  availableOptions?: ProductOptions | null,
 ): Promise<Record<keyof ProductConfig, string | null>> {
   const suggestions: Record<string, string | null> = {};
-  const productOptions = await fetchProductOptions(productLine.id);
+  const productOptions = availableOptions ?? (await fetchProductOptions(productLine.id));
 
   for (const [field, collection] of Object.entries(FIELD_TO_COLLECTION_MAP)) {
     const currentValue = config[field as keyof ProductConfig];
@@ -195,4 +197,3 @@ export async function createAdjustmentSuggestions(
 
   return suggestions as Record<keyof ProductConfig, string | null>;
 }
-

@@ -411,7 +411,9 @@ export async function fetchProductOptions(
       }
 
       if (directOptions && directOptions.length > 0) {
-        (options[field] as ProductOption[]) = directOptions.map((option) => ({ ...option }));
+        (options[field] as ProductOption[]) = directOptions.map((option) => ({
+          ...option,
+        }));
         return;
       }
 
@@ -433,7 +435,7 @@ export async function fetchProductOptions(
       }
 
       const normalizedRows = ((tableRows ?? []) as Record<string, any>[]).map((row) =>
-        normalizeOption(row)
+        normalizeOption(row),
       );
 
       (options[field] as ProductOption[]) = normalizedRows;

@@ -38,21 +38,30 @@ const NOTES = [
 ]
 
 interface TableColumn {
-  key: 'sku' | 'description' | 'quantity' | 'details'
+  key: 'sku' | 'description' | 'quantity'
   label: string
   width: number
-  align?: 'left' | 'right'
+  align?: 'left' | 'right' | 'center'
 }
 
 const TABLE_COLUMNS: TableColumn[] = [
   { key: 'sku', label: 'SKU', width: 150 },
-  { key: 'description', label: 'Description', width: 220 },
-  { key: 'quantity', label: 'Qty', width: 60, align: 'right' },
-  { key: 'details', label: 'Details', width: PAGE_WIDTH - PAGE_MARGIN * 2 - (150 + 220 + 60) },
+  {
+    key: 'description',
+    label: 'Description',
+    width: PAGE_WIDTH - PAGE_MARGIN * 2 - (150 + 80),
+  },
+  { key: 'quantity', label: 'Qty', width: 80, align: 'center' },
 ]
 
 const LINE_HEIGHT = 14
+const DETAIL_LINE_HEIGHT = 12
 const ROW_PADDING = 6
+
+export interface GeneratedQuotePdf {
+  objectUrl: string
+  cleanup: () => void
+}
 
 export async function generateQuotePdf({
   items,
@@ -61,7 +70,7 @@ export async function generateQuotePdf({
   specifierInfo,
   preparedFor,
   generatedAt = new Date(),
-}: QuotePdfOptions): Promise<void> {
+}: QuotePdfOptions): Promise<GeneratedQuotePdf> {
   if (!items.length) {
     throw new Error('At least one quote item is required to generate a PDF')
   }
@@ -73,7 +82,7 @@ export async function generateQuotePdf({
   const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
 
-  const title = 'Sales Quote'
+  const title = 'Custom Spec'
   const titleSize = 22
   const titleWidth = boldFont.widthOfTextAtSize(title, titleSize)
 
@@ -125,7 +134,7 @@ export async function generateQuotePdf({
   expiryDate.setDate(expiryDate.getDate() + 90)
 
   const metadataRight = [
-    `Quote Date: ${formatDate(quoteDate)}`,
+    `Date Created: ${formatDate(quoteDate)}`,
     `Expiry Date: ${formatDate(expiryDate)}`,
     `Prepared For: ${preparedFor || '—'}`,
   ]
@@ -177,8 +186,16 @@ export async function generateQuotePdf({
     let columnX = PAGE_MARGIN
 
     TABLE_COLUMNS.forEach((column) => {
-      const textX = columnX + ROW_PADDING
       const textY = headerTop - ROW_PADDING - 10
+      const labelWidth = boldFont.widthOfTextAtSize(column.label, 10)
+      let textX = columnX + ROW_PADDING
+
+      if (column.align === 'right') {
+        textX = columnX + column.width - ROW_PADDING - labelWidth
+      } else if (column.align === 'center') {
+        textX = columnX + column.width / 2 - labelWidth / 2
+      }
+
       page.drawText(column.label, {
         x: textX,
         y: textY,
@@ -211,33 +228,36 @@ export async function generateQuotePdf({
     )
     const quantityLines = wrapTextWithFont(
       String(item.quantity ?? 1),
-      regularFont,
+      boldFont,
       10,
       TABLE_COLUMNS[2].width - ROW_PADDING * 2,
     )
     const detailsValue = (item.details || []).filter(Boolean).join(' | ')
-    const detailsLines = wrapTextWithFont(
-      detailsValue || ' ',
-      regularFont,
-      9,
-      TABLE_COLUMNS[3].width - ROW_PADDING * 2,
-    )
+    const detailsLines = detailsValue
+      ? wrapTextWithFont(
+          detailsValue,
+          regularFont,
+          9,
+          TABLE_COLUMNS[1].width + TABLE_COLUMNS[2].width - ROW_PADDING * 2,
+        )
+      : []
 
-    const rowHeight =
-      Math.max(skuLines.length, descriptionLines.length, quantityLines.length, detailsLines.length) *
-        LINE_HEIGHT +
-      ROW_PADDING * 2
+    const primaryLineCount = Math.max(skuLines.length, descriptionLines.length, quantityLines.length, 1)
+    const primaryHeight = primaryLineCount * LINE_HEIGHT
+    const detailsHeight = detailsLines.length ? detailsLines.length * DETAIL_LINE_HEIGHT + 6 : 0
+    const rowHeight = primaryHeight + detailsHeight + ROW_PADDING * 2
 
     if (cursorY - rowHeight < PAGE_MARGIN) {
       addPage()
       drawTableHeader()
     }
 
+    const rowTop = cursorY
     const shaded = index % 2 === 0
     if (shaded) {
       page.drawRectangle({
         x: PAGE_MARGIN,
-        y: cursorY - rowHeight,
+        y: rowTop - rowHeight,
         width: PAGE_WIDTH - PAGE_MARGIN * 2,
         height: rowHeight,
         color: rgb(0.97, 0.97, 0.985),
@@ -253,7 +273,7 @@ export async function generateQuotePdf({
       lines: skuLines,
       columnX,
       columnWidth: TABLE_COLUMNS[0].width,
-      top: cursorY,
+      top: rowTop,
       align: 'left',
     })
     columnX += TABLE_COLUMNS[0].width
@@ -265,33 +285,37 @@ export async function generateQuotePdf({
       lines: descriptionLines,
       columnX,
       columnWidth: TABLE_COLUMNS[1].width,
-      top: cursorY,
+      top: rowTop,
       align: 'left',
     })
     columnX += TABLE_COLUMNS[1].width
 
     drawCellText({
       page,
-      font: regularFont,
+      font: boldFont,
       fontSize: 10,
       lines: quantityLines,
       columnX,
       columnWidth: TABLE_COLUMNS[2].width,
-      top: cursorY,
-      align: 'right',
+      top: rowTop,
+      align: 'center',
     })
-    columnX += TABLE_COLUMNS[2].width
 
-    drawCellText({
-      page,
-      font: regularFont,
-      fontSize: 9,
-      lines: detailsLines,
-      columnX,
-      columnWidth: TABLE_COLUMNS[3].width,
-      top: cursorY,
-      align: 'left',
-    })
+    if (detailsLines.length) {
+      const detailsStartX = PAGE_MARGIN + TABLE_COLUMNS[0].width + ROW_PADDING
+      let detailY = rowTop - ROW_PADDING - primaryHeight - 6
+
+      detailsLines.forEach((line) => {
+        page.drawText(line, {
+          x: detailsStartX,
+          y: detailY,
+          font: regularFont,
+          size: 9,
+          color: rgb(0.32, 0.32, 0.35),
+        })
+        detailY -= DETAIL_LINE_HEIGHT
+      })
+    }
 
     cursorY -= rowHeight
 
@@ -305,7 +329,7 @@ export async function generateQuotePdf({
 
   cursorY -= 24
 
-  const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0)
+  const totalUnits = items.reduce((sum, item) => sum + (item.quantity ?? 0), 0)
 
   if (cursorY - 48 < PAGE_MARGIN) {
     addPage()
@@ -332,16 +356,13 @@ export async function generateQuotePdf({
   const blob = new Blob([pdfBytes], { type: 'application/pdf' })
   const objectUrl = URL.createObjectURL(blob)
 
-  try {
-    const anchor = document.createElement('a')
-    anchor.href = objectUrl
-    anchor.download = `matrix-quote-${sanitizeFileName(quoteNumber)}.pdf`
-    anchor.rel = 'noopener'
-    document.body.appendChild(anchor)
-    anchor.click()
-    document.body.removeChild(anchor)
-  } finally {
+  const cleanup = () => {
     URL.revokeObjectURL(objectUrl)
+  }
+
+  return {
+    objectUrl,
+    cleanup,
   }
 }
 
@@ -353,12 +374,6 @@ function formatDate(date: Date): string {
   })
 }
 
-function sanitizeFileName(value: string): string {
-  const fallback = 'QUOTE'
-  const sanitized = value.replace(/[^a-z0-9-_]+/gi, '_').toUpperCase()
-  return sanitized || fallback
-}
-
 interface DrawCellTextOptions {
   page: PDFPage
   font: PDFFont
@@ -367,7 +382,7 @@ interface DrawCellTextOptions {
   columnX: number
   columnWidth: number
   top: number
-  align: 'left' | 'right'
+  align: 'left' | 'right' | 'center'
 }
 
 function drawCellText({
@@ -380,14 +395,17 @@ function drawCellText({
   top,
   align,
 }: DrawCellTextOptions): void {
+  const safeLines = lines.length ? lines : ['—']
   let textY = top - ROW_PADDING - fontSize
 
-  lines.forEach((line) => {
+  safeLines.forEach((line) => {
     const textWidth = font.widthOfTextAtSize(line, fontSize)
     let textX = columnX + ROW_PADDING
 
     if (align === 'right') {
       textX = columnX + columnWidth - ROW_PADDING - textWidth
+    } else if (align === 'center') {
+      textX = columnX + columnWidth / 2 - textWidth / 2
     }
 
     page.drawText(line, {
