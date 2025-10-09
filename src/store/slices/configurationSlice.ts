@@ -88,7 +88,7 @@ export const createConfigurationSlice = (
             );
             const options = await fetchProductOptions(
               currentProductLine.id,
-              product.id,
+              product,
             );
             setProductOptions(options);
 

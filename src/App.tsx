@@ -45,6 +45,7 @@ import {
   AlertCircle,
   ShoppingCart,
   Download,
+  FileText,
   ChevronUp,
   ChevronLeft,
   ChevronRight,
@@ -72,6 +73,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "./components/ui/sheet";
+import { generateQuotePdf } from "./utils/quote-pdf";
 
 const App: React.FC = () => {
   // Zustand store state
@@ -101,6 +103,7 @@ const App: React.FC = () => {
   const [generatedSku, setGeneratedSku] = useState<string | null>(null);
   const [isSkuSearchOpen, setIsSkuSearchOpen] = useState(false);
   const [hasAppliedInitialSku, setHasAppliedInitialSku] = useState(false);
+  const [isGeneratingQuotePdf, setIsGeneratingQuotePdf] = useState(false);
 
   // Get SKU generator from store
   const getGeneratedSKU = useConfiguratorStore((state) => state.getGeneratedSKU);
@@ -554,6 +557,68 @@ const App: React.FC = () => {
     linkElement.setAttribute("href", dataUri);
     linkElement.setAttribute("download", exportFileDefaultName);
     linkElement.click();
+  };
+
+  const downloadQuotePdf = async () => {
+    if (!productOptions || quoteItems.length === 0) {
+      return;
+    }
+
+    setIsGeneratingQuotePdf(true);
+
+    const getOptionName = (options: ProductOption[], id: string | null | undefined) => {
+      if (!options || !id) return null;
+      return options.find((option) => option.id.toString() === id)?.name ?? null;
+    };
+
+    const buildDetails = (config: ProductConfig) => {
+      const details: string[] = [];
+      const lighting = getOptionName(productOptions.lightingOptions, config.lighting);
+      if (lighting) {
+        details.push(`Lighting: ${lighting}`);
+      }
+      const controls = getOptionName(productOptions.mirrorControls, config.mirrorControls);
+      if (controls) {
+        details.push(`Controls: ${controls}`);
+      }
+      const mounting = getOptionName(productOptions.mountingOptions, config.mounting);
+      if (mounting) {
+        details.push(`Mounting: ${mounting}`);
+      }
+      const accessories = getOptionName(productOptions.accessoryOptions, config.accessories);
+      if (accessories) {
+        details.push(`Accessories: ${accessories}`);
+      }
+      return details;
+    };
+
+    const quoteNumber = (() => {
+      const now = new Date();
+      const datePart = now.toISOString().slice(0, 10).replace(/-/g, "");
+      const countPart = String(quoteItems.length).padStart(2, "0");
+      return `Q-${datePart}-${countPart}`;
+    })();
+
+    const specifierInfo = [customerInfo.name, customerInfo.email].filter(Boolean).join(" / ");
+
+    try {
+      await generateQuotePdf({
+        items: quoteItems.map((config) => ({
+          sku: config.id,
+          description: getConfigDescription(config),
+          quantity: config.quantity ?? 1,
+          details: buildDetails(config),
+        })),
+        quoteNumber,
+        projectName: currentProductLine?.name ?? "Mirror Configurator",
+        specifierInfo: specifierInfo || undefined,
+        preparedFor: customerInfo.company || undefined,
+      });
+    } catch (error) {
+      console.error("Failed to generate quote PDF:", error);
+    } finally {
+      setIsGeneratingQuotePdf(false);
+    }
   };
 
   const submitQuote = () => {
@@ -1027,6 +1092,25 @@ const App: React.FC = () => {
                   >
                     <Download className="w-4 h-4" />
                     <span>Download Config</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={downloadQuotePdf}
+                    disabled={isGeneratingQuotePdf}
+                    className="flex items-center space-x-2"
+                  >
+                    {isGeneratingQuotePdf ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Generating PDF...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-4 h-4" />
+                        <span>Download Quote PDF</span>
+                      </>
+                    )}
                   </Button>
                   <Button
                     size="sm"

@@ -2,10 +2,11 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
-import { Search, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Search, RefreshCw, AlertCircle, CheckCircle2, X } from "lucide-react";
 
 import { Input } from "./input";
 import { Button } from "./button";
@@ -74,6 +75,7 @@ interface SuggestionItem {
 
 interface SkuSearchInputProps {
   onApplied?: () => void;
+  onClose?: () => void;
 }
 
 function formatTableName(name: string): string {
@@ -137,7 +139,7 @@ function buildAiNarrative(result: SkuSearchResult): string {
   return `${baseLabel} ${confidenceSummary}${segmentSummary}${issueSummary}`.trim();
 }
 
-export function SkuSearchInput({ onApplied }: SkuSearchInputProps): JSX.Element {
+export function SkuSearchInput({ onApplied, onClose }: SkuSearchInputProps): JSX.Element {
   const { skuSearchQuery, skuSearchResults, isSearchingSku, skuSearchError } =
     useSkuSearchState();
   const { searchBySku, applySkuResult, clearSkuSearch } = useSkuSearchActions();
@@ -155,10 +157,20 @@ export function SkuSearchInput({ onApplied }: SkuSearchInputProps): JSX.Element 
   const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
   const [suggestionError, setSuggestionError] = useState<string | null>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const suggestionRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
     setInputValue(skuSearchQuery);
   }, [skuSearchQuery]);
+
+  useEffect(() => {
+    if (highlightedIndex >= 0) {
+      suggestionRefs.current[highlightedIndex]?.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      });
+    }
+  }, [highlightedIndex]);
 
   const segments = useMemo(() => splitSkuInput(inputValue), [inputValue]);
   const activeSegmentIndex = useMemo(
@@ -454,55 +466,48 @@ export function SkuSearchInput({ onApplied }: SkuSearchInputProps): JSX.Element 
       suggestionError !== null ||
       suggestions.length > 0);
 
-  const productLineNames = useMemo(
-    () => availableProductLines.map((line) => line.name),
-    [availableProductLines],
-  );
-
   const examplePrompts = useMemo(() => {
-    const prompts: string[] = [];
-    if (currentProductLine) {
-      prompts.push(
-        `Search ${currentProductLine.name} inventory for a dimmable SKU with brushed finish`,
-      );
-    }
-    if (productLineNames.length > 0) {
-      prompts.push(
-        `Show the closest SKU in ${productLineNames[0]} that supports warm + cool lighting`,
-      );
-    }
-    prompts.push("What SKU matches a 30\" x 40\" mirror with sensor controls?");
-    return prompts.slice(0, 3);
-  }, [currentProductLine, productLineNames]);
+    const basePrefix = currentProductLine?.sku_code?.toUpperCase() || "BASE";
+    return [
+      `${basePrefix}-2430`,
+      `${basePrefix}-3036-DIM`,
+      `${basePrefix}-WARM-DRV`,
+    ];
+  }, [currentProductLine]);
 
   const hasResults = skuSearchResults.length > 0;
+  suggestionRefs.current = [];
 
   return (
-    <section className="space-y-6">
-      <div className="relative rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-[0_30px_80px_-40px_rgba(15,23,42,0.3)]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12)_0,_rgba(59,130,246,0)_65%),radial-gradient(circle_at_bottom,_rgba(236,72,153,0.1)_0,_rgba(236,72,153,0)_55%)]" />
-        <div className="relative z-10 space-y-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-              <span className="relative flex h-2 w-2 items-center justify-center">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/50" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-              </span>
-              Search
-            </div>
-            {currentProductLine && (
-              <Badge className="rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-slate-100">
-                {currentProductLine.name}
-              </Badge>
-            )}
-          </div>
+    <div className="flex h-full flex-col bg-white">
+      <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+          <span className="relative flex h-2 w-2 items-center justify-center">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/50" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+          </span>
+        Search Assistant
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Close SKU Search"
+          onClick={() => onClose?.()}
+          className="h-8 w-8 text-slate-500 hover:text-slate-900"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
+        </Button>
+      </div>
 
+      <div className="flex-1 overflow-y-auto px-6 pb-8 pt-6">
+        <div className="space-y-6">
           <div className="space-y-2">
             <h2 className="text-2xl font-semibold text-slate-900">
-              AI-assisted SKU discovery
+              SKU search assistant
             </h2>
             <p className="text-sm text-slate-600">
-              Ask natural-language questions or paste a partial SKU. The orchestrator compares live inventory, rules, and segments to surface the closest match.
+              Enter a full or partial SKU to explore likely matches. Results may adjust certain options after applying while we reconcile configuration rules.
             </p>
           </div>
 
@@ -525,9 +530,9 @@ export function SkuSearchInput({ onApplied }: SkuSearchInputProps): JSX.Element 
                   onFocus={() => setIsInputFocused(true)}
                   onBlur={() => setIsInputFocused(false)}
                   onKeyDown={handleInputKeyDown}
-                  placeholder="Search by SKU or describe the configuration"
+                  placeholder="Enter a full or partial SKU (e.g. MX-ALP-3036-120DIM)"
                   autoComplete="off"
-                  className="h-12 rounded-2xl border-slate-200 bg-white/80 pl-10 text-base shadow-sm transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200/70"
+                  className="h-12 rounded-xl border-slate-200 bg-white pl-10 text-base shadow-sm transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200/70"
                 />
                 {showSuggestions && (
                   <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-[200] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
@@ -550,16 +555,19 @@ export function SkuSearchInput({ onApplied }: SkuSearchInputProps): JSX.Element 
                         No structured suggestions available yet.
                       </div>
                     ) : (
-                      <ul className="max-h-64 overflow-y-auto py-2">
-                        {suggestions.map((suggestion, index) => (
-                          <li key={suggestion.key}>
-                            <button
-                              type="button"
-                              onMouseDown={(event) => event.preventDefault()}
-                              onClick={() => void handleSuggestionSelect(suggestion)}
-                              className={cn(
-                                "flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm transition",
-                                index === highlightedIndex
+                    <ul className="max-h-64 overflow-y-auto py-2">
+                      {suggestions.map((suggestion, index) => (
+                        <li key={suggestion.key}>
+                          <button
+                            type="button"
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => void handleSuggestionSelect(suggestion)}
+                            ref={(element) => {
+                              suggestionRefs.current[index] = element;
+                            }}
+                            className={cn(
+                              "flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm transition",
+                              index === highlightedIndex
                                   ? "bg-slate-100"
                                   : "hover:bg-slate-50",
                               )}
@@ -607,7 +615,7 @@ export function SkuSearchInput({ onApplied }: SkuSearchInputProps): JSX.Element 
                 variant="ghost"
                 onClick={handleClear}
                 disabled={isSearchingSku || (!skuSearchQuery && !inputValue)}
-                className="inline-flex w-full items-center justify-center rounded-full border border-slate-200/80 bg-white/80 px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900 sm:w-auto"
+                className="inline-flex w-full items-center justify-center rounded-full border border-slate-200/80 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900 sm:w-auto"
               >
                 Clear session
               </Button>
@@ -627,7 +635,7 @@ export function SkuSearchInput({ onApplied }: SkuSearchInputProps): JSX.Element 
           >
             {!hasResults && !skuSearchError && !isSearchingSku ? (
               <div className="rounded-2xl border border-dashed border-slate-200/80 bg-slate-50/60 p-6 text-sm text-slate-500">
-                The assistant will surface probable SKUs, highlight uncertain segments, and explain how each match aligns with the rules engine.
+                The assistant surfaces likely SKUs based on the segments you enter. Some selections (for example, light output or color temperature) may be adjusted after applying to satisfy configuration constraints.
               </div>
             ) : (
               skuSearchResults.map((result) => {
@@ -731,10 +739,8 @@ export function SkuSearchInput({ onApplied }: SkuSearchInputProps): JSX.Element 
               })
             )}
           </div>
-
         </div>
       </div>
-
-    </section>
+    </div>
   );
 }
