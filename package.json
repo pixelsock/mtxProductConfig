@@ -51,6 +51,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^0.5.0",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
