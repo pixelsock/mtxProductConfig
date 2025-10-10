@@ -24,7 +24,7 @@ export interface EnvironmentConfig {
  * Get the current Supabase URL from environment variables
  */
 export function getSupabaseUrl(): string {
-  const url = import.meta.env.VITE_SUPABASE_URL || '';
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   // Remove trailing slash if present
   return url.replace(/\/$/, '');
 }
@@ -33,7 +33,7 @@ export function getSupabaseUrl(): string {
  * Get the Supabase anonymous key from environment variables
  */
 export function getSupabaseAnonKey(): string {
-  return import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 }
 
 /**
@@ -71,37 +71,37 @@ export function getEnvironmentConfig(): EnvironmentConfig {
 
   // Validate required environment variables
   if (!supabaseUrl) {
-    errors.push('VITE_SUPABASE_URL is not configured');
+    errors.push('NEXT_PUBLIC_SUPABASE_URL is not configured');
   } else if (!isValidUrl(supabaseUrl)) {
-    errors.push('VITE_SUPABASE_URL is not a valid URL');
+    errors.push('NEXT_PUBLIC_SUPABASE_URL is not a valid URL');
   }
 
   if (!supabaseAnonKey) {
-    errors.push('VITE_SUPABASE_ANON_KEY is not configured');
+    errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY is not configured');
   }
 
   // Determine environment
   const isLocal = isLocalEnvironment();
-  const environment = (import.meta.env.VITE_ENVIRONMENT as EnvironmentConfig['environment']) || 
+  const environment = (process.env.NEXT_PUBLIC_ENVIRONMENT as EnvironmentConfig['environment']) ||
     (isLocal ? 'local' : 'production');
 
   // Construct derived URLs
-  const graphqlEndpoint = import.meta.env.VITE_GRAPHQL_ENDPOINT || 
+  const graphqlEndpoint = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT ||
     (supabaseUrl ? `${supabaseUrl}/graphql/v1` : '');
-  
-  const storageUrl = import.meta.env.VITE_STORAGE_URL || 
+
+  const storageUrl = process.env.NEXT_PUBLIC_STORAGE_URL ||
     (supabaseUrl ? `${supabaseUrl}/storage/v1` : '');
-  
-  const assetBaseUrl = import.meta.env.VITE_ASSET_BASE_URL || 
+
+  const assetBaseUrl = process.env.NEXT_PUBLIC_ASSET_BASE_URL ||
     (supabaseUrl ? `${supabaseUrl}/storage/v1/object/public` : '');
 
   // Get configuration values with defaults
-  const cacheDuration = parseInt(import.meta.env.VITE_CACHE_DURATION || '300000', 10);
-  const apiTimeout = parseInt(import.meta.env.VITE_API_TIMEOUT || '5000', 10);
-  const apiRetryCount = parseInt(import.meta.env.VITE_API_RETRY_COUNT || '3', 10);
-  
-  const enableDebugLogging = import.meta.env.VITE_ENABLE_DEBUG_LOGGING === 'true';
-  const showEnvIndicator = import.meta.env.VITE_SHOW_ENV_INDICATOR === 'true';
+  const cacheDuration = parseInt(process.env.NEXT_PUBLIC_CACHE_DURATION || '300000', 10);
+  const apiTimeout = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '5000', 10);
+  const apiRetryCount = parseInt(process.env.NEXT_PUBLIC_API_RETRY_COUNT || '3', 10);
+
+  const enableDebugLogging = process.env.NEXT_PUBLIC_ENABLE_DEBUG_LOGGING === 'true';
+  const showEnvIndicator = process.env.NEXT_PUBLIC_SHOW_ENV_INDICATOR === 'true';
 
   return {
     supabaseUrl,
@@ -149,7 +149,7 @@ export function logEnvironmentConfig(): void {
  * Get a human-readable environment name
  */
 export function getEnvironmentName(): string {
-  return import.meta.env.VITE_ENV_NAME || 
+  return process.env.NEXT_PUBLIC_ENV_NAME ||
     (isLocalEnvironment() ? 'Local Development' : 'Production');
 }
 
@@ -167,7 +167,7 @@ export function getApiBaseUrl(): string {
   
   // Fallback to the old pim.dude.digital if nothing is configured
   // This ensures backward compatibility during transition
-  console.warn('No VITE_SUPABASE_URL configured, falling back to pim.dude.digital');
+  console.warn('No NEXT_PUBLIC_SUPABASE_URL configured, falling back to pim.dude.digital');
   return 'https://pim.dude.digital';
 }
 
@@ -190,10 +190,10 @@ export function validateEnvironment(): boolean {
  */
 export function getFeatureFlags() {
   return {
-    debugLogging: import.meta.env.VITE_ENABLE_DEBUG_LOGGING === 'true',
-    showEnvIndicator: import.meta.env.VITE_SHOW_ENV_INDICATOR === 'true',
-    enableDevtools: import.meta.env.VITE_ENABLE_DEVTOOLS === 'true',
-    logApiCalls: import.meta.env.VITE_LOG_API_CALLS === 'true',
+    debugLogging: process.env.NEXT_PUBLIC_ENABLE_DEBUG_LOGGING === 'true',
+    showEnvIndicator: process.env.NEXT_PUBLIC_SHOW_ENV_INDICATOR === 'true',
+    enableDevtools: process.env.NEXT_PUBLIC_ENABLE_DEVTOOLS === 'true',
+    logApiCalls: process.env.NEXT_PUBLIC_LOG_API_CALLS === 'true',
   };
 }
 

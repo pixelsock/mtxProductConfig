@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -213,7 +215,7 @@ const App: React.FC = () => {
       
       try {
         // SIMPLIFIED: Just log the current configuration for debugging
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log('🔧 Current Configuration:', {
             productLine: currentProductLine.name,
             frameThickness: frameThickness?.name,
@@ -229,8 +231,8 @@ const App: React.FC = () => {
           lightDirectionId: lightDirection.id,
           frameThicknessId: frameThickness?.id
         });
-        
-        if (import.meta.env.DEV) {
+
+        if (process.env.NODE_ENV !== 'production') {
           console.log('🔍 Product Match Debug:', {
             searchCriteria: {
               productLineId: currentConfig.productLineId,
