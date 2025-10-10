@@ -3,6 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
+  // Webflow Cloud configuration
+  // If your app is mounted at a path (e.g., /app), set basePath and assetPrefix to that path
+  // For root mounting, leave as empty string
+  basePath: '',
+  assetPrefix: '',
+
   // Image optimization config
   images: {
     remotePatterns: [
