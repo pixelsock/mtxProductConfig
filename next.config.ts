@@ -20,19 +20,15 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
 
-  // Turbopack configuration (when using --turbopack flag)
-  turbopack: {
-    resolveAlias: {
-      canvas: false,
-      encoding: false,
-    },
-  },
-
-  // Webpack config for PDF lib and other dependencies (fallback for non-turbopack builds)
+  // Webpack config for PDF lib and other dependencies
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      config.resolve.alias.canvas = false;
-      config.resolve.alias.encoding = false;
+      // Exclude these server-only packages from client bundle
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        canvas: false,
+        encoding: false,
+      };
     }
     return config;
   },
