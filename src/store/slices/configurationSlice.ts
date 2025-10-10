@@ -428,7 +428,7 @@ export const createConfigurationSlice = (
             }
           });
 
-          if (import.meta.env.DEV) {
+          if (process.env.NODE_ENV !== 'production') {
             console.log("🔄 Auto-adjusted selections:", {
               adjustments: adjustments.length,
               fields: adjustments.map((a) => a.field),
@@ -511,7 +511,7 @@ export const createConfigurationSlice = (
         );
         const response = await parseSkuToConfiguration(trimmed);
 
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           response.warnings.forEach((warning) =>
             console.warn("SKU search warning:", warning),
           );

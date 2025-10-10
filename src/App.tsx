@@ -66,7 +66,7 @@ import { CurrentConfiguration } from "./components/ui/current-configuration";
 import { EnvironmentIndicator } from "./components/ui/environment-indicator";
 import { DynamicConfigurationRenderer } from "./components/DynamicConfigurationRenderer";
 import { SkuSearchInput } from "./components/ui/sku-search-input";
-import { Sheet, SheetContent } from "./components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "./components/ui/sheet";
 import { generateQuotePdf } from "./utils/quote-pdf";
 
 const App: React.FC = () => {
@@ -581,10 +581,8 @@ const App: React.FC = () => {
         projectName: currentProductLine?.name ?? "Mirror Configurator",
       });
 
-      const opened = window.open(pdfResult.objectUrl, "_blank", "noopener");
-      if (!opened) {
-        window.location.assign(pdfResult.objectUrl);
-      }
+      // Open PDF in a new tab
+      window.open(pdfResult.objectUrl, "_blank");
     } catch (error) {
       console.error("Failed to generate quote PDF:", error);
     } finally {
@@ -676,8 +674,9 @@ const App: React.FC = () => {
         <SheetContent
           side="right"
           hideDefaultClose
-          className="flex w-full flex-col border-l border-slate-200 bg-white p-0 sm:max-w-xl md:max-w-2xl lg|max-w-3xl"
+          className="flex w-full flex-col border-l border-slate-200 bg-white p-0 sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
         >
+          <SheetTitle className="sr-only">SKU Search Assistant</SheetTitle>
           <SkuSearchInput
             onApplied={() => setIsSkuSearchOpen(false)}
             onClose={() => setIsSkuSearchOpen(false)}

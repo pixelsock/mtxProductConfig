@@ -36,7 +36,7 @@ export function selectProductImage(
   ruleImageOverrides?: { vertical_image?: string; horizontal_image?: string }
 ): ImageSelectionResult {
   // Apply rule image overrides to product (temporarily)
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV !== 'production') {
     console.log('🎨 selectProductImage called with:', {
       hasProduct: !!product,
       productName: product?.name,
@@ -47,7 +47,7 @@ export function selectProductImage(
 
   // If no product but we have rule image overrides, create a synthetic product with those images
   if (!product && ruleImageOverrides && (ruleImageOverrides.vertical_image || ruleImageOverrides.horizontal_image)) {
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log('🎨 No product but rule overrides exist - creating synthetic product for image display');
     }
     product = {
@@ -77,7 +77,7 @@ export function selectProductImage(
       vertical_image: ruleImageOverrides.vertical_image || product.vertical_image,
       horizontal_image: ruleImageOverrides.horizontal_image || product.horizontal_image,
     };
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log('🎨 Applying rule image overrides:', {
         original_vertical: product.vertical_image,
         original_horizontal: product.horizontal_image,
@@ -167,7 +167,7 @@ function getProductOrientationImage(
     fileRef = (product as any)[fallbackField];
   }
 
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV !== 'production') {
     console.log('🖼️ Image field access:', {
       productName: product.name,
       orientation,

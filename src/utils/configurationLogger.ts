@@ -69,7 +69,7 @@ class ConfigurationLogger {
     });
 
     // Console warning in development
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.warn(`[ConfigurationUI] ${code}: ${message}`, {
         collection,
         ui_type,
@@ -96,7 +96,7 @@ class ConfigurationLogger {
     });
 
     // Console error in development
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.error(`[ConfigurationUI] ${code}: ${message}`, {
         collection,
         ui_type,
@@ -123,7 +123,7 @@ class ConfigurationLogger {
     });
 
     // Console info in development
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.info(`[ConfigurationUI] ${code}: ${message}`, {
         collection,
         ui_type,
@@ -352,7 +352,7 @@ export function logPerformanceMetric(
       undefined
     );
 
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.warn(`[Performance] ${operation} took ${duration}ms`, details);
     }
   }

@@ -62,7 +62,7 @@ export async function computeProductAvailability(
       (p) => p.product_line === productLineId && p.active === true
     );
 
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log('🔍 Dynamic Filtering: Starting scope', {
         productLineId,
         totalProducts: scope.length,
@@ -78,7 +78,7 @@ export async function computeProductAvailability(
       const productField = CONFIG_TO_PRODUCT_FIELD[configField];
       if (!productField) continue;
 
-      if (import.meta.env.DEV) {
+      if (process.env.NODE_ENV !== 'production') {
         console.log(`\n🔍 Computing availability for ${collection}:`, {
           configField,
           productField,
@@ -89,7 +89,7 @@ export async function computeProductAvailability(
       // Filter by all OTHER selections (exclude the field we're computing for)
       const scopeForField = filterProductsBySelections(scope, currentConfig, configField);
 
-      if (import.meta.env.DEV) {
+      if (process.env.NODE_ENV !== 'production') {
         console.log(`   After filtering by OTHER selections:`, {
           matchingProducts: scopeForField.length,
           productNames: scopeForField.map(p => p.name),
@@ -103,7 +103,7 @@ export async function computeProductAvailability(
         const availableIds = Array.from(facets[productField]);
         availableOptions[collection] = availableIds;
 
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(`✅ Available ${collection} IDs:`, availableIds);
           console.log(`   Values in products:`, scopeForField.map(p => ({
             name: p.name,
@@ -111,7 +111,7 @@ export async function computeProductAvailability(
           })));
         }
       } else {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(`⚠️ No facets found for ${productField}`);
         }
       }
@@ -156,7 +156,7 @@ function filterProductsBySelections(
     ? new Set(FIELD_DEPENDENCIES[fieldToCompute])
     : new Set(Object.keys(CONFIG_TO_PRODUCT_FIELD));
 
-  if (import.meta.env.DEV && fieldToCompute) {
+  if (process.env.NODE_ENV !== 'production' && fieldToCompute) {
     console.log(`   For ${fieldToCompute}, filtering by:`, Array.from(fieldsToFilterBy));
   }
 
@@ -164,7 +164,7 @@ function filterProductsBySelections(
   for (const [configField, productField] of Object.entries(CONFIG_TO_PRODUCT_FIELD)) {
     // Skip fields not in the dependency chain for this computation
     if (fieldToCompute && !fieldsToFilterBy.has(configField)) {
-      if (import.meta.env.DEV) {
+      if (process.env.NODE_ENV !== 'production') {
         console.log(`   ⏭️  Skipping ${configField} (not in dependency chain)`);
       }
       continue;
@@ -175,7 +175,7 @@ function filterProductsBySelections(
 
     const valueId = parseInt(value as string);
 
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log(`   🔍 Filtering by ${configField} = ${valueId}`);
     }
 

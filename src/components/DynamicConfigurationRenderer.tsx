@@ -262,7 +262,7 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
       {sortedConfigUI.map((configItem) => {
         const { collection, ui_type } = configItem;
 
-        if (import.meta.env.DEV && collection === 'accessories') {
+        if (process.env.NODE_ENV !== 'production' && collection === 'accessories') {
           console.log(`📦 Rendering accessories with ui_type: ${ui_type}`, configItem);
         }
 

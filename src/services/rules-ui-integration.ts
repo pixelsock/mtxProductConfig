@@ -86,20 +86,20 @@ export async function applyRulesComplete(
         : undefined,
     };
 
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log("⚙️ Evaluating rules for UI disabled options:", ruleContext);
       console.log(`⚙️ Found ${rules.length} rules to evaluate`);
     }
 
     // Process rules to find which options should be disabled
     for (const rule of rules) {
-      if (import.meta.env.DEV) {
+      if (process.env.NODE_ENV !== 'production') {
         console.log(`⚙️ Checking rule: "${rule.name}"`);
         console.log(`  Conditions:`, rule.if_this);
       }
 
       if (evaluateRuleConditions(rule, ruleContext)) {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(
             `✅ Rule "${rule.name}" MATCHED - extracting disabled options`,
           );
@@ -112,13 +112,13 @@ export async function applyRulesComplete(
           extractRuleActionsResults(actions, disabledOptions, setValues, imageOverrides);
         }
       } else {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(`❌ Rule "${rule.name}" did not match`);
         }
       }
     }
 
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       if (Object.keys(disabledOptions).length > 0) {
         console.log("⚙️ Rules disabled options:", disabledOptions);
       }
@@ -171,7 +171,7 @@ function extractRuleActionsResults(
       const verticalImageValue = (productActions.vertical_image as any)._eq;
       if (verticalImageValue) {
         imageOverrides.vertical_image = verticalImageValue;
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(`⚙️ Rule sets vertical_image = ${verticalImageValue}`);
         }
       }
@@ -180,7 +180,7 @@ function extractRuleActionsResults(
       const horizontalImageValue = (productActions.horizontal_image as any)._eq;
       if (horizontalImageValue) {
         imageOverrides.horizontal_image = horizontalImageValue;
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(`⚙️ Rule sets horizontal_image = ${horizontalImageValue}`);
         }
       }
@@ -215,7 +215,7 @@ function extractRuleActionsResults(
           // Rule sets a specific value - both SET the value AND disable alternatives
           const setValue = (value as any)._eq;
 
-          if (import.meta.env.DEV) {
+          if (process.env.NODE_ENV !== 'production') {
             console.log(
               `⚙️ Rule sets ${key} = ${setValue}, will set value and disable alternatives in ${collection}`,
             );
@@ -250,7 +250,7 @@ function extractRuleActionsResults(
           // Rule excludes a specific value - disable just that value
           const excludeValue = (value as any)._neq;
 
-          if (import.meta.env.DEV) {
+          if (process.env.NODE_ENV !== 'production') {
             console.log(
               `⚙️ Rule excludes ${key} = ${excludeValue}, will disable this option in ${collection}`,
             );
@@ -266,7 +266,7 @@ function extractRuleActionsResults(
           // Rule excludes multiple values - disable all values in the array
           const excludeValues = (value as any)._nin;
 
-          if (import.meta.env.DEV) {
+          if (process.env.NODE_ENV !== 'production') {
             console.log(
               `⚙️ Rule excludes ${key} NOT IN [${excludeValues.join(", ")}], will disable these options in ${collection}`,
             );

@@ -96,7 +96,7 @@ export async function validateCurrentSelections(
         (adjustedConfig as any)[field] = suggestedValue;
         hasAdjustments = true;
 
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(`🔄 Auto-adjusting ${field}: ${currentValue} → ${suggestedValue} (disabled)`);
         }
       }

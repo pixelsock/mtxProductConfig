@@ -181,7 +181,7 @@ export async function generateSku(
     // Fetch the SKU code order
     const skuOrder = await fetchSkuCodeOrder();
 
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log("🏷️ Starting SKU generation with base:", sku);
       console.log("📋 SKU order items:", skuOrder);
     }
@@ -197,7 +197,7 @@ export async function generateSku(
 
       // IMPORTANT: Skip frame_thicknesses as documented in CLAUDE.md
       if (tableName === "frame_thicknesses") {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(
             `⏭️  Skipping ${tableName} (encoded in product base SKU)`,
           );
@@ -208,7 +208,7 @@ export async function generateSku(
       // Find corresponding config field
       const configField = findConfigFieldForTable(tableName);
       if (!configField) {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.warn(`⚠️  No config field mapping for table: ${tableName}`);
         }
         continue;
@@ -217,7 +217,7 @@ export async function generateSku(
       // Get the selected ID from config
       const selectedId = config[configField];
       if (!selectedId || selectedId === "") {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(`⏭️  Skipping ${tableName}: no selection`);
         }
         continue;
@@ -233,11 +233,11 @@ export async function generateSku(
 
       if (optionSkuCode) {
         sku += `-${optionSkuCode}`;
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(`✅ Added ${tableName}: ${optionSkuCode} → ${sku}`);
         }
       } else {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.warn(
             `⚠️  No SKU code found for ${tableName} ID: ${selectedId}`,
           );
@@ -245,7 +245,7 @@ export async function generateSku(
       }
     }
 
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log("🏷️ Final SKU:", sku);
     }
 
