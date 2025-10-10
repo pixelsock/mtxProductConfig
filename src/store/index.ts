@@ -6,6 +6,8 @@
  * while providing centralized state management and performance optimizations.
  */
 
+'use client';
+
 import { create } from "zustand";
 import { devtools, subscribeWithSelector } from "zustand/middleware";
 import { useMemo } from "react";
@@ -28,7 +30,7 @@ export const useConfiguratorStore = create<ConfiguratorStore>()(
     })),
     {
       name: "MTX Product Configurator", // DevTools name
-      enabled: import.meta.env.DEV, // Only enable in development
+      enabled: process.env.NODE_ENV !== 'production', // Only enable in development
     },
   ),
 );

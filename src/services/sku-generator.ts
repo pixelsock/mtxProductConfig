@@ -121,10 +121,25 @@ function getOptionSkuCode(
     }
 
     // Generate custom size SKU code if not found in presets
-    // Format: width and height concatenated (e.g., 24.25 x 44 → "24.2544")
+    // For circular sizes (style contains "circle" OR equal sides), format is 00{diameter}
+    // Otherwise rectangular is width+height concatenated (e.g., 24.25 x 44 → "24.2544")
     if (config.width && config.height) {
       const width = config.width.toString();
       const height = config.height.toString();
+
+      // Determine circular via current mirror style name
+      const selectedMirrorStyle = productOptions.mirrorStyles?.find(
+        (ms: any) => ms.id?.toString() === (config as any).mirrorStyle
+      );
+      const isCircular = Boolean(
+        selectedMirrorStyle?.name &&
+        String(selectedMirrorStyle.name).toLowerCase().includes("circle")
+      );
+
+      if (isCircular || width === height) {
+        return `00${width}`; // diameter
+      }
+
       return `${width}${height}`;
     }
 
@@ -181,7 +196,7 @@ export async function generateSku(
     // Fetch the SKU code order
     const skuOrder = await fetchSkuCodeOrder();
 
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log("🏷️ Starting SKU generation with base:", sku);
       console.log("📋 SKU order items:", skuOrder);
     }
@@ -197,7 +212,7 @@ export async function generateSku(
 
       // IMPORTANT: Skip frame_thicknesses as documented in CLAUDE.md
       if (tableName === "frame_thicknesses") {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(
             `⏭️  Skipping ${tableName} (encoded in product base SKU)`,
           );
@@ -208,7 +223,7 @@ export async function generateSku(
       // Find corresponding config field
       const configField = findConfigFieldForTable(tableName);
       if (!configField) {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.warn(`⚠️  No config field mapping for table: ${tableName}`);
         }
         continue;
@@ -217,7 +232,7 @@ export async function generateSku(
       // Get the selected ID from config
       const selectedId = config[configField];
       if (!selectedId || selectedId === "") {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(`⏭️  Skipping ${tableName}: no selection`);
         }
         continue;
@@ -233,11 +248,11 @@ export async function generateSku(
 
       if (optionSkuCode) {
         sku += `-${optionSkuCode}`;
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log(`✅ Added ${tableName}: ${optionSkuCode} → ${sku}`);
         }
       } else {
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.warn(
             `⚠️  No SKU code found for ${tableName} ID: ${selectedId}`,
           );
@@ -245,7 +260,7 @@ export async function generateSku(
       }
     }
 
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log("🏷️ Final SKU:", sku);
     }
 

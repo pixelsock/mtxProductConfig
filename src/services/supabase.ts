@@ -2,13 +2,11 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../../supabase';
 
 // Initialize Supabase client
-const resolvedSupabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL)
-  || process.env.VITE_SUPABASE_URL;
-const resolvedSupabaseKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY)
-  || process.env.VITE_SUPABASE_ANON_KEY;
+const resolvedSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const resolvedSupabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!resolvedSupabaseUrl || !resolvedSupabaseKey) {
-  throw new Error('Missing Supabase environment variables: set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+  throw new Error('Missing Supabase environment variables: set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
 }
 
 export const supabase = createClient<Database>(resolvedSupabaseUrl, resolvedSupabaseKey);

@@ -103,7 +103,7 @@ export function CurrentConfiguration({
   }, [config, currentProduct, getGeneratedSKU]);
 
   const incrementQuantity = () => {
-    onQuantityChange(Math.min(config.quantity + 1, 100));
+    onQuantityChange(Math.min(config.quantity + 1, 999));
   };
 
   const decrementQuantity = () => {
@@ -111,7 +111,7 @@ export function CurrentConfiguration({
   };
 
   const handleQuantityInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Math.max(1, Math.min(100, parseInt(e.target.value) || 1));
+    const value = Math.max(1, Math.min(999, parseInt(e.target.value) || 1));
     onQuantityChange(value);
   };
 
@@ -444,7 +444,7 @@ export function CurrentConfiguration({
             <div className="flex flex-col space-y-2">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Product SKU</span>
               <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 bg-muted/50 rounded-lg px-4 py-3 font-mono text-sm font-semibold text-foreground overflow-x-auto">
+                <div className="flex-1 bg-gray-100 rounded-lg px-4 py-3 font-mono text-sm font-semibold text-foreground overflow-x-auto">
                   {parseSkuSegments(generatedSku).map((segment, index) => (
                     <React.Fragment key={index}>
                       {index > 0 && <span className="text-muted-foreground mx-1">-</span>}
@@ -547,14 +547,14 @@ export function CurrentConfiguration({
               value={config.quantity}
               onChange={handleQuantityInputChange}
               min="1"
-              max="100"
+              max="999"
               className="w-14 text-center text-sm font-semibold h-8 bg-muted/50 border-border focus:bg-background transition-colors"
             />
             <Button
               variant="outline"
               size="icon"
               onClick={incrementQuantity}
-              disabled={config.quantity >= 100}
+              disabled={config.quantity >= 999}
               className="h-8 w-8 border-border hover:bg-muted/80 transition-colors"
             >
               <Plus className="w-3 h-3" />

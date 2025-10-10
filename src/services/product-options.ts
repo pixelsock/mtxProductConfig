@@ -278,6 +278,7 @@ export async function fetchProductLines(): Promise<ProductLine[]> {
   const { data, error } = await supabase
     .from('product_lines')
     .select('id, name, sku_code, active')
+    .eq('active', true)
     .order('sort', { ascending: true });
 
   if (error) {

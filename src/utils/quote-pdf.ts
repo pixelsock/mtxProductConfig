@@ -14,6 +14,7 @@ interface QuotePdfOptions {
   specifierInfo?: string
   preparedFor?: string
   generatedAt?: Date
+  logoUrl?: string
 }
 
 const PAGE_WIDTH = 612 // Letter width (pt)
@@ -70,6 +71,7 @@ export async function generateQuotePdf({
   specifierInfo,
   preparedFor,
   generatedAt = new Date(),
+  logoUrl,
 }: QuotePdfOptions): Promise<GeneratedQuotePdf> {
   if (!items.length) {
     throw new Error('At least one quote item is required to generate a PDF')
@@ -86,7 +88,7 @@ export async function generateQuotePdf({
   const titleSize = 22
   const titleWidth = boldFont.widthOfTextAtSize(title, titleSize)
 
-  // Header - title and company info
+  // Header - title on the right
   page.drawText(title, {
     x: PAGE_WIDTH - PAGE_MARGIN - titleWidth,
     y: cursorY,
@@ -95,24 +97,75 @@ export async function generateQuotePdf({
     color: rgb(0.15, 0.15, 0.15),
   })
 
-  ADDRESS_LINES.forEach((line, index) => {
-    const font = index === 0 ? boldFont : regularFont
-    const size = index === 0 ? 14 : 10
-    page.drawText(line, {
-      x: PAGE_MARGIN,
-      y: cursorY - index * 14,
-      font,
-      size,
-      color: rgb(0.12, 0.12, 0.12),
-    })
-  })
+  // Add logo in top-left corner, inline with title
+  let logoHeight = 0
+  if (logoUrl) {
+    try {
+      console.log('Fetching logo from:', logoUrl)
+      const logoResponse = await fetch(logoUrl)
 
-  const headerBlockHeight = 60
+      if (!logoResponse.ok) {
+        console.error('Failed to fetch logo:', logoResponse.status, logoResponse.statusText)
+        throw new Error(`Failed to fetch logo: ${logoResponse.status}`)
+      }
+
+      const logoBytes = await logoResponse.arrayBuffer()
+      console.log('Logo bytes length:', logoBytes.byteLength)
+
+      // Detect image type from magic numbers (file signature)
+      const byteArray = new Uint8Array(logoBytes)
+      console.log('First 8 bytes:', Array.from(byteArray.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' '))
+
+      let logoImage
+
+      // PNG signature: 89 50 4E 47 0D 0A 1A 0A
+      if (byteArray[0] === 0x89 && byteArray[1] === 0x50 && byteArray[2] === 0x4E && byteArray[3] === 0x47) {
+        console.log('Detected PNG format')
+        logoImage = await pdfDoc.embedPng(logoBytes)
+      }
+      // JPEG signature: FF D8 FF
+      else if (byteArray[0] === 0xFF && byteArray[1] === 0xD8 && byteArray[2] === 0xFF) {
+        console.log('Detected JPEG format')
+        logoImage = await pdfDoc.embedJpg(logoBytes)
+      }
+      // SVG signature: < or <?
+      else if (byteArray[0] === 0x3C) {
+        console.error('SVG format detected - not supported in PDF. Please use PNG or JPEG.')
+        throw new Error('SVG format not supported. Please use PNG or JPEG logo.')
+      }
+      else {
+        console.error('Unknown image format. First bytes:', Array.from(byteArray.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' '))
+        throw new Error('Unsupported image format. Please use PNG or JPEG.')
+      }
+
+      if (logoImage) {
+        // Size logo to match title height
+        const logoWidth = 100
+        const aspectRatio = logoImage.height / logoImage.width
+        logoHeight = logoWidth * aspectRatio
+
+        console.log('Embedding logo:', { logoWidth, logoHeight, aspectRatio })
+
+        // Position logo to align bottom with title baseline
+        page.drawImage(logoImage, {
+          x: PAGE_MARGIN,
+          y: cursorY - logoHeight + (titleSize * 0.2),
+          width: logoWidth,
+          height: logoHeight,
+        })
+      }
+    } catch (error) {
+      console.error('Failed to embed logo in PDF:', error)
+      // Continue without logo if it fails
+    }
+  }
+
+  const headerBlockHeight = Math.max(titleSize + 20, logoHeight + 20)
   cursorY -= headerBlockHeight
 
   // Quote metadata (left column)
   const metadataLeft = [
-    `Quote Number: ${quoteNumber}`,
+    `Custom Spec #: ${quoteNumber}`,
     `Project: ${projectName || '—'}`,
     `Specifier & Location: ${specifierInfo || '—'}`,
   ]
@@ -352,6 +405,12 @@ export async function generateQuotePdf({
     addPage,
   })
 
+  // Add footer to all pages
+  const pages = pdfDoc.getPages()
+  pages.forEach((p) => {
+    drawFooter(p, regularFont, boldFont)
+  })
+
   const pdfBytes = await pdfDoc.save()
   const blob = new Blob([pdfBytes], { type: 'application/pdf' })
   const objectUrl = URL.createObjectURL(blob)
@@ -549,4 +608,20 @@ function drawNotes({ page, cursorY, regularFont, addPage }: DrawNotesOptions): n
   })
 
   return cursorY
+}
+
+function drawFooter(page: PDFPage, regularFont: PDFFont, boldFont: PDFFont): void {
+  // Footer text as single line: "Matrix Mirrors | 6464 Warren Drive, Norcross, GA 30093"
+  const footerText = 'Matrix Mirrors | 6464 Warren Drive, Norcross, GA 30093'
+  const footerSize = 9
+  const footerWidth = regularFont.widthOfTextAtSize(footerText, footerSize)
+
+  // Center the footer at the bottom of the page
+  page.drawText(footerText, {
+    x: (PAGE_WIDTH - footerWidth) / 2,
+    y: PAGE_MARGIN / 2,
+    font: regularFont,
+    size: footerSize,
+    color: rgb(0.4, 0.4, 0.4),
+  })
 }

@@ -265,7 +265,7 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
       setCurrentProductLine(productLine);
       await resetConfiguration();
 
-      if (import.meta.env.DEV) {
+      if (process.env.NODE_ENV !== 'production') {
         console.log(`✓ Loaded product options for ${productLine.name}`);
       }
     } catch (error) {
@@ -311,7 +311,7 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
       while (!configStabilized && iteration < MAX_ITERATIONS) {
         iteration++;
 
-        if (import.meta.env.DEV && iteration > 1) {
+        if (process.env.NODE_ENV !== 'production' && iteration > 1) {
           console.log(`🔄 Iteration ${iteration}: Recomputing with adjusted config`);
         }
 
@@ -323,7 +323,7 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
           ? computeUnavailableOptions(availability.availableOptions, productOptions as any)
           : {};
 
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log('🔍 Product Availability:', {
             iteration,
             matchingProducts: availability.matchingProductCount,
@@ -351,7 +351,7 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
           }
         }
 
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log('⚙️ Merged Disabled Options:', mergedDisabled);
         }
 
@@ -361,7 +361,7 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
         // Step 3.5: Apply rule image overrides
         const { setRuleImageOverrides } = get();
         if (rulesResult.imageOverrides && (rulesResult.imageOverrides.vertical_image || rulesResult.imageOverrides.horizontal_image)) {
-          if (import.meta.env.DEV) {
+          if (process.env.NODE_ENV !== 'production') {
             console.log('⚙️ Applying rule image overrides:', rulesResult.imageOverrides);
           }
           setRuleImageOverrides(rulesResult.imageOverrides);
@@ -373,7 +373,7 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
         // Step 4: Apply rule-set values to configuration automatically
         let ruleChangedConfig = false;
         if (rulesResult.setValues && Object.keys(rulesResult.setValues).length > 0) {
-          if (import.meta.env.DEV) {
+          if (process.env.NODE_ENV !== 'production') {
             console.log('⚙️ Applying rule-set values to configuration:', rulesResult.setValues);
           }
 
@@ -398,14 +398,14 @@ export const createAPISlice = (set: StoreSet, get: StoreGet): APISlice => ({
           currentConfig = get().currentConfig!;
           configStabilized = false;
 
-          if (import.meta.env.DEV) {
+          if (process.env.NODE_ENV !== 'production') {
             console.log('🔄 Config changed, will iterate again');
           }
         } else {
           // Config is stable, we're done
           configStabilized = true;
 
-          if (import.meta.env.DEV) {
+          if (process.env.NODE_ENV !== 'production') {
             console.log('✅ Config stabilized after', iteration, 'iteration(s)');
           }
         }

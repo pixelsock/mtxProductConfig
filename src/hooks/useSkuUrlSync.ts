@@ -1,29 +1,26 @@
-import { useQueryState, parseAsString } from 'nuqs';
-import { useEffect, useRef } from 'react';
+'use client';
+
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useEffect, useRef, useCallback } from 'react';
 
 /**
- * Hook to sync SKU with URL query parameters using nuqs
+ * Hook to sync SKU with URL query parameters using Next.js built-in hooks
  *
- * Best practices from nuqs documentation:
- * - Use parseAsString for string values
- * - Use history: 'replace' to avoid polluting browser history
- * - Use shallow: true for client-side only updates
- * - Use throttleMs for built-in throttling
+ * Best practices:
+ * - Use router.replace() to avoid polluting browser history
+ * - Use shallow updates for client-side only changes
+ * - Throttle URL updates to avoid excessive history entries
  * - Handle URL as source of truth on mount
  */
 export function useSkuUrlSync() {
-  // Use nuqs with proper parser and options
-  const [skuParam, setSkuParam] = useQueryState(
-    'sku',
-    parseAsString.withOptions({
-      history: 'replace', // Don't clutter browser history
-      shallow: true, // Don't trigger server re-renders (client-side only)
-      throttleMs: 500, // Built-in throttling for URL updates
-    })
-  );
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
+  const skuParam = searchParams.get('sku');
   const isInitialMount = useRef(true);
   const initialSkuValue = useRef(skuParam);
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mark that we've moved past the initial mount
   useEffect(() => {
@@ -34,14 +31,42 @@ export function useSkuUrlSync() {
 
   /**
    * Update the URL with a new SKU
-   * Nuqs handles throttling automatically with throttleMs option
+   * Throttled to avoid excessive history entries
    */
-  const updateSkuInUrl = (newSku: string | null) => {
+  const updateSkuInUrl = useCallback((newSku: string | null) => {
     // Skip if trying to set the same value
     if (newSku === skuParam) return;
 
-    setSkuParam(newSku || null);
-  };
+    // Clear any pending updates
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+
+    // Throttle URL updates (500ms)
+    updateTimeoutRef.current = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (newSku) {
+        params.set('sku', newSku);
+      } else {
+        params.delete('sku');
+      }
+
+      const queryString = params.toString();
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+
+      router.replace(newUrl, { scroll: false });
+    }, 500);
+  }, [skuParam, searchParams, pathname, router]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+  }, []);
 
   /**
    * Get the current SKU from URL

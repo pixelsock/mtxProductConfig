@@ -70,7 +70,7 @@ export const OptionButton: React.FC<OptionButtonProps> = ({
       disabled={isDisabled}
       className={baseClasses}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div className="flex items-center space-x-3 flex-1">
           
           {/* Color indicator for color options */}

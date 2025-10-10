@@ -129,6 +129,11 @@ export interface CustomerInfo {
   email: string;
   company: string;
   phone: string;
+  projectLocation: string;
+  projectName: string;
+  desiredDeliveryDate: string;
+  specifier: string;
+  projectNotes: string;
 }
 
 // Configuration UI Type

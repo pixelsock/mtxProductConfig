@@ -29,7 +29,7 @@ function initializeConfigurator(containerId: string = 'product-configurator') {
 // Auto-initialize if container exists
 if (typeof window !== 'undefined') {
   // For development mode
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV !== 'production') {
     const container = document.getElementById('root')
     if (container) {
       const root = ReactDOM.createRoot(container)

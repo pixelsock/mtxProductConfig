@@ -44,7 +44,7 @@ export async function findBestMatchingProduct(criteria: ProductMatchCriteria): P
   try {
     const allProducts = await getProducts();
 
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log('🔍 Product Matcher: Starting search with criteria:', criteria);
       console.log('🔍 Product Matcher: Total products available:', allProducts.length);
 
@@ -90,7 +90,7 @@ export async function findBestMatchingProduct(criteria: ProductMatchCriteria): P
           productFrameThickness = p.frame_thickness;
         }
 
-        if (import.meta.env.DEV) {
+        if (process.env.NODE_ENV !== 'production') {
           console.log('🔍 Frame thickness comparison:', {
             productName: p.name,
             rawFrameThickness: p.frame_thickness,
@@ -110,13 +110,13 @@ export async function findBestMatchingProduct(criteria: ProductMatchCriteria): P
       return true;
     });
     
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log(`🔍 Product Matcher: Found ${candidates.length} matching products`);
     }
 
     // 5) Return first candidate if any
     const result = candidates[0] || null;
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       if (result) {
         console.log('✅ Product Matcher: Selected product:', {
           name: result.name,
