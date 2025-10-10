@@ -1,4 +1,4 @@
-import { ProductLine } from '../services/supabase';
+import type { ProductLine } from '../store/types';
 
 // Minimal shape we need from App's types
 export interface SimpleOption { id: number; name: string; sku_code: string; width?: number; height?: number }
@@ -70,7 +70,12 @@ function getSizeSkuCode(opts: SimpleOption[], width: string, height: string): st
     return preset.sku_code;
   }
 
-  // Generate custom size SKU code: width and height concatenated (e.g., 24.25 x 44 → "24.2544")
+  // Circular custom size: equal sides → 00{diameter}
+  if (String(width) === String(height)) {
+    return `00${width}`;
+  }
+
+  // Rectangular custom size: width and height concatenated (e.g., 24.25 x 44 → "24.2544")
   return `${width}${height}`;
 }
 

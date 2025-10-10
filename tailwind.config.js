@@ -8,6 +8,18 @@ export default {
   theme: {
   	extend: {
   		colors: {
+  			amber: {
+  				50: '#faf6f0',
+  				100: '#f5ede0',
+  				200: '#ead9bf',
+  				300: '#dfc59e',
+  				400: '#e6c07b',
+  				500: '#dca653',
+  				600: '#c68f3d',
+  				700: '#a0742f',
+  				800: '#7a5823',
+  				900: '#5c4319',
+  			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

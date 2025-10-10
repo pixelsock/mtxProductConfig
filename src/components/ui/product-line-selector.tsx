@@ -44,7 +44,7 @@ export function ProductLineSelector({
   }, [isLoading]);
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-2 w-full lg:w-auto">
       <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
         Product Line:
       </label>
@@ -54,7 +54,7 @@ export function ProductLineSelector({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[200px] justify-between bg-muted border-none hover:bg-muted/80"
+            className="w-full lg:w-[200px] justify-between bg-gray-100 border-none hover:bg-gray-200"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -71,7 +71,7 @@ export function ProductLineSelector({
             <ChevronsUpDown className="opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0">
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
           <Command>
             <CommandInput placeholder="Search product lines..." className="h-9" />
             <CommandList>

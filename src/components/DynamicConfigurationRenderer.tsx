@@ -137,7 +137,8 @@ const UITypeRenderers = {
     useCustomSize,
     setCustomSizeEnabled,
     onSizePresetSelect,
-    onConfigChange
+    onConfigChange,
+    isCircularStyle
   }: any) => (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -155,43 +156,74 @@ const UITypeRenderers = {
       </div>
 
       {useCustomSize ? (
-        // Custom size inputs
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label className="text-gray-700">Width (inches)</Label>
-            <div className="relative">
-              <Input
-                type="number"
-                step="0.25"
-                value={currentConfig.width}
-                onChange={(e) => onConfigChange("width", e.target.value)}
-                min="12"
-                max="120"
-                className="text-center text-lg font-medium h-12 bg-gray-50 border-gray-200"
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                in
+        // Custom size inputs - show Diameter when style is circular or dimensions are equal
+        (isCircularStyle || (
+          String(currentConfig.width) === String(currentConfig.height) &&
+          currentConfig.width &&
+          currentConfig.height
+        )) ? (
+          // Show single Diameter field for circular mirrors
+          <div className="max-w-xs">
+            <div className="space-y-2">
+              <Label className="text-gray-700">Diameter (inches)</Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  step="0.25"
+                  value={currentConfig.width}
+                  onChange={(e) => {
+                    onConfigChange("width", e.target.value);
+                    onConfigChange("height", e.target.value);
+                  }}
+                  min="12"
+                  max="120"
+                  className="text-center text-lg font-medium h-12 bg-gray-50 border-gray-200"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                  in
+                </div>
               </div>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label className="text-gray-700">Height (inches)</Label>
-            <div className="relative">
-              <Input
-                type="number"
-                step="0.25"
-                value={currentConfig.height}
-                onChange={(e) => onConfigChange("height", e.target.value)}
-                min="12"
-                max="120"
-                className="text-center text-lg font-medium h-12 bg-gray-50 border-gray-200"
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                in
+        ) : (
+          // Show Width × Height fields for rectangular mirrors or when starting fresh
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label className="text-gray-700">Width (inches)</Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  step="0.25"
+                  value={currentConfig.width}
+                  onChange={(e) => onConfigChange("width", e.target.value)}
+                  min="12"
+                  max="120"
+                  className="text-center text-lg font-medium h-12 bg-gray-50 border-gray-200"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                  in
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-700">Height (inches)</Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  step="0.25"
+                  value={currentConfig.height}
+                  onChange={(e) => onConfigChange("height", e.target.value)}
+                  min="12"
+                  max="120"
+                  className="text-center text-lg font-medium h-12 bg-gray-50 border-gray-200"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                  in
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )
       ) : (
         // Size presets using OptionButton with size variant
         <div className="grid grid-cols-2 gap-4">
@@ -238,7 +270,7 @@ const getCollectionTitle = (collection: string): string => {
          ).join(' ');
 };
 
-export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRendererProps> = ({
+  export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRendererProps> = ({
   configurationUI,
   onConfigChange,
   onSizePresetSelect,
@@ -252,7 +284,6 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
   const sortedConfigUI = useMemo(() => {
     return [...configurationUI].sort((a, b) => a.sort - b.sort);
   }, [configurationUI]);
-
   if (!currentConfig || !productOptions) {
     return null;
   }
@@ -292,6 +323,15 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
         // Get human-readable title
         const title = getCollectionTitle(collection);
 
+        // Determine if selected mirror style is circular (name contains "circle")
+        const selectedMirrorStyle = productOptions.mirrorStyles?.find(
+          (ms: any) => ms.id?.toString() === currentConfig.mirrorStyle
+        );
+        const isCircularStyle = Boolean(
+          selectedMirrorStyle?.name &&
+          String(selectedMirrorStyle.name).toLowerCase().includes("circle")
+        );
+
         // Render the UI component
         return (
           <div key={configItem.id}>
@@ -309,6 +349,7 @@ export const DynamicConfigurationRenderer: React.FC<DynamicConfigurationRenderer
               setCustomSizeEnabled={setCustomSizeEnabled}
               onSizePresetSelect={onSizePresetSelect}
               onConfigChange={onConfigChange}
+              isCircularStyle={isCircularStyle}
               columns={collection === 'mirror_styles' ? 2 : 1}
             />
           </div>

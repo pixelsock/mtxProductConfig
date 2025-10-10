@@ -213,7 +213,7 @@ export const createConfigurationSlice = (
           ...state,
           currentConfig: {
             ...state.currentConfig,
-            quantity: Math.min((state.currentConfig.quantity || 1) + 1, 100),
+            quantity: Math.min((state.currentConfig.quantity || 1) + 1, 999),
           },
         };
       });

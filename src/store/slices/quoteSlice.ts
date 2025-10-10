@@ -16,17 +16,44 @@ export const createQuoteSlice = (set: StoreSet, get: StoreGet): QuoteSlice => ({
     email: "",
     company: "",
     phone: "",
+    projectLocation: "",
+    projectName: "",
+    desiredDeliveryDate: "",
+    specifier: "",
+    projectNotes: "",
   },
 
   // Actions
   addToQuote: (config: ProductConfig) => {
-    set((state) => ({
-      ...state,
-      quoteItems: [
-        ...state.quoteItems,
-        config, // Use the config as-is, including the id that was passed in
-      ],
-    }));
+    set((state) => {
+      // Check if an item with the same SKU (id) already exists
+      const existingItemIndex = state.quoteItems.findIndex(
+        (item) => item.id === config.id
+      );
+
+      if (existingItemIndex !== -1) {
+        // If item exists, add quantities together
+        const updatedItems = [...state.quoteItems];
+        updatedItems[existingItemIndex] = {
+          ...updatedItems[existingItemIndex],
+          quantity: (updatedItems[existingItemIndex].quantity || 1) + (config.quantity || 1),
+        };
+
+        return {
+          ...state,
+          quoteItems: updatedItems,
+        };
+      } else {
+        // If item doesn't exist, add it to the quote
+        return {
+          ...state,
+          quoteItems: [
+            ...state.quoteItems,
+            config, // Use the config as-is, including the id that was passed in
+          ],
+        };
+      }
+    });
   },
 
   removeFromQuote: (configId: string) => {
@@ -79,6 +106,11 @@ export const createQuoteSlice = (set: StoreSet, get: StoreGet): QuoteSlice => ({
         email: "",
         company: "",
         phone: "",
+        projectLocation: "",
+        projectName: "",
+        desiredDeliveryDate: "",
+        specifier: "",
+        projectNotes: "",
       },
     }));
   },

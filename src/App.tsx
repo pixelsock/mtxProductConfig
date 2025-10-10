@@ -37,6 +37,15 @@ import { Badge } from "./components/ui/badge";
 import { Spinner } from "./components/ui/spinner";
 import { Skeleton } from "./components/ui/skeleton";
 import { Alert, AlertDescription } from "./components/ui/alert";
+import { Textarea } from "./components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./components/ui/dialog";
 import {
   Trash2,
   Plus,
@@ -50,6 +59,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  FileText,
 } from "lucide-react";
 
 // Import Dynamic Supabase service layer
@@ -68,6 +78,8 @@ import { DynamicConfigurationRenderer } from "./components/DynamicConfigurationR
 import { SkuSearchInput } from "./components/ui/sku-search-input";
 import { Sheet, SheetContent, SheetTitle } from "./components/ui/sheet";
 import { generateQuotePdf } from "./utils/quote-pdf";
+import { submitQuoteRequest } from "../app/actions/quote-actions";
+import { getLogoColorUrl } from "../app/actions/settings-actions";
 
 const App: React.FC = () => {
   // Zustand store state
@@ -98,6 +110,10 @@ const App: React.FC = () => {
   const [isSkuSearchOpen, setIsSkuSearchOpen] = useState(false);
   const [hasAppliedInitialSku, setHasAppliedInitialSku] = useState(false);
   const [isGeneratingQuotePdf, setIsGeneratingQuotePdf] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [quotePdfUrl, setQuotePdfUrl] = useState<string | null>(null);
+  const [showMobileProductPanel, setShowMobileProductPanel] = useState(false);
+  const [mobileImageIndex, setMobileImageIndex] = useState(0);
 
   // Get SKU generator from store
   const getGeneratedSKU = useConfiguratorStore((state) => state.getGeneratedSKU);
@@ -570,6 +586,15 @@ const App: React.FC = () => {
     let pdfResult: Awaited<ReturnType<typeof generateQuotePdf>> | null = null;
 
     try {
+      // Fetch logo from global settings
+      let logoUrl: string | undefined = undefined;
+      try {
+        const logoResult = await getLogoColorUrl();
+        logoUrl = logoResult.success ? logoResult.logoUrl : undefined;
+      } catch (logoError) {
+        console.warn("Failed to fetch logo, continuing without it:", logoError);
+      }
+
       pdfResult = await generateQuotePdf({
         items: quoteItems.map((config) => ({
           sku: config.id,
@@ -579,6 +604,7 @@ const App: React.FC = () => {
         })),
         quoteNumber,
         projectName: currentProductLine?.name ?? "Mirror Configurator",
+        logoUrl,
       });
 
       // Open PDF in a new tab
@@ -599,21 +625,90 @@ const App: React.FC = () => {
     }
   };
 
-  const submitQuote = () => {
-    // In a real app, this would send the quote to a server
-    const quoteData = {
-      items: quoteItems,
-      customerInfo,
-      productLine: currentProductLine?.name,
-    };
+  const submitQuote = async () => {
+    try {
+      // Set submitting state
+      const submitButton = document.querySelector('[data-submitting]');
+      if (submitButton) {
+        submitButton.setAttribute('disabled', 'true');
+      }
 
-    // Clear quote and customer info using store actions
-    clearQuote();
-    resetCustomerInfo();
-    setQuoteFormVisible(false);
+      // Fetch logo from global settings
+      let logoUrl: string | undefined = undefined;
+      try {
+        const logoResult = await getLogoColorUrl();
+        logoUrl = logoResult.success ? logoResult.logoUrl : undefined;
+      } catch (logoError) {
+        console.warn("Failed to fetch logo, continuing without it:", logoError);
+      }
 
-    console.log("Quote submitted:", quoteData);
-    alert("Your quote request has been submitted!");
+      // Generate PDF for the quote
+      const quoteNumber = `QT-${Date.now()}`;
+      const pdfResult = await generateQuotePdf({
+        items: quoteItems.map((item) => ({
+          sku: item.id || "",
+          description: getConfigDescription(item),
+          quantity: item.quantity || 1,
+        })),
+        quoteNumber,
+        projectName: customerInfo.projectName || "Quote Request",
+        specifierInfo: customerInfo.specifier || "N/A",
+        preparedFor: customerInfo.name,
+        currentDate: new Date().toLocaleDateString(),
+        logoUrl,
+      });
+
+      // Convert blob URL to base64 for server upload
+      const blobResponse = await fetch(pdfResult.objectUrl);
+      const blob = await blobResponse.blob();
+      const reader = new FileReader();
+
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const base64Pdf = await base64Promise;
+      const filename = `quote-${quoteNumber}.pdf`;
+
+      // Submit quote request to Supabase (uploads PDF and saves to DB)
+      const result = await submitQuoteRequest({
+        quoteItems,
+        customerInfo,
+        pdfBlob: base64Pdf,
+        filename,
+      });
+
+      if (result.success) {
+        // Store the Supabase storage URL (not blob URL) for download
+        setQuotePdfUrl(result.pdfUrl || pdfResult.objectUrl);
+        setShowSuccessDialog(true);
+
+        // Clear quote and customer info using store actions
+        clearQuote();
+        resetCustomerInfo();
+        setQuoteFormVisible(false);
+
+        // Cleanup blob URL immediately since we have the storage URL
+        pdfResult.cleanup();
+      } else {
+        console.error("Error submitting quote:", result.error);
+        alert(`Error submitting quote request: ${result.error}`);
+
+        // Cleanup PDF blob URL on error
+        pdfResult.cleanup();
+      }
+    } catch (error) {
+      console.error("Unexpected error submitting quote:", error);
+      alert("An unexpected error occurred while submitting your quote request.");
+    } finally {
+      // Re-enable submit button
+      const submitButton = document.querySelector('[data-submitting]');
+      if (submitButton) {
+        submitButton.removeAttribute('disabled');
+      }
+    }
   };
 
   const getConfigDescription = (config: ProductConfig) => {
@@ -628,6 +723,21 @@ const App: React.FC = () => {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDownloadQuote = () => {
+    if (quotePdfUrl) {
+      window.open(quotePdfUrl, "_blank");
+    }
+  };
+
+  const handleCloseSuccessDialog = () => {
+    setShowSuccessDialog(false);
+    // Cleanup PDF blob URL after dialog is closed
+    if (quotePdfUrl) {
+      URL.revokeObjectURL(quotePdfUrl);
+      setQuotePdfUrl(null);
+    }
   };
 
   // generateProductName moved to store computed values
@@ -686,13 +796,11 @@ const App: React.FC = () => {
       </Sheet>
 
       <nav className="border-b border-gray-200 bg-white sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="text-2xl font-bold tracking-tight">
-                Product Configurator
-              </div>
-              <div className="ml-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          {/* Mobile Layout */}
+          <div className="lg:hidden">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
                 <ProductLineSelector
                   productLines={availableProductLines}
                   selectedProductLine={currentProductLine}
@@ -700,16 +808,80 @@ const App: React.FC = () => {
                   isLoading={isLoadingProductLine}
                 />
               </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {quoteItems.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={downloadConfiguration}
+                    disabled={isGeneratingQuotePdf}
+                    className="border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                    title="Download Config"
+                  >
+                    {isGeneratingQuotePdf ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+                <Button
+                  onClick={() => setQuoteFormVisible(true)}
+                  disabled={quoteItems.length === 0}
+                  size="icon"
+                  className={`${
+                    quoteItems.length === 0
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed hover:bg-gray-300"
+                      : "bg-amber-500 hover:bg-amber-600 text-white"
+                  }`}
+                  title={`Request Quote (${quoteItems.length})`}
+                >
+                  <FileText className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setIsSkuSearchOpen(true)}
+                  className="border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                  title="Search by SKU"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden lg:flex items-center justify-between">
+            <ProductLineSelector
+              productLines={availableProductLines}
+              selectedProductLine={currentProductLine}
+              onProductLineChange={handleProductLineChange}
+              isLoading={isLoadingProductLine}
+            />
             <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => setIsSkuSearchOpen(true)}
-                className="flex items-center gap-2 border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
-              >
-                <Search className="h-4 w-4" />
-                Search by SKU
-              </Button>
+              {/* Show Download Config button when items are in quote */}
+              {quoteItems.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={downloadConfiguration}
+                  disabled={isGeneratingQuotePdf}
+                  className="flex items-center gap-2 border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                >
+                  {isGeneratingQuotePdf ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4" />
+                      Download Config
+                    </>
+                  )}
+                </Button>
+              )}
+              
               <Button
                 onClick={() => setQuoteFormVisible(true)}
                 disabled={quoteItems.length === 0}
@@ -721,6 +893,17 @@ const App: React.FC = () => {
               >
                 <ShoppingCart className="w-4 h-4 mr-2" />
                 Request Quote <span className="text-gray-700">({quoteItems.length})</span>
+              </Button>
+              
+              {/* Search icon button on far right */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsSkuSearchOpen(true)}
+                className="border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                title="Search by SKU"
+              >
+                <Search className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -738,11 +921,11 @@ const App: React.FC = () => {
       )}
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-11 gap-16 mt-[0px] mr-[0px] mb-[80px] ml-[0px]">
-          {/* Product Visualization - Sticky on Desktop */}
-          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start lg:col-span-5">
-            <div className="relative w-full aspect-square bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-11 gap-6 lg:gap-16 mt-[0px] mr-[0px] mb-[80px] ml-[0px]">
+          {/* Product Visualization - Hidden on mobile, Sticky on Desktop */}
+          <div className="hidden sm:block space-y-3 sm:space-y-4 lg:sticky lg:top-24 lg:self-start lg:col-span-4">
+            <div className="relative w-full aspect-square bg-white rounded-lg sm:rounded-xl shadow-sm overflow-hidden">
               {(() => {
                 // Get mounting option for image selection
                 const mountingOption = productOptions?.mountingOptions?.find(
@@ -825,9 +1008,9 @@ const App: React.FC = () => {
               })()}
             </div>
 
-            {/* Thumbnails */}
+            {/* Thumbnails - Hidden on mobile, visible on tablet+ */}
             {currentProduct && (
-              <div className="w-full">
+              <div className="w-full hidden sm:block">
                 {(() => {
                   const thumbs = getProductThumbnails(currentProduct);
                   console.log('🖼️ Thumbnail Debug:', {
@@ -859,7 +1042,7 @@ const App: React.FC = () => {
                                   key={url}
                                   type="button"
                                   onClick={() => { openLightbox(i); }}
-                                  className="shrink-0 w-20 h-20 rounded-lg bg-white border border-gray-200 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 overflow-hidden"
+                                  className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-white border border-gray-200 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 overflow-hidden"
                                   title="View image"
                                 >
                                   <img
@@ -1023,21 +1206,21 @@ const App: React.FC = () => {
                                 type="number"
                                 value={item.quantity || 1}
                                 onChange={(e) => {
-                                  const newQuantity = Math.max(1, Math.min(100, parseInt(e.target.value) || 1));
+                                  const newQuantity = Math.max(1, Math.min(999, parseInt(e.target.value) || 1));
                                   updateQuoteItemQuantity(item.id, newQuantity);
                                 }}
                                 min="1"
-                                max="100"
+                                max="999"
                                 className="w-16 text-center text-sm h-7"
                               />
                               <Button
                                 variant="outline"
                                 size="icon"
                                 onClick={() => {
-                                  const newQuantity = Math.min((item.quantity || 1) + 1, 100);
+                                  const newQuantity = Math.min((item.quantity || 1) + 1, 999);
                                   updateQuoteItemQuantity(item.id, newQuantity);
                                 }}
-                                disabled={(item.quantity || 1) >= 100}
+                                disabled={(item.quantity || 1) >= 999}
                                 className="h-7 w-7"
                               >
                                 <Plus className="w-3 h-3" />
@@ -1093,7 +1276,7 @@ const App: React.FC = () => {
           </div>
 
           {/* Product Information & Configuration */}
-          <div className="space-y-12 lg:col-span-6">
+          <div className="space-y-12 lg:col-span-7">
             {/* Product Header */}
             <div className="space-y-6">
               <div>
@@ -1124,14 +1307,16 @@ const App: React.FC = () => {
                 </div>
               )}
 
-              {/* Current Configuration Summary */}
+              {/* Current Configuration Summary - Hidden on mobile */}
               {currentConfig && productOptions && (
-                <CurrentConfiguration
-                  config={currentConfig}
-                  productOptions={productOptions}
-                  onQuantityChange={(quantity) => handleConfigChange("quantity", quantity)}
-                  onAddToQuote={addToQuoteLocal}
-                />
+                <div className="hidden sm:block">
+                  <CurrentConfiguration
+                    config={currentConfig}
+                    productOptions={productOptions}
+                    onQuantityChange={(quantity) => handleConfigChange("quantity", quantity)}
+                    onAddToQuote={addToQuoteLocal}
+                  />
+                </div>
               )}
             </div>
 
@@ -1149,7 +1334,7 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Floating Configuration Bar */}
+      {/* Floating Configuration Bar with Product Preview */}
       {showFloatingBar && currentConfig && (
         <div
           className={`fixed bottom-0 left-0 right-0 z-50 transform transition-all duration-500 ease-out ${
@@ -1157,39 +1342,46 @@ const App: React.FC = () => {
           }`}
         >
           <div className="bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-2xl">
-            <div className="max-w-7xl mx-auto px-6 py-4">
-              <div className="flex items-center justify-between">
-                {/* Left side - Configuration summary */}
-                <div className="flex items-center space-x-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+              <div className="flex items-center justify-between gap-4">
+                {/* Left side - Product preview and summary */}
+                <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                  {/* Product thumbnail preview - Mobile only */}
+                  {(() => {
+                    const mountingOption = productOptions?.mountingOptions?.find(
+                      (mo: ProductOption) => mo.id.toString() === currentConfig?.mounting
+                    ) as MountingOption | undefined;
+                    const imageSelection = selectProductImage(currentProduct, mountingOption, ruleImageOverrides);
+                    const imageUrl = imageSelection.primaryImage;
+                    
+                    return imageUrl ? (
+                      <button
+                        onClick={() => setShowMobileProductPanel(true)}
+                        className="sm:hidden shrink-0 w-12 h-12 rounded-lg bg-white border border-gray-200 overflow-hidden hover:border-gray-400 transition-colors"
+                        title="View product details"
+                      >
+                        <img
+                          src={imageUrl}
+                          alt="Product preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ) : null;
+                  })()}
+                  
                   <button
                     onClick={scrollToTop}
-                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                    className="hidden sm:flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors shrink-0"
                   >
                     <ChevronUp className="w-4 h-4" />
                     <span className="text-sm font-medium">View Details</span>
                   </button>
 
-                  <div className="hidden sm:flex items-center space-x-4 text-sm">
-                    <span className="font-medium text-gray-900">
-                      {currentConfig.width}" × {currentConfig.height}"
-                    </span>
-                    <span className="text-gray-600">
-                      {productOptions.frameColors.find(
-                        (c) => c.id.toString() === currentConfig.frameColor
-                      )?.name}
-                    </span>
-                    <span className="text-gray-600">
-                      {productOptions.lightingOptions.find(
-                        (l) => l.id.toString() === currentConfig.lighting
-                      )?.name}
-                    </span>
+                  <div className="flex items-center gap-2 sm:gap-4 text-sm min-w-0">
                     {generatedSku && (
-                      <>
-                        <span className="text-gray-400">•</span>
-                        <span className="font-mono text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded">
-                          {generatedSku}
-                        </span>
-                      </>
+                      <span className="font-mono text-xs text-gray-700 bg-gray-100 px-2 py-1 rounded truncate">
+                        {generatedSku}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -1229,6 +1421,117 @@ const App: React.FC = () => {
                   </Button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Product Panel - Slides up from bottom */}
+      {showMobileProductPanel && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-50 sm:hidden"
+          onClick={() => setShowMobileProductPanel(false)}
+        >
+          <div 
+            className="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Handle bar */}
+            <div className="sticky top-0 bg-white pt-3 pb-2 px-4 border-b border-gray-200 z-10">
+              <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-3"></div>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Product Details</h3>
+                <button
+                  onClick={() => setShowMobileProductPanel(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <ChevronUp className="w-5 h-5 rotate-180" />
+                </button>
+              </div>
+            </div>
+
+            {/* Swipeable Image Gallery */}
+            <div className="p-4">
+              {(() => {
+                const mountingOption = productOptions?.mountingOptions?.find(
+                  (mo: ProductOption) => mo.id.toString() === currentConfig?.mounting
+                ) as MountingOption | undefined;
+                const imageSelection = selectProductImage(currentProduct, mountingOption, ruleImageOverrides);
+                const primaryImage = imageSelection.primaryImage;
+                const additionalImages = getProductThumbnails(currentProduct);
+                
+                // Combine primary image with additional images
+                const allImages = primaryImage ? [primaryImage, ...additionalImages] : additionalImages;
+                
+                if (allImages.length === 0) return null;
+
+                const currentImage = allImages[mobileImageIndex] || allImages[0];
+                
+                return (
+                  <div className="space-y-3">
+                    {/* Main Image with swipe */}
+                    <div className="relative w-full aspect-square bg-white rounded-xl shadow-sm overflow-hidden">
+                      <img
+                        src={currentImage}
+                        alt={`Product image ${mobileImageIndex + 1}`}
+                        className="w-full h-full object-contain"
+                      />
+                      
+                      {/* Navigation arrows */}
+                      {allImages.length > 1 && (
+                        <>
+                          <button
+                            onClick={() => setMobileImageIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1))}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:bg-white transition-colors"
+                          >
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => setMobileImageIndex((prev) => (prev < allImages.length - 1 ? prev + 1 : 0))}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center hover:bg-white transition-colors"
+                          >
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                        </>
+                      )}
+                      
+                      {/* Image counter */}
+                      {allImages.length > 1 && (
+                        <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+                          {mobileImageIndex + 1} / {allImages.length}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Thumbnail dots */}
+                    {allImages.length > 1 && (
+                      <div className="flex justify-center gap-2">
+                        {allImages.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setMobileImageIndex(index)}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              index === mobileImageIndex ? 'bg-gray-900 w-6' : 'bg-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Current Configuration Card */}
+              {currentConfig && productOptions && (
+                <div className="mt-6">
+                  <CurrentConfiguration
+                    config={currentConfig}
+                    productOptions={productOptions}
+                    onQuantityChange={(quantity) => handleConfigChange("quantity", quantity)}
+                    onAddToQuote={addToQuoteLocal}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1334,6 +1637,75 @@ const App: React.FC = () => {
                           className="bg-gray-50 border-gray-200"
                         />
                       </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="projectLocation" className="text-gray-700">
+                          Project Location
+                        </Label>
+                        <Input
+                          id="projectLocation"
+                          placeholder="State, ZIP (ex: NC, 28021)"
+                          value={customerInfo.projectLocation}
+                          onChange={(e) =>
+                            updateCustomerInfo('projectLocation', e.target.value)
+                          }
+                          className="bg-gray-50 border-gray-200"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="projectName" className="text-gray-700">
+                          Project Name
+                        </Label>
+                        <Input
+                          id="projectName"
+                          value={customerInfo.projectName}
+                          onChange={(e) =>
+                            updateCustomerInfo('projectName', e.target.value)
+                          }
+                          className="bg-gray-50 border-gray-200"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="desiredDeliveryDate" className="text-gray-700">
+                          Desired Delivery Date
+                        </Label>
+                        <Input
+                          id="desiredDeliveryDate"
+                          value={customerInfo.desiredDeliveryDate}
+                          onChange={(e) =>
+                            updateCustomerInfo('desiredDeliveryDate', e.target.value)
+                          }
+                          className="bg-gray-50 border-gray-200"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="specifier" className="text-gray-700">
+                          Specifier
+                        </Label>
+                        <Input
+                          id="specifier"
+                          value={customerInfo.specifier}
+                          onChange={(e) =>
+                            updateCustomerInfo('specifier', e.target.value)
+                          }
+                          className="bg-gray-50 border-gray-200"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Project Notes - Full Width */}
+                    <div className="space-y-2 mt-6">
+                      <Label htmlFor="projectNotes" className="text-gray-700">
+                        Project Notes
+                      </Label>
+                      <Textarea
+                        id="projectNotes"
+                        value={customerInfo.projectNotes}
+                        onChange={(e) =>
+                          updateCustomerInfo('projectNotes', e.target.value)
+                        }
+                        className="bg-gray-50 border-gray-200 min-h-[100px]"
+                        placeholder="Enter any additional project details..."
+                      />
                     </div>
                   </div>
 
@@ -1345,6 +1717,7 @@ const App: React.FC = () => {
                       onClick={submitQuote}
                       disabled={!customerInfo.name || !customerInfo.email}
                       className="bg-amber-500 hover:bg-amber-600 text-white"
+                      data-submitting
                     >
                       <Send className="w-4 h-4 mr-2" />
                       Submit Quote Request
@@ -1359,6 +1732,34 @@ const App: React.FC = () => {
 
       {/* Environment Indicator */}
       <EnvironmentIndicator />
+
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={handleCloseSuccessDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Quote Request Submitted!</DialogTitle>
+            <DialogDescription>
+              Your quote request has been successfully submitted. Download your configuration PDF below.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCloseSuccessDialog}
+            >
+              Close
+            </Button>
+            <Button
+              type="button"
+              onClick={handleDownloadQuote}
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              Download Configuration
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

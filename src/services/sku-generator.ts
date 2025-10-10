@@ -121,10 +121,25 @@ function getOptionSkuCode(
     }
 
     // Generate custom size SKU code if not found in presets
-    // Format: width and height concatenated (e.g., 24.25 x 44 → "24.2544")
+    // For circular sizes (style contains "circle" OR equal sides), format is 00{diameter}
+    // Otherwise rectangular is width+height concatenated (e.g., 24.25 x 44 → "24.2544")
     if (config.width && config.height) {
       const width = config.width.toString();
       const height = config.height.toString();
+
+      // Determine circular via current mirror style name
+      const selectedMirrorStyle = productOptions.mirrorStyles?.find(
+        (ms: any) => ms.id?.toString() === (config as any).mirrorStyle
+      );
+      const isCircular = Boolean(
+        selectedMirrorStyle?.name &&
+        String(selectedMirrorStyle.name).toLowerCase().includes("circle")
+      );
+
+      if (isCircular || width === height) {
+        return `00${width}`; // diameter
+      }
+
       return `${width}${height}`;
     }
 
