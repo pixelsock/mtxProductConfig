@@ -1,6 +1,7 @@
 'use server';
 
 import { CustomerInfo, ProductConfig } from '@/store/types';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
 interface QuoteSubmissionData {
   quoteItems: ProductConfig[];
