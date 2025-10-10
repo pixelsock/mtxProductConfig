@@ -21,12 +21,10 @@ const nextConfig: NextConfig = {
   },
 
   // Turbopack configuration (when using --turbopack flag)
-  experimental: {
-    turbo: {
-      resolveAlias: {
-        canvas: { browser: false },
-        encoding: { browser: false },
-      },
+  turbopack: {
+    resolveAlias: {
+      canvas: false,
+      encoding: false,
     },
   },
 
