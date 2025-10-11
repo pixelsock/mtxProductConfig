@@ -1,15 +1,30 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../supabase';
 
-// Initialize Supabase client
-const resolvedSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const resolvedSupabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Lazy initialization - client is created when first accessed at runtime
+let supabaseInstance: SupabaseClient<Database> | null = null;
 
-if (!resolvedSupabaseUrl || !resolvedSupabaseKey) {
-  throw new Error('Missing Supabase environment variables: set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+function getSupabaseClient(): SupabaseClient<Database> {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
+
+  const resolvedSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const resolvedSupabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!resolvedSupabaseUrl || !resolvedSupabaseKey) {
+    throw new Error('Missing Supabase environment variables: set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  }
+
+  supabaseInstance = createClient<Database>(resolvedSupabaseUrl, resolvedSupabaseKey);
+  return supabaseInstance;
 }
 
-export const supabase = createClient<Database>(resolvedSupabaseUrl, resolvedSupabaseKey);
+export const supabase = new Proxy({} as SupabaseClient<Database>, {
+  get(target, prop) {
+    return (getSupabaseClient() as any)[prop];
+  }
+});
 
 // Get the UI configuration
 export async function getConfigurationUi() {
