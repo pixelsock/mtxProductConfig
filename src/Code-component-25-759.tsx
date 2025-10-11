@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { projectId, publicAnonKey } from './utils/supabase/info';
 
 export function SchemaValidator() {
-  const [schema, setSchema] = useState(null);
+  const [schema, setSchema] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSchema = async () => {
@@ -32,7 +32,7 @@ export function SchemaValidator() {
         setSchema(data);
       } catch (err) {
         console.error('Failed to fetch schema:', err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
       }
@@ -87,7 +87,7 @@ export function SchemaValidator() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {schema.schema.map((column, index) => (
+                    {schema.schema.map((column: any, index: number) => (
                       <tr key={index} className="hover:bg-gray-50">
                         <td className="px-4 py-3">{column.ordinal_position}</td>
                         <td className="px-4 py-3 font-mono text-blue-600">{column.column_name}</td>

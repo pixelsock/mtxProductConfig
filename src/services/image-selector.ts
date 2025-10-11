@@ -8,13 +8,11 @@ import type {
 type FileReference = string | SupabaseFileAsset | null | undefined;
 
 const resolvedDirectusUrl =
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DIRECTUS_URL) ||
-  process.env.VITE_DIRECTUS_URL ||
+  process.env.NEXT_PUBLIC_DIRECTUS_URL ||
   'https://pim.dude.digital';
 
 const resolvedAssetBase =
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DIRECTUS_ASSET_URL) ||
-  process.env.VITE_DIRECTUS_ASSET_URL ||
+  process.env.NEXT_PUBLIC_DIRECTUS_ASSET_URL ||
   `${resolvedDirectusUrl.replace(/\/$/, '')}/assets`;
 
 export interface ImageSelectionResult {

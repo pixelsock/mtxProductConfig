@@ -58,8 +58,8 @@ export class SupabaseSchemaIntrospector {
   private headers: Record<string, string>;
 
   constructor() {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (!supabaseUrl || !supabaseKey) {
       throw new Error('Supabase URL and anonymous key are required for schema introspection');

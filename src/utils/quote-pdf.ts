@@ -412,7 +412,7 @@ export async function generateQuotePdf({
   })
 
   const pdfBytes = await pdfDoc.save()
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+  const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' })
   const objectUrl = URL.createObjectURL(blob)
 
   const cleanup = () => {

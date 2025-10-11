@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabaseClient } from '../utils/supabase/client';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface ConfigurationOption {
   id: string;
@@ -45,12 +45,12 @@ export function useConfigurationData(): UseConfigurationDataReturn {
     try {
       console.log('Loading configuration options from sku_index...');
       const response = await supabaseClient.getConfigurationOptions();
-      
-      if (response.error) {
-        throw new Error(response.error);
+
+      if ((response as any).error) {
+        throw new Error((response as any).error);
       }
-      
-      setOptions(response.options);
+
+      setOptions(response.options as any);
       setTotalSkus(response.totalSkus || 0);
       
       console.log('Loaded configuration options:', {
@@ -73,9 +73,9 @@ export function useConfigurationData(): UseConfigurationDataReturn {
     try {
       console.log('Finding matching SKUs for configuration:', configuration);
       const response = await supabaseClient.findMatchingSKUs(configuration);
-      
-      if (response.error) {
-        console.error('Error finding matching SKUs:', response.error);
+
+      if ((response as any).error) {
+        console.error('Error finding matching SKUs:', (response as any).error);
         return [];
       }
       

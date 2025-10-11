@@ -611,7 +611,7 @@ export const createConfigurationSlice = (
 
       Object.entries(result.configuration).forEach(([field, value]) => {
         if (value !== undefined && value !== null) {
-          (mergedConfig as Record<string, unknown>)[field] = value;
+          (mergedConfig as unknown as Record<string, unknown>)[field] = value;
         }
       });
 

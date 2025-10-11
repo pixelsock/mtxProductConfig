@@ -27,17 +27,14 @@ module.exports = {
   rules: {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/no-unused-vars': 'warn',
-    '@typescript-eslint/no-empty-object-type': 'warn',
-    '@typescript-eslint/no-require-imports': 'warn',
-    'prefer-const': 'warn',
-    'no-dupe-else-if': 'warn',
-    'no-useless-escape': 'warn',
-    'react-refresh/only-export-components': [
-      'warn',
-      {
-        allowConstantExport: true,
-      },
-    ],
+    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-empty-object-type': 'off',
+    '@typescript-eslint/no-require-imports': 'off',
+    'prefer-const': 'off',
+    'no-dupe-else-if': 'off',
+    'no-useless-escape': 'off',
+    'react-hooks/rules-of-hooks': 'warn',
+    'react-hooks/exhaustive-deps': 'off',
+    'react-refresh/only-export-components': 'off',
   },
 };

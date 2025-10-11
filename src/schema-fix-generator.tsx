@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { projectId, publicAnonKey } from './utils/supabase/info';
 
 export function SchemaFixGenerator() {
-  const [schemas, setSchemas] = useState({});
+  const [schemas, setSchemas] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [fixes, setFixes] = useState('');
 
@@ -16,7 +16,7 @@ export function SchemaFixGenerator() {
     const fetchSchemasAndGenerateFixes = async () => {
       try {
         setLoading(true);
-        const allSchemas = {};
+        const allSchemas: Record<string, string[]> = {};
         
         for (const tableName of relatedTables) {
           try {
@@ -34,7 +34,7 @@ export function SchemaFixGenerator() {
             if (response.ok) {
               const data = await response.json();
               if (data.schema) {
-                allSchemas[tableName] = data.schema.map(col => col.column_name);
+                allSchemas[tableName] = data.schema.map((col: any) => col.column_name);
               }
             }
           } catch (error) {
@@ -54,11 +54,11 @@ export function SchemaFixGenerator() {
     fetchSchemasAndGenerateFixes();
   }, []);
 
-  const generateFixes = (allSchemas) => {
+  const generateFixes = (allSchemas: Record<string, string[]>) => {
     let fixCode = '// CORRECTED SERVER QUERIES BASED ON ACTUAL SCHEMA\n\n';
 
     // Generate safe SELECT clauses for each table
-    const generateSafeSelect = (tableName, foreignKeyName) => {
+    const generateSafeSelect = (tableName: string, foreignKeyName: string) => {
       const columns = allSchemas[tableName];
       if (!columns) return `${tableName}!${foreignKeyName} (id)`;
       

@@ -4,7 +4,7 @@
  * NO FALLBACK LOGIC - all logging is explicit and database-driven
  */
 
-import type { ConfigurationUI, ProductOptions } from '../store/types';
+import type { ConfigurationUIItem, ProductOptions } from '../store/types';
 import { validateComponentMappings } from './componentMapping';
 
 // Log levels for configuration warnings
@@ -70,7 +70,7 @@ class ConfigurationLogger {
 
     // Console warning in development
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(`[ConfigurationUI] ${code}: ${message}`, {
+      console.warn(`[ConfigurationUIItem] ${code}: ${message}`, {
         collection,
         ui_type,
       });
@@ -97,7 +97,7 @@ class ConfigurationLogger {
 
     // Console error in development
     if (process.env.NODE_ENV !== 'production') {
-      console.error(`[ConfigurationUI] ${code}: ${message}`, {
+      console.error(`[ConfigurationUIItem] ${code}: ${message}`, {
         collection,
         ui_type,
       });
@@ -124,7 +124,7 @@ class ConfigurationLogger {
 
     // Console info in development
     if (process.env.NODE_ENV !== 'production') {
-      console.info(`[ConfigurationUI] ${code}: ${message}`, {
+      console.info(`[ConfigurationUIItem] ${code}: ${message}`, {
         collection,
         ui_type,
       });
@@ -202,8 +202,8 @@ export const configurationLogger = new ConfigurationLogger();
 /**
  * Validate and log configuration_ui data issues
  */
-export function validateAndLogConfigurationUI(
-  configUI: ConfigurationUI[],
+export function validateAndLogConfigurationUIItem(
+  configUI: ConfigurationUIItem[],
   productOptions: ProductOptions
 ): void {
   // Validate component mappings

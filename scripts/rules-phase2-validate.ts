@@ -138,7 +138,7 @@ async function main() {
       throw new Error(`Failed to load rules for validation: ${rulesError?.message ?? 'unknown error'}`);
     }
 
-    const { buildRuleConstraints } = await import('../src/services/rules-engine.ts');
+    const { buildRuleConstraints } = await import('../src/services/rules-engine');
 
     console.log('== Validating constraints for product_line=18, mirror_style=21 ==');
     const constraints = buildRuleConstraints(rules as any, { product_line: 18, mirror_style: 21 });

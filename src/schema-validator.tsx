@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { projectId, publicAnonKey } from './utils/supabase/info';
 
 export function SchemaValidator() {
-  const [schemas, setSchemas] = useState({});
+  const [schemas, setSchemas] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [currentTable, setCurrentTable] = useState(0);
 
   const relatedTables = [
@@ -17,7 +17,7 @@ export function SchemaValidator() {
     const fetchAllSchemas = async () => {
       try {
         setLoading(true);
-        const allSchemas = {};
+        const allSchemas: Record<string, any> = {};
         
         for (let i = 0; i < relatedTables.length; i++) {
           const tableName = relatedTables[i];
@@ -45,7 +45,7 @@ export function SchemaValidator() {
             console.log(`✅ ${tableName}: ${data.schema?.length || 0} columns`);
           } catch (tableError) {
             console.error(`❌ Failed to fetch ${tableName} schema:`, tableError);
-            allSchemas[tableName] = { error: tableError.message, tableName };
+            allSchemas[tableName] = { error: tableError instanceof Error ? tableError.message : String(tableError), tableName };
           }
           
           // Small delay to avoid overwhelming the server
@@ -55,7 +55,7 @@ export function SchemaValidator() {
         setSchemas(allSchemas);
       } catch (err) {
         console.error('Failed to fetch schemas:', err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : String(err));
       } finally {
         setLoading(false);
       }
@@ -152,7 +152,7 @@ export function SchemaValidator() {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  {tableSchema.schema?.map(col => (
+                  {tableSchema.schema?.map((col: any) => (
                     <span key={col.column_name} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                       {col.column_name}
                     </span>
@@ -172,7 +172,7 @@ export function SchemaValidator() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {tableSchema.schema.map((column, index) => (
+                      {tableSchema.schema.map((column: any, index: number) => (
                         <tr key={index} className="hover:bg-gray-50">
                           <td className="px-4 py-3 font-mono text-blue-600">{column.column_name}</td>
                           <td className="px-4 py-3 font-mono text-purple-600">{column.data_type}</td>

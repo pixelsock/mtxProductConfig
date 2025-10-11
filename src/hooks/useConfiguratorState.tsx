@@ -5,9 +5,24 @@ import type {
   DynamicConfigurationOptions,
   ProductLineContext
 } from '../utils/supabase/directClientSimplified'
-import { COLLECTION_MAPPINGS } from '../types/database'
-import type { CollectionKey } from '../types/database'
 import { filterOptions } from '../utils/configurator/engine'
+
+// Define collection key type inline
+type CollectionKey = string;
+
+// Define collection mappings inline (minimal subset needed)
+const COLLECTION_MAPPINGS: Record<string, { column: string }> = {
+  mirror_styles: { column: 'mirrorStyle' },
+  light_directions: { column: 'lighting' },
+  frame_thicknesses: { column: 'frameThickness' },
+  frame_colors: { column: 'frameColor' },
+  mounting_options: { column: 'mounting' },
+  drivers: { column: 'driver' },
+  light_outputs: { column: 'lightOutput' },
+  color_temperatures: { column: 'colorTemperature' },
+  accessories: { column: 'accessories' },
+  sizes: { column: 'size' },
+};
 
 export interface ConfiguratorState {
   // Product selection

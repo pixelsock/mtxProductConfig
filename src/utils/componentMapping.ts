@@ -4,7 +4,7 @@
  * NO FALLBACK LOGIC - all mappings must be explicitly defined in database
  */
 
-import type { ConfigurationUI, ProductOptions, ProductConfig } from '../store/types';
+import type { ConfigurationUIItem, ProductOptions, ProductConfig } from '../store/types';
 
 // UI Type mappings from configuration_ui.ui_type
 export type UIType = 'button_grid' | 'color_picker' | 'preset_buttons' | 'single';
@@ -116,7 +116,7 @@ function generateDescription(collection: string, optionsCount: number): string {
  * NO FALLBACK LOGIC - throws error if mapping not found
  */
 export function mapConfigurationUIToComponent(
-  configUI: ConfigurationUI,
+  configUI: ConfigurationUIItem,
   productOptions: ProductOptions
 ): ComponentConfig {
   const { collection, ui_type } = configUI;
@@ -162,7 +162,7 @@ export function mapConfigurationUIToComponent(
  * Sort configuration_ui records by sort field ascending
  * Handles malformed sort values defensively
  */
-export function sortConfigurationUIBySortField(configUI: ConfigurationUI[]): ConfigurationUI[] {
+export function sortConfigurationUIBySortField(configUI: ConfigurationUIItem[]): ConfigurationUIItem[] {
   return [...configUI].sort((a, b) => {
     // Handle malformed or missing sort values
     const sortA = (typeof a.sort === 'number' && !isNaN(a.sort)) ? a.sort : 999999;
@@ -181,10 +181,10 @@ export function sortConfigurationUIBySortField(configUI: ConfigurationUI[]): Con
  * Filter configuration_ui to only include collections that exist in product line default options
  */
 export function filterAvailableCollections(
-  configUI: ConfigurationUI[],
+  configUI: ConfigurationUIItem[],
   productOptions: ProductOptions,
   currentProductLine?: any
-): ConfigurationUI[] {
+): ConfigurationUIItem[] {
   return configUI.filter(config => {
     // Defensive programming: handle null/empty collection names
     if (!config.collection || config.collection.trim() === '') {
@@ -241,7 +241,7 @@ export function filterAvailableCollections(
  * NO FALLBACK LOGIC - all components must be defined in database
  */
 export function buildOrderedComponentConfigs(
-  configUI: ConfigurationUI[],
+  configUI: ConfigurationUIItem[],
   productOptions: ProductOptions,
   currentProductLine?: any
 ): ComponentConfig[] {
@@ -261,7 +261,7 @@ export function buildOrderedComponentConfigs(
  * Validate component mapping integrity
  * Checks that all required mappings exist for given configuration_ui data
  */
-export function validateComponentMappings(configUI: ConfigurationUI[]): {
+export function validateComponentMappings(configUI: ConfigurationUIItem[]): {
   isValid: boolean;
   errors: string[];
 } {

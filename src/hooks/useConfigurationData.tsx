@@ -2,13 +2,6 @@ import { useState, useEffect } from 'react';
 import { supabaseClient } from '../utils/supabase/client';
 import { simplifiedDirectSupabaseClient } from '../utils/supabase/directClientSimplified';
 import { toast } from 'sonner';
-import { 
-  ConfiguratorProductLine, 
-  ConfiguratorOption, 
-  ConfigurationState,
-  ConfigurationUIItem,
-  ProcessedRule 
-} from '../types/database';
 
 // Legacy interface for backward compatibility
 interface LegacyConfigurationOption {
@@ -44,22 +37,22 @@ interface PaginationState {
 
 interface UseConfigurationDataReturn {
   options: LegacyConfigurationOptions | null;
-  productLines: ConfiguratorProductLine[];
+  productLines: any[];
   loading: boolean;
   productLinesLoading: boolean;
   error: string | null;
   totalSkus: number;
   selectedProductLine: string | null;
   pagination: PaginationState;
-  configurationUI: ConfigurationUIItem[];
-  rules: ProcessedRule[];
-  defaultOptions: Record<string, ConfiguratorOption[]>;
+  configurationUI: any[];
+  rules: any[];
+  defaultOptions: Record<string, any[]>;
   remainingSkuCount: number;
   refreshOptions: () => Promise<void>;
   refreshProductLines: () => Promise<void>;
   setSelectedProductLine: (productLine: string | null) => void;
-  loadOptionsForProductLine: (productLine: string | null, selections?: ConfigurationState) => Promise<void>;
-  findMatchingSKUs: (configuration: ConfigurationState) => Promise<any[]>;
+  loadOptionsForProductLine: (productLine: string | null, selections?: any) => Promise<void>;
+  findMatchingSKUs: (configuration: any) => Promise<any[]>;
   setPage: (page: number) => void;
   setPageSize: (pageSize: number) => void;
   clearCache: () => void;
@@ -68,15 +61,15 @@ interface UseConfigurationDataReturn {
 
 export function useConfigurationData(): UseConfigurationDataReturn {
   const [options, setOptions] = useState<LegacyConfigurationOptions | null>(null);
-  const [productLines, setProductLines] = useState<ConfiguratorProductLine[]>([]);
+  const [productLines, setProductLines] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [productLinesLoading, setProductLinesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalSkus, setTotalSkus] = useState(0);
   const [selectedProductLine, setSelectedProductLine] = useState<string | null>(null);
-  const [configurationUI, setConfigurationUI] = useState<ConfigurationUIItem[]>([]);
-  const [rules, setRules] = useState<ProcessedRule[]>([]);
-  const [defaultOptions, setDefaultOptions] = useState<Record<string, ConfiguratorOption[]>>({});
+  const [configurationUI, setConfigurationUI] = useState<any[]>([]);
+  const [rules, setRules] = useState<any[]>([]);
+  const [defaultOptions, setDefaultOptions] = useState<Record<string, any[]>>({});
   const [remainingSkuCount, setRemainingSkuCount] = useState(0);
   const [pagination, setPagination] = useState<PaginationState>({
     currentPage: 1,
@@ -145,7 +138,7 @@ export function useConfigurationData(): UseConfigurationDataReturn {
       console.log(`Loading dynamic configuration options for product line: ${productLine}...`, { selections });
       const response = await simplifiedDirectSupabaseClient.getDynamicConfigurationOptions(productLine, selections);
       
-      setOptions(response.options);
+      setOptions(response.options as any);
       setTotalSkus(response.totalSkus || 0);
       setConfigurationUI(response.configurationUI || []);
       setRules(response.rules || []);

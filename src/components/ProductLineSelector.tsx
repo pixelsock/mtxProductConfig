@@ -41,9 +41,9 @@ export const ProductLineSelector: React.FC<ProductLineSelectorProps> = ({
       
       console.log('🏢 Loading product lines...')
       const response = await simplifiedDirectSupabaseClient.getProductLines()
-      
+
       console.log('✅ Product lines loaded:', response.productLines.length)
-      setProductLines(response.productLines)
+      setProductLines(response.productLines as any)
       
     } catch (err) {
       console.error('❌ Error loading product lines:', err)

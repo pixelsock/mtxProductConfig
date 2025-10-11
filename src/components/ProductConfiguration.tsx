@@ -12,7 +12,7 @@ import { PaginationControls } from './ui/pagination-controls';
 import { Plus, Loader2, Database, AlertCircle, Trash2, BarChart3 } from 'lucide-react';
 import { emptyConfigurationOptions } from '../hooks/useConfigurationData';
 import { buildOrderedComponentConfigs, validateComponentMappings } from '../utils/componentMapping';
-import type { ConfigurationUI, ProductOptions } from '../store/types';
+import type { ConfigurationUIItem, ProductOptions } from '../store/types';
 
 interface PaginationState {
   currentPage: number;
@@ -27,7 +27,7 @@ interface ProductConfigurationProps {
   onUpdateConfiguration: (key: string, value: any) => void;
   onAddToQuote: () => void;
   configurationOptions?: any;
-  configurationUI?: ConfigurationUI[];
+  configurationUI?: ConfigurationUIItem[];
   matchingSKUs?: any[];
   isLoadingOptions?: boolean;
   optionsError?: string | null;
@@ -102,6 +102,7 @@ export function ProductConfiguration({
         drivers: options.drivers || [],
         accessoryOptions: options.accessories || [],
         sizes: options.sizes || [],
+        hangingTechniques: options.hangingTechniques || [],
       };
 
       const configs = buildOrderedComponentConfigs(configurationUI, productOptions);
@@ -121,7 +122,7 @@ export function ProductConfiguration({
     if (!value || !options) return 'Not selected';
     
     const fieldOptions = options[fieldName] || [];
-    const selectedOption = fieldOptions.find(opt => opt.value === value || opt.id === value);
+    const selectedOption = fieldOptions.find((opt: any) => opt.value === value || opt.id === value);
     return selectedOption ? selectedOption.label : value;
   };
 
@@ -316,7 +317,7 @@ export function ProductConfiguration({
                   key={componentConfig.collection}
                   title={componentConfig.title}
                   description={componentConfig.description}
-                  type={componentConfig.type}
+                  type={componentConfig.type as "single" | "grid" | "colors"}
                   options={optionsData.map(opt => ({
                     id: opt.id,
                     name: opt.label,

@@ -2,8 +2,8 @@
 // This version uses fetch instead of curl for browser compatibility
 
 // Environment configuration
-const DIRECTUS_URL = import.meta.env.VITE_DIRECTUS_URL || 'https://pim.dude.digital';
-const API_KEY = import.meta.env.VITE_DIRECTUS_API_KEY || 'SatmtC2cTo-k-V17usWeYpBcc6hbtXjC';
+const DIRECTUS_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://pim.dude.digital';
+const API_KEY = process.env.NEXT_PUBLIC_DIRECTUS_API_KEY || 'SatmtC2cTo-k-V17usWeYpBcc6hbtXjC';
 
 export interface ValidationResult {
   success: boolean;

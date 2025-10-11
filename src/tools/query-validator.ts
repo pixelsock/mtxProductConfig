@@ -142,7 +142,7 @@ export class GraphQLQueryValidator {
       result.isValid = result.errors.length === 0;
 
     } catch (error) {
-      result.errors.push(`Query parsing failed: ${error.message}`);
+      result.errors.push(`Query parsing failed: ${error instanceof Error ? error.message : String(error)}`);
       result.isValid = false;
     }
 

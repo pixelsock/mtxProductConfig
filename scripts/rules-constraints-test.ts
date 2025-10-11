@@ -1,4 +1,4 @@
-import { buildRuleConstraints, applyConstraintsToIds } from '../src/services/rules-engine.ts';
+import { buildRuleConstraints, applyConstraintsToIds } from '../src/services/rules-engine';
 
 function serialize(obj: any) {
   return JSON.stringify(obj, (k, v) => v instanceof Set ? Array.from(v) : v, 2);

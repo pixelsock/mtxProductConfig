@@ -4,10 +4,9 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   // Webflow Cloud configuration
-  // If your app is mounted at a path (e.g., /app), set basePath and assetPrefix to that path
-  // For root mounting, leave as empty string
-  basePath: '',
-  assetPrefix: '',
+  // App is mounted at /config on Webflow Cloud
+  basePath: '/config',
+  assetPrefix: '/config',
 
   // Image optimization config
   images: {

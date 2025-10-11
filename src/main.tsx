@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { NuqsAdapter } from 'nuqs/adapters/react'
-import App from './App.tsx'
+import App from './App'
 import './styles/globals.css'
 import { initializeEnvironment } from './utils/environment'
 

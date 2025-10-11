@@ -468,7 +468,8 @@ export class SimplifiedDirectSupabaseClient {
         accessory_id,
         frame_color_id,
         hanging_technique_id,
-        frame_thickness_id
+        frame_thickness_id,
+        created_at
       `)
       .eq('product_line_id', productLineId)
 
@@ -542,7 +543,7 @@ export class SimplifiedDirectSupabaseClient {
       }
 
       // Group by collection
-      const overrides: Record<string, number[]> = {}
+      const overrides = {} as Record<string, number[]>
 
       (data || []).forEach((row: any) => {
         if (!row.collection || !row.item) return

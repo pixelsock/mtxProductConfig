@@ -1,43 +1,46 @@
 import React from 'react';
-import { ProductLine } from '../../services/supabase';
 import { buildFullSku, CurrentConfigLike, SimpleOptions } from '../../utils/sku-builder';
 import { processRules } from '../../services/rules-engine';
 
 interface SkuDisplayProps {
   config: CurrentConfigLike | null;
   options: SimpleOptions | null;
-  productLine: ProductLine | null;
+  productLine: any | null;
 }
 
 export const SkuDisplay: React.FC<SkuDisplayProps> = ({ config, options, productLine }) => {
-  if (!config || !options || !productLine) return null;
-
-  // Build a minimal numeric context for rule evaluation
-  const toNum = (v?: string) => (v ? parseInt(v, 10) : undefined);
-  const mirrorStyleId = toNum(config.mirrorStyle);
-  const lightDirectionId = toNum(config.lighting);
-  const frameThicknessId = toNum(config.frameThickness);
-  const driverId = toNum(config.driver);
-  const frameColorId = toNum(config.frameColor);
-  const mountingId = toNum(config.mounting);
-  const accessoriesIds = Array.isArray(config.accessories) ? config.accessories.map(a => parseInt(a, 10)).filter(n => Number.isFinite(n)) : [];
-
-  const rulesContext: any = {
-    product_line: config.productLineId,
-    mirror_style: mirrorStyleId,
-    light_direction: lightDirectionId,
-    frame_thickness: frameThicknessId,
-    mirror_control: toNum(config.mirrorControls),
-    frame_color: frameColorId,
-    mounting: mountingId,
-    driver: driverId,
-    accessories: accessoriesIds,
-  };
-
-  // Evaluate rules to get overrides like product_line_sku_code or accessory_sku_code
-  // Note: processRules is async; for simplicity in this small component, we render once without overrides and then update on resolve
+  // Hooks must be called unconditionally before any early returns
   const [computedSku, setComputedSku] = React.useState<string>('');
+
   React.useEffect(() => {
+    if (!config || !options || !productLine) {
+      setComputedSku('');
+      return;
+    }
+
+    // Build a minimal numeric context for rule evaluation
+    const toNum = (v?: string) => (v ? parseInt(v, 10) : undefined);
+    const mirrorStyleId = toNum(config.mirrorStyle);
+    const lightDirectionId = toNum(config.lighting);
+    const frameThicknessId = toNum(config.frameThickness);
+    const driverId = toNum(config.driver);
+    const frameColorId = toNum(config.frameColor);
+    const mountingId = toNum(config.mounting);
+    const accessoriesIds = Array.isArray(config.accessories) ? config.accessories.map(a => parseInt(a, 10)).filter(n => Number.isFinite(n)) : [];
+
+    const rulesContext: any = {
+      product_line: config.productLineId,
+      mirror_style: mirrorStyleId,
+      light_direction: lightDirectionId,
+      frame_thickness: frameThicknessId,
+      mirror_control: toNum(config.mirrorControls),
+      frame_color: frameColorId,
+      mounting: mountingId,
+      driver: driverId,
+      accessories: accessoriesIds,
+    };
+
+    // Evaluate rules to get overrides like product_line_sku_code or accessory_sku_code
     let cancelled = false;
     (async () => {
       try {
@@ -85,6 +88,8 @@ export const SkuDisplay: React.FC<SkuDisplayProps> = ({ config, options, product
     })();
     return () => { cancelled = true; };
   }, [config, options, productLine]);
+
+  if (!config || !options || !productLine) return null;
 
   return (
     <div className="text-center">

@@ -284,7 +284,7 @@ function extractRuleActionsResults(
       }
     } else if (value && typeof value === "object") {
       // Recurse into nested objects
-      extractRuleActionsResults(value, disabledOptions, setValues, [
+      extractRuleActionsResults(value, disabledOptions, setValues, imageOverrides, [
         ...path,
         key,
       ]);

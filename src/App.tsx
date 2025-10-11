@@ -590,7 +590,7 @@ const App: React.FC = () => {
       let logoUrl: string | undefined = undefined;
       try {
         const logoResult = await getLogoColorUrl();
-        logoUrl = logoResult.success ? logoResult.logoUrl : undefined;
+        logoUrl = logoResult.success && logoResult.logoUrl ? logoResult.logoUrl : undefined;
       } catch (logoError) {
         console.warn("Failed to fetch logo, continuing without it:", logoError);
       }
@@ -637,7 +637,7 @@ const App: React.FC = () => {
       let logoUrl: string | undefined = undefined;
       try {
         const logoResult = await getLogoColorUrl();
-        logoUrl = logoResult.success ? logoResult.logoUrl : undefined;
+        logoUrl = logoResult.success && logoResult.logoUrl ? logoResult.logoUrl : undefined;
       } catch (logoError) {
         console.warn("Failed to fetch logo, continuing without it:", logoError);
       }
@@ -654,7 +654,7 @@ const App: React.FC = () => {
         projectName: customerInfo.projectName || "Quote Request",
         specifierInfo: customerInfo.specifier || "N/A",
         preparedFor: customerInfo.name,
-        currentDate: new Date().toLocaleDateString(),
+        generatedAt: new Date(),
         logoUrl,
       });
 

@@ -141,7 +141,7 @@ function buildAiNarrative(result: SkuSearchResult, fullSku: string): string {
   return `${summary} Clicking 'Apply configuration' will adjust your SKU search to the closest possible match.`;
 }
 
-export function SkuSearchInput({ onApplied, onClose, isOpen }: SkuSearchInputProps): JSX.Element {
+export function SkuSearchInput({ onApplied, onClose, isOpen }: SkuSearchInputProps): React.ReactElement {
   const { skuSearchQuery, skuSearchResults, isSearchingSku, skuSearchError } =
     useSkuSearchState();
   const { searchBySku, applySkuResult, clearSkuSearch } = useSkuSearchActions();

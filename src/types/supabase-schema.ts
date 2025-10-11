@@ -86,7 +86,7 @@ export interface ConfigurationImages {
   image?: string;
   name?: string;
   z_index?: number;
-  directus_files?: directus_files;
+  directus_files?: any;
 }
 
 export type ConfigurationImagesCollection = GraphQLCollectionResponse<ConfigurationImages>;
@@ -147,7 +147,7 @@ export interface LightDirections {
   sort?: number;
   sku_code?: string;
   webflow_id?: string;
-  productsCollection?: productsConnection;
+  productsCollection?: ProductsConnection;
 }
 
 export type LightDirectionsCollection = GraphQLCollectionResponse<LightDirections>;
@@ -194,8 +194,8 @@ export interface MirrorStyles {
   svg_code?: Record<string, any>;
   webflow_id?: string;
   installation_guide?: string;
-  directus_files?: directus_files;
-  productsCollection?: productsConnection;
+  directus_files?: any;
+  productsCollection?: ProductsConnection;
 }
 
 export type MirrorStylesCollection = GraphQLCollectionResponse<MirrorStyles>;
@@ -221,14 +221,14 @@ export interface ProductLines {
   nodeId: string;
   id: number;
   sort?: number;
-  date_updated?: Datetime;
+  date_updated?: string;
   image?: string;
   description?: string;
   name?: string;
   sku_code?: string;
-  directus_files?: directus_files;
-  product_lines_default_optionsCollection?: product_lines_default_optionsConnection;
-  productsCollection?: productsConnection;
+  directus_files?: any;
+  product_lines_default_optionsCollection?: ProductLinesDefaultOptionsConnection;
+  productsCollection?: ProductsConnection;
 }
 
 export type ProductLinesCollection = GraphQLCollectionResponse<ProductLines>;
@@ -241,7 +241,7 @@ export interface ProductLinesDefaultOptions {
   product_lines_id?: number;
   item?: string;
   collection?: string;
-  product_lines?: product_lines;
+  product_lines?: ProductLines;
 }
 
 export type ProductLinesDefaultOptionsCollection = GraphQLCollectionResponse<ProductLinesDefaultOptions>;
@@ -264,15 +264,10 @@ export interface Products {
   virtical_image?: string;
   horizontal_image?: string;
   product_line?: number;
-  directus_files?: directus_files;
-  directus_files?: directus_files;
-  light_directions?: light_directions;
-  mirror_styles?: mirror_styles;
-  product_lines?: product_lines;
-  directus_files?: directus_files;
-  directus_files?: directus_files;
-  directus_files?: directus_files;
-  products_options_overridesCollection?: products_options_overridesConnection;
+  light_directions?: LightDirections;
+  mirror_styles?: MirrorStyles;
+  product_lines?: ProductLines;
+  products_options_overridesCollection?: ProductsOptionsOverridesConnection;
 }
 
 export type ProductsCollection = GraphQLCollectionResponse<Products>;
@@ -285,7 +280,7 @@ export interface ProductsOptionsOverrides {
   products_id?: number;
   item?: string;
   collection?: string;
-  products?: products;
+  products?: Products;
 }
 
 export type ProductsOptionsOverridesCollection = GraphQLCollectionResponse<ProductsOptionsOverrides>;

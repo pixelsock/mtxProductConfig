@@ -5353,3 +5353,67 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+// Collection mappings for configurator
+export const COLLECTION_MAPPINGS: Record<string, { column: string; table: string; fields: string[] }> = {
+  mirror_styles: {
+    column: 'mirrorStyle',
+    table: 'mirror_styles',
+    fields: ['id', 'name', 'sku_code', 'active', 'sort']
+  },
+  light_directions: {
+    column: 'lighting',
+    table: 'light_directions',
+    fields: ['id', 'name', 'sku_code', 'active', 'sort']
+  },
+  frame_thicknesses: {
+    column: 'frameThickness',
+    table: 'frame_thicknesses',
+    fields: ['id', 'name', 'sku_code', 'active', 'sort']
+  },
+  frame_colors: {
+    column: 'frameColor',
+    table: 'frame_colors',
+    fields: ['id', 'name', 'sku_code', 'active', 'sort', 'hex_code']
+  },
+  mounting_options: {
+    column: 'mounting',
+    table: 'mounting_options',
+    fields: ['id', 'name', 'sku_code', 'active', 'sort']
+  },
+  drivers: {
+    column: 'driver',
+    table: 'drivers',
+    fields: ['id', 'name', 'sku_code', 'active', 'sort']
+  },
+  light_outputs: {
+    column: 'lightOutput',
+    table: 'light_outputs',
+    fields: ['id', 'name', 'sku_code', 'active', 'sort']
+  },
+  color_temperatures: {
+    column: 'colorTemperature',
+    table: 'color_temperatures',
+    fields: ['id', 'name', 'sku_code', 'active', 'sort']
+  },
+  accessories: {
+    column: 'accessories',
+    table: 'accessories',
+    fields: ['id', 'name', 'sku_code', 'active', 'sort']
+  },
+  sizes: {
+    column: 'size',
+    table: 'sizes',
+    fields: ['id', 'name', 'sku_code', 'active', 'sort', 'width', 'height']
+  },
+};
+
+export type CollectionKey = keyof typeof COLLECTION_MAPPINGS;
+
+export type ConfiguratorOption = {
+  id: number;
+  name: string | null;
+  sku_code: string | null;
+  active: boolean | null;
+  sort: number | null;
+};
