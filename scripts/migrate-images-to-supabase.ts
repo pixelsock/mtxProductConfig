@@ -84,9 +84,11 @@ function getExtensionFromMimeType(mimeType: string): string {
  */
 function getFileExtension(file: DirectusFile): string {
   // Try to extract from filename_disk first
-  const match = file.filename_disk.match(/\.([^.]+)$/);
-  if (match) {
-    return `.${match[1]}`;
+  if (file.filename_disk) {
+    const match = file.filename_disk.match(/\.([^.]+)$/);
+    if (match) {
+      return `.${match[1]}`;
+    }
   }
 
   // Fall back to MIME type
