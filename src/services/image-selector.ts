@@ -231,8 +231,10 @@ export function constructProductAssetUrl(reference: FileReference): string | nul
       else if (type === 'image/png') extension = '.png';
       else if (type === 'image/avif') extension = '.avif';
     }
+  } else if (typeof reference === 'string') {
+    id = reference;
   } else {
-    id = typeof reference === 'string' ? reference : reference?.id || '';
+    id = '';
   }
 
   if (!id) {
