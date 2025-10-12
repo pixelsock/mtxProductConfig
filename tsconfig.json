@@ -23,5 +23,16 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "src/supabase/functions", "src/test"]
+  "exclude": [
+    "node_modules",
+    "src/supabase/functions",
+    "src/test",
+    ".next",
+    ".open-next",
+    "dist",
+    "archive",
+    "vite.config.ts.old",
+    "**/*.backup",
+    "**/Code-component-*.tsx"
+  ]
 }

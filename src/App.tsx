@@ -334,11 +334,62 @@ const App: React.FC = () => {
     // Only include additional images (NOT the primary vertical/horizontal images)
     if (Array.isArray(product.additional_images)) {
       for (const item of product.additional_images) {
-        const file = (item as any)?.directus_files_id;
-        const url = constructProductAssetUrl(file);
-        if (url) pushUnique(url);
+        try {
+          const file = (item as any)?.directus_files_id;
+
+          // Skip if no file reference
+          if (!file) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('🖼️ Skipping additional_image item - no file reference:', { item });
+            }
+            continue;
+          }
+
+          // Validate file has an ID
+          const fileId = typeof file === 'string' ? file : file?.id;
+          if (!fileId) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.warn('🖼️ Skipping additional_image - file reference has no ID:', {
+                file,
+                fileType: typeof file,
+                hasId: 'id' in (file as object)
+              });
+            }
+            continue;
+          }
+
+          // Debug log in development
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('🖼️ Processing additional_image item:', {
+              fileId,
+              fileType: typeof file,
+              isString: typeof file === 'string'
+            });
+          }
+
+          const url = constructProductAssetUrl(file);
+          if (url) {
+            pushUnique(url);
+          } else {
+            if (process.env.NODE_ENV !== 'production') {
+              console.warn('🖼️ Failed to construct URL from valid file reference:', { file, fileId });
+            }
+          }
+        } catch (error) {
+          console.error('🖼️ Error processing additional_image item:', { item, error });
+        }
       }
     }
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🖼️ getProductThumbnails result:', {
+        productName: product.name,
+        additionalImagesCount: product.additional_images?.length || 0,
+        thumbnailsFound: urls.length,
+        thumbnailUrls: urls
+      });
+    }
+
     return urls;
   };
 
@@ -923,8 +974,8 @@ const App: React.FC = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-11 gap-6 lg:gap-16 mt-[0px] mr-[0px] mb-[80px] ml-[0px]">
-          {/* Product Visualization - Hidden on mobile, Sticky on Desktop */}
-          <div className="hidden sm:block space-y-3 sm:space-y-4 lg:sticky lg:top-24 lg:self-start lg:col-span-4">
+          {/* Product Visualization - Hidden below 1024px, Sticky on Desktop */}
+          <div className="hidden lg:block space-y-3 sm:space-y-4 lg:sticky lg:top-24 lg:self-start lg:col-span-4">
             <div className="relative w-full aspect-square bg-white rounded-lg sm:rounded-xl shadow-sm overflow-hidden">
               {(() => {
                 // Get mounting option for image selection
@@ -972,12 +1023,22 @@ const App: React.FC = () => {
                         }`}
                         onError={(e) => {
                           setIsImageLoading(false);
+                          const target = e.target as HTMLImageElement;
                           console.error('🖼️ Image Load Error:', {
                             imageUrl,
+                            actualSrc: target.src,
                             productName: currentProduct?.name,
                             orientation: imageSelection.orientation,
-                            error: e
+                            imageSelection,
+                            currentProduct,
+                            error: e.type
                           });
+                          // Try to fetch the URL to see what the actual error is
+                          if (imageUrl) {
+                            fetch(imageUrl, { method: 'HEAD' })
+                              .then(res => console.log('🖼️ Main image fetch test:', { imageUrl, status: res.status, ok: res.ok, headers: Object.fromEntries(res.headers.entries()) }))
+                              .catch(err => console.error('🖼️ Main image fetch failed:', { imageUrl, error: err.message }));
+                          }
                         }}
                         onLoad={() => {
                           setIsImageLoading(false);
@@ -1050,12 +1111,20 @@ const App: React.FC = () => {
                                     alt="Thumbnail"
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
                                       console.error('🖼️ Thumbnail Load Error:', {
                                         thumbnailUrl: url,
                                         thumbnailIndex: i,
                                         productName: currentProduct?.name,
-                                        error: e
+                                        actualSrc: target.src,
+                                        naturalWidth: target.naturalWidth,
+                                        naturalHeight: target.naturalHeight,
+                                        error: e.type
                                       });
+                                      // Try to fetch the URL to see what the actual error is
+                                      fetch(url, { method: 'HEAD' })
+                                        .then(res => console.log('🖼️ Fetch test result:', { url, status: res.status, ok: res.ok }))
+                                        .catch(err => console.error('🖼️ Fetch test failed:', { url, error: err.message }));
                                     }}
                                     onLoad={() => {
                                       console.log('🖼️ Thumbnail Loaded Successfully:', {
@@ -1307,9 +1376,9 @@ const App: React.FC = () => {
                 </div>
               )}
 
-              {/* Current Configuration Summary - Hidden on mobile */}
+              {/* Current Configuration Summary - Hidden below 1024px */}
               {currentConfig && productOptions && (
-                <div className="hidden sm:block">
+                <div className="hidden lg:block">
                   <CurrentConfiguration
                     config={currentConfig}
                     productOptions={productOptions}
@@ -1357,7 +1426,7 @@ const App: React.FC = () => {
                     return imageUrl ? (
                       <button
                         onClick={() => setShowMobileProductPanel(true)}
-                        className="sm:hidden shrink-0 w-12 h-12 rounded-lg bg-white border border-gray-200 overflow-hidden hover:border-gray-400 transition-colors"
+                        className="lg:hidden shrink-0 w-12 h-12 rounded-lg bg-white border border-gray-200 overflow-hidden hover:border-gray-400 transition-colors"
                         title="View product details"
                       >
                         <img
@@ -1371,7 +1440,7 @@ const App: React.FC = () => {
                   
                   <button
                     onClick={scrollToTop}
-                    className="hidden sm:flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors shrink-0"
+                    className="hidden lg:flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors shrink-0"
                   >
                     <ChevronUp className="w-4 h-4" />
                     <span className="text-sm font-medium">View Details</span>
@@ -1428,8 +1497,8 @@ const App: React.FC = () => {
 
       {/* Mobile Product Panel - Slides up from bottom */}
       {showMobileProductPanel && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-50 sm:hidden"
+        <div
+          className="fixed inset-0 bg-black/50 z-50 lg:hidden"
           onClick={() => setShowMobileProductPanel(false)}
         >
           <div 
@@ -1530,6 +1599,120 @@ const App: React.FC = () => {
                     onQuantityChange={(quantity) => handleConfigChange("quantity", quantity)}
                     onAddToQuote={addToQuoteLocal}
                   />
+                </div>
+              )}
+
+              {/* Current Quote Section */}
+              {quoteItems.length > 0 && (
+                <div className="mt-6 bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                    Current Quote ({quoteItems.length} items)
+                  </h4>
+                  <div className="space-y-3">
+                    {quoteItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-3 bg-white rounded border"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 space-y-2">
+                            {/* SKU - First line */}
+                            <div className="font-mono text-xs font-semibold text-gray-900">
+                              SKU: {item.id}
+                            </div>
+                            {/* Description - Second line */}
+                            <p className="text-sm text-gray-600">
+                              {getConfigDescription(item)}
+                            </p>
+                            {/* Quantity - Editable */}
+                            <div className="flex items-center space-x-2 pt-1">
+                              <Label htmlFor={`mobile-qty-${item.id}`} className="text-xs font-medium text-gray-600">
+                                Qty:
+                              </Label>
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => {
+                                    const newQuantity = Math.max((item.quantity || 1) - 1, 1);
+                                    updateQuoteItemQuantity(item.id, newQuantity);
+                                  }}
+                                  disabled={(item.quantity || 1) <= 1}
+                                  className="h-7 w-7"
+                                >
+                                  <Minus className="w-3 h-3" />
+                                </Button>
+                                <Input
+                                  id={`mobile-qty-${item.id}`}
+                                  type="number"
+                                  value={item.quantity || 1}
+                                  onChange={(e) => {
+                                    const newQuantity = Math.max(1, Math.min(999, parseInt(e.target.value) || 1));
+                                    updateQuoteItemQuantity(item.id, newQuantity);
+                                  }}
+                                  min="1"
+                                  max="999"
+                                  className="w-14 text-center text-xs h-7"
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => {
+                                    const newQuantity = Math.min((item.quantity || 1) + 1, 999);
+                                    updateQuoteItemQuantity(item.id, newQuantity);
+                                  }}
+                                  disabled={(item.quantity || 1) >= 999}
+                                  className="h-7 w-7"
+                                >
+                                  <Plus className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFromQuoteLocal(item.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-gray-200">
+                    <Button
+                      variant="outline"
+                      onClick={downloadConfiguration}
+                      disabled={isGeneratingQuotePdf || quoteItems.length === 0}
+                      className="w-full flex items-center justify-center space-x-2"
+                    >
+                      {isGeneratingQuotePdf ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Generating PDF...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-4 h-4" />
+                          <span>Download Config</span>
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowMobileProductPanel(false);
+                        setQuoteFormVisible(true);
+                      }}
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center space-x-2"
+                    >
+                      <Send className="w-4 h-4" />
+                      <span>Request Quote</span>
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
