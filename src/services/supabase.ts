@@ -50,6 +50,18 @@ const PRODUCT_FIELDS = `
     storage,
     type
   ),
+  spec_sheet_file:directus_files!products_spec_sheet_foreign(
+    id,
+    filename_disk,
+    storage,
+    type
+  ),
+  revit_file_file:directus_files!products_revit_file_foreign(
+    id,
+    filename_disk,
+    storage,
+    type
+  ),
   additional_images:products_files_1(
     id,
     directus_files_id:directus_files!products_files_1_directus_files_id_foreign(

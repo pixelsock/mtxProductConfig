@@ -54,7 +54,6 @@ interface DirectusFile {
 
 interface MigrationStats {
   total: number;
-  alreadyExists: number;
   downloaded: number;
   uploaded: number;
   failed: number;
@@ -75,6 +74,8 @@ function getExtensionFromMimeType(mimeType: string): string {
     'image/svg+xml': '.svg',
     'application/pdf': '.pdf',
     'application/json': '.json',
+    'application/octet-stream': '.rfa',
+    'application/x-revit': '.rfa',
   };
   return map[mimeType] || '';
 }
@@ -116,54 +117,77 @@ async function fileExistsInStorage(filename: string): Promise<boolean> {
 }
 
 /**
- * Download a file from Directus
+ * Download a file from Directus with retry logic
  */
-async function downloadFromDirectus(fileId: string): Promise<ArrayBuffer | null> {
+async function downloadFromDirectus(fileId: string, retries = 3): Promise<ArrayBuffer | null> {
   const url = `${DIRECTUS_URL}/assets/${fileId}`;
 
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Supabase-Migration-Script/1.0'
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Supabase-Migration-Script/1.0'
+        }
+      });
+
+      if (!response.ok) {
+        console.error(`   ❌ HTTP ${response.status} from Directus (attempt ${attempt}/${retries})`);
+        if (attempt < retries) {
+          const backoffMs = Math.pow(2, attempt - 1) * 1000;
+          console.log(`   ⏳ Retrying in ${backoffMs}ms...`);
+          await new Promise(resolve => setTimeout(resolve, backoffMs));
+          continue;
+        }
+        return null;
       }
-    });
 
-    if (!response.ok) {
-      console.error(`   ❌ HTTP ${response.status} from Directus`);
-      return null;
+      return await response.arrayBuffer();
+    } catch (error) {
+      console.error(`   ❌ Download failed (attempt ${attempt}/${retries}):`, error);
+      if (attempt < retries) {
+        const backoffMs = Math.pow(2, attempt - 1) * 1000;
+        console.log(`   ⏳ Retrying in ${backoffMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+      }
     }
-
-    return await response.arrayBuffer();
-  } catch (error) {
-    console.error(`   ❌ Download failed:`, error);
-    return null;
   }
+
+  return null;
 }
 
 /**
- * Upload a file to Supabase Storage
+ * Upload a file to Supabase Storage with retry logic
  */
 async function uploadToSupabase(
   filename: string,
   fileData: ArrayBuffer,
-  contentType: string
+  contentType: string,
+  retries = 3
 ): Promise<boolean> {
-  const { error } = await supabase
-    .storage
-    .from(STORAGE_BUCKET)
-    .upload(filename, fileData, {
-      contentType,
-      cacheControl: 'no-cache',
-      upsert: false
-    });
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const { error } = await supabase
+      .storage
+      .from(STORAGE_BUCKET)
+      .upload(filename, fileData, {
+        contentType,
+        cacheControl: 'public, max-age=31536000',
+        upsert: true
+      });
 
-  if (error) {
-    console.error(`   ❌ Upload failed: ${error.message}`);
-    return false;
+    if (!error) {
+      return true;
+    }
+
+    console.error(`   ❌ Upload failed (attempt ${attempt}/${retries}): ${error.message}`);
+    if (attempt < retries) {
+      const backoffMs = Math.pow(2, attempt - 1) * 1000;
+      console.log(`   ⏳ Retrying in ${backoffMs}ms...`);
+      await new Promise(resolve => setTimeout(resolve, backoffMs));
+    }
   }
 
-  return true;
+  return false;
 }
 
 /**
@@ -181,14 +205,6 @@ async function migrateFile(file: DirectusFile, stats: MigrationStats): Promise<v
   const filename = `${file.id}${extension}`;
   console.log(`\n📄 Processing: ${filename}`);
   console.log(`   Type: ${file.type}`);
-
-  // Check if already exists
-  const exists = await fileExistsInStorage(filename);
-  if (exists) {
-    console.log(`   ✅ Already exists in Supabase Storage`);
-    stats.alreadyExists++;
-    return;
-  }
 
   // Download from Directus
   console.log(`   ⬇️  Downloading from Directus...`);
@@ -275,7 +291,6 @@ async function migrate(options: {
 
   const stats: MigrationStats = {
     total: files.length,
-    alreadyExists: 0,
     downloaded: 0,
     uploaded: 0,
     failed: 0,
@@ -295,7 +310,6 @@ async function migrate(options: {
   console.log('📊 Migration Summary');
   console.log('='.repeat(50));
   console.log(`Total files processed:    ${stats.total}`);
-  console.log(`Already existed:          ${stats.alreadyExists}`);
   console.log(`Downloaded:               ${stats.downloaded}`);
   console.log(`Uploaded successfully:    ${stats.uploaded}`);
   console.log(`Failed:                   ${stats.failed}`);

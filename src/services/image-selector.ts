@@ -205,7 +205,10 @@ function getProductOrientationImage(
  * @returns Public URL or null if unavailable
  */
 export function constructProductAssetUrl(reference: FileReference): string | null {
-  if (!reference) return null;
+  if (!reference) {
+    logMissingAsset(reference, 'Reference is null or undefined');
+    return null;
+  }
 
   let id: string;
   let extension = '';
@@ -230,6 +233,12 @@ export function constructProductAssetUrl(reference: FileReference): string | nul
       else if (type === 'image/jpeg' || type === 'image/jpg') extension = '.jpg';
       else if (type === 'image/png') extension = '.png';
       else if (type === 'image/avif') extension = '.avif';
+      else if (type === 'application/pdf') extension = '.pdf';
+      else if (type === 'application/x-revit') extension = '.rfa';
+      else if (type === 'application/json') extension = '.json';
+      else if (type === 'application/octet-stream' && filenameDisk?.endsWith('.rfa')) {
+        extension = '.rfa';
+      }
     }
   } else if (typeof reference === 'string') {
     id = reference;
@@ -238,6 +247,7 @@ export function constructProductAssetUrl(reference: FileReference): string | nul
   }
 
   if (!id) {
+    logMissingAsset(reference, 'No ID found in reference');
     if (process.env.NODE_ENV !== 'production') {
       console.warn('🖼️ constructProductAssetUrl: No ID found in reference:', {
         reference,
@@ -311,4 +321,22 @@ export async function validateImageUrl(url: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Logs missing asset errors for monitoring
+ * @param reference File reference that failed
+ * @param context Additional context for debugging
+ */
+function logMissingAsset(reference: FileReference, context?: string) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.error('🚨 Missing Asset:', {
+      reference,
+      context,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // In production, you might want to send this to a logging service
+  // Example: sendToLoggingService({ type: 'missing_asset', reference, context });
 }
