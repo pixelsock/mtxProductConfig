@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { parseSkuSegments } from '@/services/sku-generator';
 import { useConfiguratorStore } from '@/store';
 import { constructProductAssetUrl } from '@/services/image-selector';
+import { downloadSpecSheet, downloadRevitFile, type FileMetadata } from '@/services/file-download';
 
 interface ProductOption {
   id: number;
@@ -74,6 +75,7 @@ export function CurrentConfiguration({
   const [isSkuCopied, setIsSkuCopied] = useState(false);
   const [isLinkCopied, setIsLinkCopied] = useState(false);
   const [isDownloadingSpec, setIsDownloadingSpec] = useState(false);
+  const [isDownloadingRevit, setIsDownloadingRevit] = useState(false);
   const getGeneratedSKU = useConfiguratorStore((state) => state.getGeneratedSKU);
   const currentProduct = useConfiguratorStore((state) => state.currentProduct);
 
@@ -194,6 +196,48 @@ export function CurrentConfiguration({
     );
   }, [config.accessories, productOptions.accessoryOptions]);
 
+  // Get file metadata from current product
+  const specSheetFile = useMemo(() => {
+    const product = currentProduct as any;
+    const fileRef = product?.spec_sheet_file ?? product?.spec_sheet ?? null;
+    
+    // If we have a file reference with metadata, use it; otherwise convert to basic metadata
+    if (fileRef && typeof fileRef === 'object' && fileRef.id) {
+      return {
+        id: fileRef.id,
+        filename_disk: fileRef.filename_disk,
+        filename_download: fileRef.filename_download,
+        title: fileRef.title,
+        description: fileRef.description,
+        type: fileRef.type || 'application/pdf',
+        storage: fileRef.storage || 'supabase'
+      } as FileMetadata;
+    }
+    
+    return null;
+  }, [currentProduct]);
+
+  const revitFile = useMemo(() => {
+    const product = currentProduct as any;
+    const fileRef = product?.revit_file_file ?? product?.revit_file ?? null;
+    
+    // If we have a file reference with metadata, use it; otherwise convert to basic metadata
+    if (fileRef && typeof fileRef === 'object' && fileRef.id) {
+      return {
+        id: fileRef.id,
+        filename_disk: fileRef.filename_disk,
+        filename_download: fileRef.filename_download,
+        title: fileRef.title,
+        description: fileRef.description,
+        type: fileRef.type || 'application/x-revit',
+        storage: fileRef.storage || 'supabase'
+      } as FileMetadata;
+    }
+    
+    return null;
+  }, [currentProduct]);
+
+  // Legacy URL resolution for fallback
   const resolveDocumentUrl = (reference: any): string | null => {
     if (!reference) {
       return null;
@@ -217,26 +261,48 @@ export function CurrentConfiguration({
   }, [currentProduct]);
 
   const handleDownloadSpecSheet = async () => {
-    if (!specSheetUrl) {
-      return;
-    }
-
+    setIsDownloadingSpec(true);
+    
     try {
-      setIsDownloadingSpec(true);
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      const anchor = document.createElement('a');
-      anchor.href = specSheetUrl;
-      anchor.target = '_blank';
-      anchor.rel = 'noopener noreferrer';
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
+      if (specSheetFile) {
+        // Use the enhanced download service with metadata
+        const productName = config.productLineName || 'Product';
+        await downloadSpecSheet(specSheetFile, productName);
+      } else if (specSheetUrl) {
+        // Fallback to opening URL directly
+        window.open(specSheetUrl, '_blank', 'noopener,noreferrer');
+      }
     } catch (error) {
-      console.error('Failed to open spec sheet:', error);
-      window.location.assign(specSheetUrl);
+      console.error('Error downloading spec sheet:', error);
+      // Fallback to URL if download service fails
+      if (specSheetUrl) {
+        window.open(specSheetUrl, '_blank', 'noopener,noreferrer');
+      }
     } finally {
       setIsDownloadingSpec(false);
+    }
+  };
+
+  const handleDownloadRevitFile = async () => {
+    setIsDownloadingRevit(true);
+    
+    try {
+      if (revitFile) {
+        // Use the enhanced download service with metadata
+        const productName = config.productLineName || 'Product';
+        await downloadRevitFile(revitFile, productName);
+      } else if (revitFileUrl) {
+        // Fallback to opening URL directly
+        window.open(revitFileUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      console.error('Error downloading Revit file:', error);
+      // Fallback to URL if download service fails
+      if (revitFileUrl) {
+        window.open(revitFileUrl, '_blank', 'noopener,noreferrer');
+      }
+    } finally {
+      setIsDownloadingRevit(false);
     }
   };
 
@@ -485,41 +551,51 @@ export function CurrentConfiguration({
           </div>
         )}
 
-        {(specSheetUrl || revitFileUrl) && (
+        {(specSheetFile || specSheetUrl || revitFile || revitFileUrl) && (
           <div className="pt-4 border-t border-border mt-4">
             <div className="flex flex-col space-y-3">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Product Resources</span>
               <div className="flex flex-wrap gap-3">
-                {specSheetUrl && (
+                {(specSheetFile || specSheetUrl) && (
                   <Button
                     variant="outline"
                     className="h-10 px-4 border-border hover:bg-muted/80 transition-colors"
                     onClick={handleDownloadSpecSheet}
                     disabled={isDownloadingSpec}
+                    title={specSheetFile?.title || 'Download spec sheet'}
                   >
                     {isDownloadingSpec ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Preparing PDF...
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Downloading...
                       </>
                     ) : (
                       <>
-                        <FileText className="w-4 h-4" />
+                        <FileText className="w-4 h-4 mr-2" />
                         Spec Sheet
                       </>
                     )}
                   </Button>
                 )}
-                {revitFileUrl && (
+                {(revitFile || revitFileUrl) && (
                   <Button
-                    asChild
                     variant="outline"
                     className="h-10 px-4 border-border hover:bg-muted/80 transition-colors"
+                    onClick={handleDownloadRevitFile}
+                    disabled={isDownloadingRevit}
+                    title={revitFile?.title || 'Download Revit file'}
                   >
-                    <a href={revitFileUrl} target="_blank" rel="noopener noreferrer">
-                      <Building2 className="w-4 h-4" />
-                      Revit File
-                    </a>
+                    {isDownloadingRevit ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Downloading...
+                      </>
+                    ) : (
+                      <>
+                        <Building2 className="w-4 h-4 mr-2" />
+                        Revit
+                      </>
+                    )}
                   </Button>
                 )}
               </div>
