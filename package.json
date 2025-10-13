@@ -20,7 +20,10 @@
     "validate-queries": "node scripts/validate-queries.js",
     "schema-workflow": "node scripts/schema-workflow.js",
     "schema:all": "node scripts/schema-workflow.js all",
-    "schema:watch": "node scripts/schema-workflow.js watch"
+    "schema:watch": "node scripts/schema-workflow.js watch",
+    "migrate:images": "tsx scripts/migrate-images-to-supabase.ts",
+    "migrate:images:dry-run": "tsx scripts/migrate-images-to-supabase.ts --dry-run",
+    "migrate:images:test": "tsx scripts/migrate-images-to-supabase.ts --limit 5"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",

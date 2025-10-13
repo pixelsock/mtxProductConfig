@@ -7,13 +7,31 @@ import type {
 
 type FileReference = string | SupabaseFileAsset | null | undefined;
 
-const resolvedDirectusUrl =
-  process.env.NEXT_PUBLIC_DIRECTUS_URL ||
-  'https://pim.dude.digital';
+// Hybrid asset loading: Try Supabase Storage first, fall back to Directus
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://akwhptzlqgtlcpzvcnjl.supabase.co';
+const storageBucket = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'directus-uploads';
+const directusUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://pim.dude.digital';
 
-const resolvedAssetBase =
-  process.env.NEXT_PUBLIC_DIRECTUS_ASSET_URL ||
-  `${resolvedDirectusUrl.replace(/\/$/, '')}/assets`;
+const supabaseAssetBase =
+  process.env.NEXT_PUBLIC_ASSET_BASE_URL ||
+  `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${storageBucket}`;
+
+const directusAssetBase = `${directusUrl.replace(/\/$/, '')}/assets`;
+
+// Log the asset base URLs in development
+if (process.env.NODE_ENV !== 'production') {
+  console.log('🖼️ Asset Base URLs configured:', {
+    supabaseAssetBase,
+    directusAssetBase,
+    supabaseUrl,
+    storageBucket,
+    directusUrl,
+    envAssetBaseUrl: process.env.NEXT_PUBLIC_ASSET_BASE_URL,
+    envSupabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    envStorageBucket: process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET,
+    envDirectusUrl: process.env.NEXT_PUBLIC_DIRECTUS_URL
+  });
+}
 
 export interface ImageSelectionResult {
   primaryImage: string | null;
@@ -181,17 +199,81 @@ function getProductOrientationImage(
 }
 
 /**
- * Constructs a Directus asset URL
+ * Constructs an asset URL for Supabase Storage
+ * Files are stored as {uuid}.{extension} in Supabase Storage
  * @param reference File reference object or ID
  * @returns Public URL or null if unavailable
  */
 export function constructProductAssetUrl(reference: FileReference): string | null {
-  if (!reference) return null;
+  if (!reference) {
+    logMissingAsset(reference, 'Reference is null or undefined');
+    return null;
+  }
 
-  const id = typeof reference === 'string' ? reference : reference.id;
-  if (!id) return null;
+  let id: string;
+  let extension = '';
 
-  return `${resolvedAssetBase}/${id}`;
+  // Extract ID and determine file extension
+  if (typeof reference === 'object' && reference !== null) {
+    id = reference.id;
+
+    // Try to get extension from filename_disk if available
+    const filenameDisk = (reference as any).filename_disk;
+    if (filenameDisk && typeof filenameDisk === 'string') {
+      const match = filenameDisk.match(/\.([^.]+)$/);
+      if (match) {
+        extension = `.${match[1]}`;
+      }
+    }
+
+    // If no extension from filename_disk, try to infer from type field
+    if (!extension && 'type' in reference) {
+      const type = (reference as any).type;
+      if (type === 'image/webp') extension = '.webp';
+      else if (type === 'image/jpeg' || type === 'image/jpg') extension = '.jpg';
+      else if (type === 'image/png') extension = '.png';
+      else if (type === 'image/avif') extension = '.avif';
+      else if (type === 'application/pdf') extension = '.pdf';
+      else if (type === 'application/x-revit') extension = '.rfa';
+      else if (type === 'application/json') extension = '.json';
+      else if (type === 'application/octet-stream' && filenameDisk?.endsWith('.rfa')) {
+        extension = '.rfa';
+      }
+    }
+  } else if (typeof reference === 'string') {
+    id = reference;
+  } else {
+    id = '';
+  }
+
+  if (!id) {
+    logMissingAsset(reference, 'No ID found in reference');
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('🖼️ constructProductAssetUrl: No ID found in reference:', {
+        reference,
+        referenceType: typeof reference
+      });
+    }
+    return null;
+  }
+
+  // Files in Supabase Storage are stored as {uuid}.{extension}
+  const filename = `${id}${extension}`;
+  const url = `${supabaseAssetBase}/${filename}`;
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🖼️ constructProductAssetUrl: Built URL:', {
+      id,
+      extension,
+      filename,
+      url,
+      baseUrl: supabaseAssetBase,
+      isObject: typeof reference === 'object',
+      hasType: typeof reference === 'object' && reference !== null && 'type' in reference
+    });
+  }
+
+  return url;
 }
 
 
@@ -239,4 +321,22 @@ export async function validateImageUrl(url: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Logs missing asset errors for monitoring
+ * @param reference File reference that failed
+ * @param context Additional context for debugging
+ */
+function logMissingAsset(reference: FileReference, context?: string) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.error('🚨 Missing Asset:', {
+      reference,
+      context,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // In production, you might want to send this to a logging service
+  // Example: sendToLoggingService({ type: 'missing_asset', reference, context });
 }

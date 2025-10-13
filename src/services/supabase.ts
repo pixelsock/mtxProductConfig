@@ -41,19 +41,34 @@ const PRODUCT_FIELDS = `
   vertical_image_file:directus_files!products_vertical_image_foreign(
     id,
     filename_disk,
-    storage
+    storage,
+    type
   ),
   horizontal_image_file:directus_files!products_horizontal_image_foreign(
     id,
     filename_disk,
-    storage
+    storage,
+    type
+  ),
+  spec_sheet_file:directus_files!products_spec_sheet_foreign(
+    id,
+    filename_disk,
+    storage,
+    type
+  ),
+  revit_file_file:directus_files!products_revit_file_foreign(
+    id,
+    filename_disk,
+    storage,
+    type
   ),
   additional_images:products_files_1(
     id,
-    directus_files_id(
+    directus_files_id:directus_files!products_files_1_directus_files_id_foreign(
       id,
       filename_disk,
-      storage
+      storage,
+      type
     )
   )
 `;

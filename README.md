@@ -6,24 +6,24 @@ The MTX Product Configurator is an embeddable React application for configuring 
 
 ## Architecture
 
-- **Frontend**: React 18 + TypeScript + Vite
+- **Frontend**: React 18 + TypeScript + Next.js 15
 - **State**: Zustand slices orchestrating configuration, UI, API, and quote flows
 - **Backend**: Supabase (PostgreSQL, PostgREST, GraphQL, Storage)
+- **Runtime**: Cloudflare Workers (Edge runtime) on Webflow Cloud
 - **Tooling**: TypeScript Node scripts (`scripts/`) and schema/contract specs under `specs/`
 
 ## Environment Configuration
 
-Create a `.env.local` (or deployment-specific `.env`) with at least:
+Create a `.env.local` for local development:
 
 ```env
-VITE_SUPABASE_URL=https://<project>.supabase.co
-VITE_SUPABASE_ANON_KEY=your-public-anon-key
-VITE_SUPABASE_SERVICE_ROLE_KEY=your-service-role-key # server-side use only
-VITE_SUPABASE_STORAGE_BUCKET=directus-uploads
-VITE_ENABLE_DEBUG_LOGGING=true
+NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
 ```
 
-The client uses `VITE_SUPABASE_STORAGE_BUCKET` when generating asset URLs; set it explicitly for every environment. Keep service role keys outside browser builds—they are only read by scripts and backend tasks.
+For production deployment on Webflow Cloud, configure these same variables in the Webflow dashboard under Environment Variables.
+
+**Important:** The Supabase client uses lazy initialization to support runtime environment variable injection in Edge runtime. See `src/services/supabase.ts` for implementation details.
 
 ## Development
 
@@ -31,18 +31,33 @@ The client uses `VITE_SUPABASE_STORAGE_BUCKET` when generating asset URLs; set i
 # Install dependencies
 npm install
 
-# Start the Vite dev server
+# Start Next.js dev server (rapid iteration)
 npm run dev
+# → http://localhost:3000/config
 
-# Type-check and build
-npm run build
-
-# Preview the production build
+# Test with Edge runtime (before deploying)
 npm run preview
+# → http://localhost:8788/config
+
+# Build for production
+npm run build
 
 # Lint sources
 npm run lint
 ```
+
+### Development Workflows
+
+**For daily development:** Use `npm run dev` for fast iteration with hot module replacement.
+
+**Before deploying:** Use `npm run preview` to test with the actual Cloudflare Workers Edge runtime that runs in production on Webflow Cloud.
+
+**📖 See [DEVELOPMENT-WORKFLOWS.md](./DEVELOPMENT-WORKFLOWS.md) for complete guide including:**
+- When to use dev vs preview
+- Environment variable differences
+- Edge runtime compatibility testing
+- Troubleshooting tips
+- Deployment best practices
 
 ## Useful Scripts
 
@@ -63,14 +78,29 @@ Each script talks to Supabase directly, so ensure your `.env.local` mirrors the 
 ## Supabase Integration Notes
 
 - All availability logic is data-driven from Supabase tables (`rules`, `configuration_ui`, `product_lines`, etc.).
-- Image helpers fall back to curated assets when storage objects are missing; set `VITE_SUPABASE_STORAGE_BUCKET` to the preferred bucket (defaults to `assets`).
-- The shared Supabase client (`src/services/supabase.ts`) supports both browser (`import.meta.env`) and Node (`process.env`) runtimes so CLI scripts can reuse the same code.
+- The Supabase client (`src/services/supabase.ts`) uses lazy initialization to support runtime environment variable injection in Edge runtime.
+- CLI scripts can access the same client for local development and testing.
 
-## Deployment Checklist
+## Deployment
 
-1. Configure environment variables for the target runtime (see **Environment Configuration**).
-2. Ensure Supabase Storage policies grant public read access for assets exposed to the browser.
-3. Validate rules and schema via the CLI scripts above.
-4. Build the application with `npm run build` and deploy the `dist/` bundle to your hosting target.
+### Webflow Cloud (Production)
 
-All legacy Directus tooling has been removed; Supabase is now the single integration surface for rules, products, and media.
+This app deploys automatically to Webflow Cloud at `/config` when changes are pushed to the `main` branch.
+
+**Deployment Checklist:**
+1. Test locally with `npm run preview` (validates Edge runtime compatibility)
+2. Configure environment variables in Webflow Cloud dashboard
+3. Ensure Supabase Storage policies grant public read access
+4. Push to `main` branch to trigger automatic deployment
+5. Monitor build logs in Webflow dashboard
+
+**Production URL:** `https://yoursite.webflow.io/config`
+
+### Manual Deployment
+```bash
+# Build and deploy using Webflow CLI
+npm run build
+webflow cloud deploy
+```
+
+See [DEVELOPMENT-WORKFLOWS.md](./DEVELOPMENT-WORKFLOWS.md) for detailed deployment workflow and troubleshooting.

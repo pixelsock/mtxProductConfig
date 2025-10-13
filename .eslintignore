@@ -6,3 +6,15 @@ supabase_local_backup/
 .agent-os/
 *.config.cjs
 *.config.js
+
+# Archive and legacy files
+archive/
+vite.config.ts.old
+**/*.backup
+
+# Generated test/component files
+**/Code-component-*.tsx
+
+# Build outputs
+.next/
+.open-next/
