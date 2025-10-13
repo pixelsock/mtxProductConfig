@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Navigation() {
@@ -13,7 +12,7 @@ export default function Navigation() {
       <div className="max-w-[1480px] mx-auto px-4 h-12">
         <div className="flex items-center justify-between h-full">
           {/* Logo */}
-          <Link href="/" className="flex items-center">
+          <a href="/" className="flex items-center">
             <Image
               src="/logo-light.avif"
               alt="Matrix Mirrors"
@@ -22,16 +21,16 @@ export default function Navigation() {
               className="w-20 h-auto"
               priority
             />
-          </Link>
+          </a>
 
           {/* Desktop Navigation */}
           <div className="hidden px-4 lg:flex lg:items-centeritems-center flex-1 justify-left">
-            <Link
+            <a
               href="/about-us"
               className="text-white hover:text-gray-300 transition-colors text-[0.65rem] uppercase tracking-[0.02rem] py-2 px-4"
             >
               About Us
-            </Link>
+            </a>
 
             {/* Products Dropdown */}
             <div className="relative">
@@ -58,117 +57,117 @@ export default function Navigation() {
                   onMouseEnter={() => setIsProductsOpen(true)}
                   onMouseLeave={() => setIsProductsOpen(false)}
                 >
-                  <Link
+                  <a
                     href="/products"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     View All
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="/products?product-line=Classic LED Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Classic LED Mirrors
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="/products?product-line=Future Deco LED Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Future Deco LED Mirrors
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="/products?product-line=Future LED Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Future LED Mirrors
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="/products?product-line=Deco LED Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Deco LED Mirrors
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="/products?product-line=Bright Line LED Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Bright Line LED Mirrors
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="/products?product-line=Anti-Ligature LED Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Anti-Ligature LED Mirrors
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="/products?product-line=Polished Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Polished Mirrors
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="/products?product-line=Suspended LED Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Suspended LED Mirrors
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="/products?product-line=Makeup Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Makeup Mirrors
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="/products?product-line=Mirror Cabinet"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Mirror Cabinet
-                  </Link>
+                  </a>
                 </div>
               )}
             </div>
 
-            <Link
+            <a
               href="/matrix-mirrors-m-series-multi-family"
               className="text-white hover:text-gray-300 transition-colors text-[0.65rem] uppercase tracking-[0.02rem] py-2 px-4"
             >
               M-Series
-            </Link>
+            </a>
 
-            <Link
+            <a
               href="/find-a-rep-or-showroom"
               className="text-white hover:text-gray-300 transition-colors text-[0.65rem] uppercase tracking-[0.02rem] py-2 px-4"
             >
               Find Reps & Showrooms
-            </Link>
+            </a>
 
-            <Link
+            <a
               href="/gallery"
               className="text-white hover:text-gray-300 transition-colors text-[0.65rem] uppercase tracking-[0.02rem] py-2 px-4"
             >
               Gallery
-            </Link>
+            </a>
           </div>
 
           {/* Contact Button (Desktop) */}
           <div className="hidden lg:flex items-center">
-            <Link
+            <a
               href="/contact"
               className="bg-white text-[#0d0d0d] px-6 py-2 rounded text-[0.65rem] hover:bg-gray-100 transition-colors uppercase tracking-[0.02rem] font-medium"
             >
               Contact
-            </Link>
+            </a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -189,13 +188,13 @@ export default function Navigation() {
         {isMenuOpen && (
           <div className="lg:hidden absolute top-12 left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
             <div className="flex flex-col p-4 space-y-4">
-              <Link
-                href="/about"
+              <a
+                href="/about-us"
                 className="text-gray-700 hover:text-gray-900 uppercase tracking-wide"
                 onClick={() => setIsMenuOpen(false)}
               >
                 About Us
-              </Link>
+              </a>
 
               <div>
                 <button
@@ -215,56 +214,49 @@ export default function Navigation() {
 
                 {isProductsOpen && (
                   <div className="ml-4 mt-2 space-y-2">
-                    <Link
-                      href="/products/lighted"
+                    <a
+                      href="/products"
                       className="block text-gray-600 hover:text-gray-900"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Lighted Mirrors
-                    </Link>
-                    <Link
-                      href="/products/non-lighted"
-                      className="block text-gray-600 hover:text-gray-900"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Non-Lighted Mirrors
-                    </Link>
+                      View All
+                    </a>
                   </div>
                 )}
               </div>
 
-              <Link
-                href="/m-series"
+              <a
+                href="/matrix-mirrors-m-series-multi-family"
                 className="text-gray-700 hover:text-gray-900 uppercase tracking-wide"
                 onClick={() => setIsMenuOpen(false)}
               >
                 M-Series
-              </Link>
+              </a>
 
-              <Link
-                href="/showrooms"
+              <a
+                href="/find-a-rep-or-showroom"
                 className="text-gray-700 hover:text-gray-900 uppercase tracking-wide"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Find Reps & Showrooms
-              </Link>
+              </a>
 
-              <Link
+              <a
                 href="/gallery"
                 className="text-gray-700 hover:text-gray-900 uppercase tracking-wide"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Gallery
-              </Link>
+              </a>
 
               <div className="pt-4 border-t border-gray-200">
-                <Link
+                <a
                   href="/contact"
                   className="block bg-gray-100 text-gray-700 px-4 py-2 rounded text-center hover:bg-gray-200 uppercase tracking-wide"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Contact
-                </Link>
+                </a>
               </div>
             </div>
           </div>
