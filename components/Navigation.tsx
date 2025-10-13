@@ -36,8 +36,6 @@ export default function Navigation() {
             <div className="relative">
               <button
                 onClick={() => setIsProductsOpen(!isProductsOpen)}
-                onMouseEnter={() => setIsProductsOpen(true)}
-                onMouseLeave={() => setIsProductsOpen(false)}
                 className="text-white hover:text-gray-300 transition-colors text-[0.65rem] uppercase tracking-[0.02rem] py-2 px-4 flex items-center gap-1"
               >
                 Our Products
@@ -52,11 +50,7 @@ export default function Navigation() {
               </button>
 
               {isProductsOpen && (
-                <div
-                  className="absolute top-full left-0 mt-2 w-56 bg-white rounded-sm shadow-lg py-2"
-                  onMouseEnter={() => setIsProductsOpen(true)}
-                  onMouseLeave={() => setIsProductsOpen(false)}
-                >
+                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-sm shadow-lg py-2 z-50">
                   <a
                     href="/products"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -65,70 +59,70 @@ export default function Navigation() {
                     View All
                   </a>
                   <a
-                    href="/products?product-line=Classic LED Mirrors"
+                    href="/products?product-line=Classic%20LED%20Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Classic LED Mirrors
                   </a>
                   <a
-                    href="/products?product-line=Future Deco LED Mirrors"
+                    href="/products?product-line=Future%20Deco%20LED%20Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Future Deco LED Mirrors
                   </a>
                   <a
-                    href="/products?product-line=Future LED Mirrors"
+                    href="/products?product-line=Future%20LED%20Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Future LED Mirrors
                   </a>
                   <a
-                    href="/products?product-line=Deco LED Mirrors"
+                    href="/products?product-line=Deco%20LED%20Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Deco LED Mirrors
                   </a>
                   <a
-                    href="/products?product-line=Bright Line LED Mirrors"
+                    href="/products?product-line=Bright%20Line%20LED%20Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Bright Line LED Mirrors
                   </a>
                   <a
-                    href="/products?product-line=Anti-Ligature LED Mirrors"
+                    href="/products?product-line=Anti-Ligature%20LED%20Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Anti-Ligature LED Mirrors
                   </a>
                   <a
-                    href="/products?product-line=Polished Mirrors"
+                    href="/products?product-line=Polished%20Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Polished Mirrors
                   </a>
                   <a
-                    href="/products?product-line=Suspended LED Mirrors"
+                    href="/products?product-line=Suspended%20LED%20Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Suspended LED Mirrors
                   </a>
                   <a
-                    href="/products?product-line=Makeup Mirrors"
+                    href="/products?product-line=Makeup%20Mirrors"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
                     Makeup Mirrors
                   </a>
                   <a
-                    href="/products?product-line=Mirror Cabinet"
+                    href="/products?product-line=Mirror%20Cabinet"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsProductsOpen(false)}
                   >
